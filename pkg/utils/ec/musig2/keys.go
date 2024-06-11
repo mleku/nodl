@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"sort"
 
-	"mleku.net/g/nodl/pkg/utils/ec"
-	"mleku.net/g/nodl/pkg/utils/ec/chainhash"
-	"mleku.net/g/nodl/pkg/utils/ec/schnorr"
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/ec"
+	"github.com/mleku/nodl/pkg/utils/ec/chainhash"
+	"github.com/mleku/nodl/pkg/utils/ec/schnorr"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
 )
 
 var (

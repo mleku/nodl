@@ -9,7 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 const (

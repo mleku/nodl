@@ -9,9 +9,10 @@ import (
 	"math/big"
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/ec"
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/utils/ec"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 // hexToBytes converts the passed hex string into bytes and will panic if there

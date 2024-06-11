@@ -20,7 +20,7 @@ package ec
 // reverse the transform than to operate in affine coordinates.
 
 import (
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
 )
 
 // KoblitzCurve provides an implementation for secp256k1 that fits the ECC

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/lol"
+	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
 var log, chk = lol.New(os.Stdout)

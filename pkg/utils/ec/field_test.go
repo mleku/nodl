@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 // TestIsZero ensures that checking if a field IsZero works as expected.

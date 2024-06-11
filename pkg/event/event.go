@@ -1,12 +1,12 @@
 package event
 
 import (
-	"mleku.net/g/nodl/pkg/eventid"
-	"mleku.net/g/nodl/pkg/kind"
-	"mleku.net/g/nodl/pkg/pubkey"
-	"mleku.net/g/nodl/pkg/signature"
-	"mleku.net/g/nodl/pkg/tags"
-	"mleku.net/g/nodl/pkg/timestamp"
+	"github.com/mleku/nodl/pkg/eventid"
+	"github.com/mleku/nodl/pkg/kind"
+	"github.com/mleku/nodl/pkg/pubkey"
+	"github.com/mleku/nodl/pkg/signature"
+	"github.com/mleku/nodl/pkg/tags"
+	"github.com/mleku/nodl/pkg/timestamp"
 )
 
 // T is the primary data type of the nostr protocol. It is a simple, flexible

@@ -1,6 +1,6 @@
 package kinds
 
-import "mleku.net/g/nodl/pkg/kind"
+import "github.com/mleku/nodl/pkg/kind"
 
 type T []kind.T
 

@@ -1,10 +1,10 @@
 package filter
 
 import (
-	"mleku.net/g/nodl/pkg/kinds"
-	"mleku.net/g/nodl/pkg/tag"
-	"mleku.net/g/nodl/pkg/text"
-	"mleku.net/g/nodl/pkg/timestamp"
+	"github.com/mleku/nodl/pkg/kinds"
+	"github.com/mleku/nodl/pkg/tag"
+	"github.com/mleku/nodl/pkg/text"
+	"github.com/mleku/nodl/pkg/timestamp"
 )
 
 type T struct {

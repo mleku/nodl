@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"mleku.net/g/nodl/pkg/utils/bech32"
-	"mleku.net/g/nodl/pkg/utils/ec/chaincfg"
+	"github.com/mleku/nodl/pkg/utils/bech32"
+	"github.com/mleku/nodl/pkg/utils/ec/chaincfg"
 )
 
 // AddressSegWit is the base address type for all SegWit addresses.

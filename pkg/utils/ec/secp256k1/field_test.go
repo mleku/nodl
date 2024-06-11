@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 // SetHex decodes the passed big-endian hex string into the internal field value

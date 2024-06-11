@@ -10,8 +10,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/mleku/nodl/pkg/utils/hex"
 	"github.com/stretchr/testify/require"
-	"mleku.net/g/nodl/pkg/utils/hex"
 )
 
 type nonceGenTestCase struct {

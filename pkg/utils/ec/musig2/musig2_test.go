@@ -8,8 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/ec"
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/utils/ec"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 const (

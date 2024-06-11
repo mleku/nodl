@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"mleku.net/g/nodl/pkg/utils/interrupt"
+	"github.com/mleku/nodl/pkg/utils/interrupt"
 )
 
 func main() {

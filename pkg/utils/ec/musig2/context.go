@@ -5,8 +5,8 @@ package musig2
 import (
 	"fmt"
 
-	"mleku.net/g/nodl/pkg/utils/ec"
-	"mleku.net/g/nodl/pkg/utils/ec/schnorr"
+	"github.com/mleku/nodl/pkg/utils/ec"
+	"github.com/mleku/nodl/pkg/utils/ec/schnorr"
 )
 
 var (

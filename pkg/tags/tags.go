@@ -1,6 +1,6 @@
 package tags
 
-import "mleku.net/g/nodl/pkg/tag"
+import "github.com/mleku/nodl/pkg/tag"
 
 type T []tag.T
 

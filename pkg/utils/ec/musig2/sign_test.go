@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mleku/nodl/pkg/utils/ec"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/hex"
 	"github.com/stretchr/testify/require"
-	"mleku.net/g/nodl/pkg/utils/ec"
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
-	"mleku.net/g/nodl/pkg/utils/hex"
 )
 
 const (

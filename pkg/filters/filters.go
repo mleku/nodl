@@ -1,6 +1,6 @@
 package filters
 
-import "mleku.net/g/nodl/pkg/filter"
+import "github.com/mleku/nodl/pkg/filter"
 
 type T []filter.T
 

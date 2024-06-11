@@ -10,7 +10,7 @@ package ec
 import (
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 func FuzzParsePubKey(f *testing.F) {

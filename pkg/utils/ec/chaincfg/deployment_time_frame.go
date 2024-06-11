@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"mleku.net/g/nodl/pkg/utils/ec/wire"
+	"github.com/mleku/nodl/pkg/utils/ec/wire"
 )
 
 var (

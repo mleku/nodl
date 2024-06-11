@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 // mainNetGenesisHash is the hash of the first block in the block chain for the

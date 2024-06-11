@@ -5,7 +5,7 @@
 package ec
 
 import (
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
 )
 
 // These constants define the lengths of serialized public keys.

@@ -6,7 +6,7 @@ package ec
 import (
 	"fmt"
 
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
 )
 
 // JacobianPoint is an element of the group formed by the secp256k1 curve in

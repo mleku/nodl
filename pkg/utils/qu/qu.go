@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"mleku.net/g/nodl/pkg/utils/atomic"
-	"mleku.net/g/nodl/pkg/utils/lol"
+	"github.com/mleku/nodl/pkg/utils/atomic"
+	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
 var (

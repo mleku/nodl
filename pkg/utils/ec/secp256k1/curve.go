@@ -8,7 +8,7 @@ package secp256k1
 import (
 	"math/bits"
 
-	"mleku.net/g/nodl/pkg/utils/hex"
+	"github.com/mleku/nodl/pkg/utils/hex"
 )
 
 // References:

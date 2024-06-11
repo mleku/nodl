@@ -3,7 +3,7 @@ package wire
 import (
 	"time"
 
-	"mleku.net/g/nodl/pkg/utils/ec/chainhash"
+	"github.com/mleku/nodl/pkg/utils/ec/chainhash"
 )
 
 // BlockHeader defines information about a block and is used in the bitcoin

@@ -2,10 +2,11 @@ package timestamp
 
 import (
 	"encoding/binary"
+	"errors"
 	"strconv"
 	"time"
 
-	"mleku.net/g/nodl/pkg/utils/ints"
+	"github.com/mleku/nodl/pkg/utils/ints"
 )
 
 // T is the value type which is used where
@@ -47,6 +48,7 @@ func FromUnix(t int64) T { return T(t) }
 // FromBytes converts from a string of raw bytes.
 func FromBytes(b []byte) T { return T(binary.BigEndian.Uint64(b)) }
 
+// MarshalJSON encodes a timestamp as ASCII decimal form as required for JSON.
 func (t *T) MarshalJSON() (b []byte, err error) {
 	// math.MaxInt64 has 19 ciphers in decimal form
 	b = ints.Int64AppendToByteString(make([]byte, 0, 19), int64(*t))
@@ -57,7 +59,7 @@ func (t *T) MarshalJSON() (b []byte, err error) {
 // generating a place counter, multiplying by the ascii byte, minus 48 ('0') and
 // then multiplying the place counter by 10, except for the last place.
 //
-// There is no byte slice equivalent
+// There is no byte slice equivalent and this function is a lot faster.
 func (t *T) UnmarshalJSON(b []byte) (err error) {
 	var n int64
 	n, err = ints.ByteStringToInt64(b)
@@ -76,7 +78,7 @@ func (t *T) UnmarshalBinary(data []byte) (err error) {
 	var v int64
 	v, n = binary.Varint(data)
 	if n < 1 {
-		return
+		return errors.New("failed to decode varint timestamp")
 	}
 	*t = T(v)
 	return

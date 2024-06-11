@@ -14,7 +14,7 @@ import (
 	"math/big"
 	"os"
 
-	"mleku.net/g/nodl/pkg/utils/ec/secp256k1"
+	"github.com/mleku/nodl/pkg/utils/ec/secp256k1"
 )
 
 // curveParams houses the secp256k1 curve parameters for convenient access.

@@ -10,7 +10,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gookit/color"
-	"mleku.net/g/nodl/pkg/utils/atomic"
+	"github.com/mleku/nodl/pkg/utils/atomic"
 )
 
 var l = GetStd()

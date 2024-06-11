@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	"mleku.net/g/nodl/pkg/utils/atomic"
-	"mleku.net/g/nodl/pkg/utils/lol"
-	"mleku.net/g/nodl/pkg/utils/qu"
+	"github.com/mleku/nodl/pkg/utils/atomic"
+	"github.com/mleku/nodl/pkg/utils/lol"
+	"github.com/mleku/nodl/pkg/utils/qu"
 )
 
 var (
