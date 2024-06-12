@@ -5,6 +5,7 @@ import (
 	"os"
 
 	text "github.com/mleku/nodl/pkg/text/escape"
+	"github.com/mleku/nodl/pkg/utils/bytestring"
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
@@ -16,19 +17,6 @@ type T struct {
 
 func New() *T { return &T{} }
 
-func (t *T) AppendEscaped(dst []byte, quote bool) (b []byte) {
-	if quote {
-		dst = append(dst, '"')
-	}
-	dst = text.EscapeByteString(dst, t.b)
-	if quote {
-		dst = append(dst, '"')
-	}
-	return dst
-}
-
-func Unquote(b []byte) []byte { return b[1 : len(b)-2] }
-
 func (t *T) MarshalJSON() (b []byte, err error) {
 	// a reasonable estimate of how much the escaping will increase is about 30
 	// characters between line breaks, but with quotes, and embedded JSON, maybe
@@ -37,29 +25,28 @@ func (t *T) MarshalJSON() (b []byte, err error) {
 	if cap(t.b) < est {
 		t.b = make([]byte, 0, est)
 	}
-	b = append(b, '"')
-	b = text.EscapeByteString(b, t.b)
-	b = append(b, '"')
+	b = bytestring.AppendQuote(b, t.b, text.NostrEscape)
 	return
 }
 
 func (t *T) UnmarshalJSON(b []byte) (err error) {
-	text.UnescapeByteString(t.b, Unquote(b))
+	text.NostrUnescape(t.b, bytestring.Unquote(b))
 	return
 }
 
 func (t *T) Len() int { return len(t.b) }
 
-func (t *T) AppendBinary(data []byte) []byte {
-	data = binary.AppendUvarint(data, uint64(len(t.b)))
-	data = append(data, t.b...)
-	return data
+func (t *T) Append(dst []byte) (b []byte) {
+	dst = binary.AppendUvarint(dst, uint64(len(t.b)))
+	dst = append(dst, t.b...)
+	b = dst
+	return
 }
 
 // MarshalBinary appends a varint prefix length prefix and then the text bytes.
 func (t *T) MarshalBinary() (data []byte, err error) {
 	data = make([]byte, 0, t.Len()+4) // should never be more than 268Mb
-	data = t.AppendBinary(data)
+	data = t.Append(data)
 	return
 }
 

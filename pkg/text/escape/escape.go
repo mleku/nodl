@@ -1,6 +1,6 @@
 package text
 
-// EscapeByteString for JSON encoding according to RFC8259.
+// NostrEscape for JSON encoding according to RFC8259.
 //
 // This is the efficient implementation based on the NIP-01 specification:
 //
@@ -16,10 +16,9 @@ package text
 //	- A backspace, 0x08, as \b
 //	- A form feed, 0x0C, as \f
 //	UTF-8 should be used for encoding.
-func EscapeByteString(dst []byte, s []byte) []byte {
-	dst = append(dst, '"')
-	for i := 0; i < len(s); i++ {
-		c := s[i]
+func NostrEscape(dst, src []byte) []byte {
+	for i := 0; i < len(src); i++ {
+		c := src[i]
 		switch {
 		case c == '"':
 			// quotation mark
@@ -41,16 +40,12 @@ func EscapeByteString(dst []byte, s []byte) []byte {
 			dst = append(dst, c)
 		}
 	}
-	dst = append(dst, '"')
 	return dst
 }
 
-func UnescapeByteString(dst, src []byte) []byte {
+func NostrUnescape(dst, src []byte) []byte {
 	var i int
-	// remove initial quote
-	i++
-	// skip the last quote
-	for ; i < len(src)-1; i++ {
+	for ; i < len(src); i++ {
 		if src[i] == '\\' {
 			i++
 			c := src[i]

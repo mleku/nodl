@@ -1,6 +1,7 @@
 package text
 
 import (
+	"os"
 	"testing"
 
 	"github.com/minio/sha256-simd"
@@ -8,14 +9,15 @@ import (
 	"lukechampine.com/frand"
 )
 
+var log, chk, errorf = lol.New(os.Stderr)
+
 func TestUnescapeByteString(t *testing.T) {
-	lol.SetLogLevel(lol.Debug)
 	b := make([]byte, 256)
 	for i := range b {
 		b[i] = byte(i)
 	}
-	escaped := EscapeByteString(nil, b)
-	unescaped := UnescapeByteString(nil, escaped)
+	escaped := NostrEscape(nil, b)
+	unescaped := NostrUnescape(nil, escaped)
 	if string(b) != string(unescaped) {
 		t.Log(b)
 		t.Log(unescaped)
@@ -65,8 +67,8 @@ func TestRandomEscapeByteString(t *testing.T) {
 		copy(orig, s1)
 
 		// first we are checking our implementation comports to the one from go-nostr.
-		escapeStringVersion := EscapeByteString([]byte{}, s1)
-		escapeJSONStringAndWrapVersion := EscapeByteString(nil, s2)
+		escapeStringVersion := NostrEscape([]byte{}, s1)
+		escapeJSONStringAndWrapVersion := NostrEscape(nil, s2)
 		if len(escapeJSONStringAndWrapVersion) != len(escapeStringVersion) {
 			t.Logf("escapeString\nlength: %d\n%s\n%v\n",
 				len(escapeStringVersion), string(escapeStringVersion),
@@ -104,7 +106,7 @@ func TestRandomEscapeByteString(t *testing.T) {
 		}
 
 		// next, unescape the output and see if it matches the original
-		unescaped := UnescapeByteString(nil, escapeJSONStringAndWrapVersion)
+		unescaped := NostrUnescape(nil, escapeJSONStringAndWrapVersion)
 		// t.Logf("unescaped: \n%s\noriginal:  \n%s", unescaped, orig)
 		if string(unescaped) != string(orig) {
 			t.Fatalf("\ngot      %d %v\nexpected %d %v\n",
@@ -115,4 +117,168 @@ func TestRandomEscapeByteString(t *testing.T) {
 			)
 		}
 	}
+}
+
+func BenchmarkNostrEscapeNostrUnescape(b *testing.B) {
+	const size = 65536
+	b.Run("frand64k", func(b *testing.B) {
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape64k", func(b *testing.B) {
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand32k", func(b *testing.B) {
+		size := size / 2
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape32k", func(b *testing.B) {
+		size := size / 2
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand16k", func(b *testing.B) {
+		size := size / 4
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape16k", func(b *testing.B) {
+		size := size / 4
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand8k", func(b *testing.B) {
+		size := size / 8
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape8k", func(b *testing.B) {
+		size := size / 8
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand4k", func(b *testing.B) {
+		size := size / 16
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape4k", func(b *testing.B) {
+		size := size / 16
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand2k", func(b *testing.B) {
+		size := size / 32
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape2k", func(b *testing.B) {
+		size := size / 32
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+	b.Run("frand1k", func(b *testing.B) {
+		size := size / 64
+		in := make([]byte, size)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("NostrEscape1k", func(b *testing.B) {
+		size := size / 64
+		in := make([]byte, size)
+		out := make([]byte, size*2)
+		var err error
+		for i := 0; i < b.N; i++ {
+			if _, err = frand.Read(in); chk.E(err) {
+				b.Fatal(err)
+			}
+			out = NostrEscape(out, in)
+			out = out[:0]
+		}
+	})
+
 }

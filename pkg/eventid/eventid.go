@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/utils/bytestring"
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
@@ -41,9 +42,7 @@ func (t *T) Set(b []byte) (err error) {
 
 func AppendFromBinary(dst, src []byte, quote bool) (b []byte) {
 	if quote {
-		dst = append(dst, '"')
-		dst = hex.AppendEncode(dst, src)
-		dst = append(dst, '"')
+		dst = bytestring.AppendQuote(dst, src, hex.AppendEncode)
 	} else {
 		dst = hex.AppendEncode(dst, src)
 	}
@@ -53,7 +52,9 @@ func AppendFromBinary(dst, src []byte, quote bool) (b []byte) {
 
 func AppendFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
 	if unquote {
-		if dst, err = hex.AppendDecode(dst, src[1:len(src)-1]); chk.E(err) {
+		if dst, err = hex.AppendDecode(dst,
+			bytestring.Unquote(src)); chk.E(err) {
+
 			return
 		}
 	} else {
