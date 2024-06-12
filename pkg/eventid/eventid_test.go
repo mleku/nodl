@@ -21,7 +21,7 @@ func TestAppendFromBinaryAppendFromHex(t *testing.T) {
 		if out, err = AppendFromHex(out, hx, false); chk.E(err) {
 			t.Fatal(err)
 		}
-		if bytes.Compare(in, out) != 0 {
+		if bytes.Equal(in, out) {
 			t.Fatalf("AppendFromBinary returned wrong bytes:\n%0x\n%0x", in,
 				out)
 		}
@@ -42,7 +42,7 @@ func TestAppendFromBinaryAppendFromHexQuote(t *testing.T) {
 		if out, err = AppendFromHex(out, hx, true); chk.E(err) {
 			t.Fatal(err)
 		}
-		if bytes.Compare(in, out) != 0 {
+		if bytes.Equal(in, out) {
 			t.Fatalf("AppendFromBinary returned wrong bytes:\n%0x\n%0x", in,
 				out)
 		}
@@ -105,7 +105,7 @@ func BenchmarkT(b *testing.B) {
 			if out, err = AppendFromHex(out, hx, false); chk.E(err) {
 				b.Fatal(err)
 			}
-			if bytes.Compare(in, out) != 0 {
+			if bytes.Equal(in, out) {
 				b.Fatalf("AppendFromBinary returned wrong bytes:\n%0x\n%0x", in,
 					out)
 			}
@@ -137,7 +137,7 @@ func BenchmarkT(b *testing.B) {
 			if out, err = AppendFromHex(out, hx, true); chk.E(err) {
 				b.Fatal(err)
 			}
-			if bytes.Compare(in, out) != 0 {
+			if bytes.Equal(in, out) {
 				b.Fatalf("AppendFromBinary returned wrong bytes:\n%0x\n%0x", in,
 					out)
 			}

@@ -33,21 +33,19 @@ var seed = sha256.Sum256([]byte(`
 The tao that can be told
 is not the eternal Tao
 The name that can be named
-is not the eternal Name.
+is not the eternal Name
 
-The unnamable is the eternally real.
-Naming is the origin
-of all particular things.
+The unnamable is the eternally real
+Naming is the origin of all particular things
 
-Free from desire, you realize the mystery.
-Caught in desire, you see only the manifestations.
+Free from desire, you realize the mystery
+Caught in desire, you see only the manifestations
 
-Yet mystery and manifestations
-arise from the same source.
-This source is called darkness.
+Yet mystery and manifestations arise from the same source
+This source is called darkness
 
-Darkness within darkness.
-The gateway to all understanding.
+Darkness within darkness
+The gateway to all understanding
 `))
 
 var src = frand.NewCustom(seed[:], 32, 12)

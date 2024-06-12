@@ -66,7 +66,7 @@ func AppendFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
 	return
 }
 
-func (t *T) Equal(t2 *T) bool { return bytes.Compare(t.b, t2.b) == 0 }
+func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
 
 func (t *T) MarshalJSON() (b []byte, err error) {
 	b = make([]byte, 0, sha256.Size*2+2)

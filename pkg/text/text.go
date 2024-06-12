@@ -1,8 +1,10 @@
 package text
 
 import (
+	"bytes"
 	"encoding/binary"
 	"os"
+	"unsafe"
 
 	text "github.com/mleku/nodl/pkg/text/escape"
 	"github.com/mleku/nodl/pkg/utils/bytestring"
@@ -17,6 +19,36 @@ type T struct {
 
 func New() *T { return &T{} }
 
+func NewFromBytes(b []byte) *T { return &T{b: b} }
+func (t *T) Bytes() []byte     { return t.b }
+func (t *T) String() string    { return string(t.b) }
+
+// SetStringImmutable uses unsafe to turn the input string to a byte slice with
+// the limitation that the resultant state of the text.T cannot be mutated.
+//
+// The slice can be copied freely of course. It is possible to use MarshalJSON,
+// for example, after calling this to pull in a string.
+func (t *T) SetStringImmutable(s string) {
+	d := unsafe.StringData(s)
+	t.b = unsafe.Slice(d, len(s))
+}
+
+// SetString copies a string into the bytes, which can then be mutated, in
+// contrast to SetStringImmutable.
+func (t *T) SetString(s string) {
+	t.b = make([]byte, len(s))
+	copy(t.b, s)
+}
+
+func (t *T) Set(b []byte) { t.b = b }
+
+func AppendFromBinary(dst, src []byte) (b []byte) {
+	dst = append(dst, src...)
+	return dst
+}
+
+func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
+
 func (t *T) MarshalJSON() (b []byte, err error) {
 	// a reasonable estimate of how much the escaping will increase is about 30
 	// characters between line breaks, but with quotes, and embedded JSON, maybe
@@ -30,7 +62,7 @@ func (t *T) MarshalJSON() (b []byte, err error) {
 }
 
 func (t *T) UnmarshalJSON(b []byte) (err error) {
-	text.NostrUnescape(t.b, bytestring.Unquote(b))
+	t.b = text.NostrUnescape(t.b, bytestring.Unquote(b))
 	return
 }
 
@@ -58,7 +90,8 @@ func (t *T) UnmarshalBinary(data []byte) (err error) {
 		return errorf.E("failed to read uvarint length prefix")
 	}
 	if int(l)+read > len(data) {
-		return errorf.E("insufficient data in buffer to ")
+		return errorf.E("insufficient data in buffer, expect %d have %d",
+			int(l)+read, len(data))
 	}
 	t.b = data[read : read+int(l)]
 	return
