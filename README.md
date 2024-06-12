@@ -18,6 +18,7 @@ nostr relay and support libraries built from scratch
   - [ ] bench
 - [ ] text
   - [x] nip-01 escaping/quoting
+  - [x] nip-01 bench escape/unescape
   - [ ] json
   - [ ] binary
   - [ ] test
