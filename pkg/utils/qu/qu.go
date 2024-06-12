@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	log, chk = lol.New(os.Stderr)
+	log, chk, errorf = lol.New(os.Stderr)
 )
 
 // C is your basic empty struct signalling channel

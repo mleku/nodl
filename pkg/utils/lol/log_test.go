@@ -8,7 +8,7 @@ import (
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
-var log, chk = lol.New(os.Stdout)
+var log, chk, errorf = lol.New(os.Stdout)
 
 func TestGetLogger(t *testing.T) {
 	for i := 0; i < 100; i++ {

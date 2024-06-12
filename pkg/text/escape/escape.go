@@ -71,6 +71,7 @@ func UnescapeByteString(dst, src []byte) []byte {
 				dst = append(dst, '\r')
 			default:
 				// don't change anything that doesn't match one of the above.
+				// this should leave most non-compliant escapes intact.
 				dst = append(dst, '\\')
 				dst = append(dst, c)
 			}

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	log, chk = lol.New(os.Stderr)
+	log, chk, errorf = lol.New(os.Stderr)
 )
 
 type HandlerWithSource struct {
