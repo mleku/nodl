@@ -19,10 +19,10 @@ nostr relay and support libraries built from scratch
 - [ ] text
   - [x] nip-01 escaping/quoting
   - [x] nip-01 bench escape/unescape
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
+  - [x] json
+  - [x] binary
+  - [x] test
+  - [x] bench
 - [x] eventid
   - [x] json
   - [x] binary
