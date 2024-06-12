@@ -52,3 +52,30 @@ func TestT(t *testing.T) {
 		}
 	}
 }
+func BenchmarkT(bb *testing.B) {
+	bb.Run("MarshalJSON", func(bb *testing.B) {
+		ts := Now()
+		ti64 := int64(*ts)
+		t1 := FromUnix(ti64)
+		var err error
+		var b []byte
+		if b, err = t1.MarshalJSON(); chk.E(err) {
+			bb.Fatal(err)
+		}
+		_ = b
+	})
+	bb.Run("MarshalJSONUnmarshalJSON", func(bb *testing.B) {
+		ts := Now()
+		ti64 := int64(*ts)
+		t1 := FromUnix(ti64)
+		var err error
+		var b []byte
+		if b, err = t1.MarshalJSON(); chk.E(err) {
+			bb.Fatal(err)
+		}
+		var t3 T
+		if err = t3.UnmarshalBinary(b); err != nil {
+			bb.Fatal(err)
+		}
+	})
+}

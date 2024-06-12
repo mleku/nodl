@@ -16,7 +16,7 @@ nostr relay and support libraries built from scratch
   - [ ] binary
   - [ ] test
   - [ ] bench
-- [ ] text
+- [x] text
   - [x] nip-01 escaping/quoting
   - [x] nip-01 bench escape/unescape
   - [x] json
@@ -36,11 +36,11 @@ nostr relay and support libraries built from scratch
 - [x] ints (byte string ascii decimal)
   - [x] test
   - [x] bench
-- [ ] timestamp
+- [x] timestamp
   - [x] json
   - [x] binary
-  - [ ] test
-  - [ ] bench
+  - [x] test
+  - [x] bench
 - [ ] tag
   - [ ] json
   - [ ] binary
