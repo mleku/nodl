@@ -8,7 +8,7 @@ import (
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
-var log, chk = lol.New(os.Stderr)
+var log, chk, errorf = lol.New(os.Stderr)
 
 type T struct {
 	b []byte
@@ -68,10 +68,10 @@ func (t *T) MarshalBinary() (data []byte, err error) {
 func (t *T) UnmarshalBinary(data []byte) (err error) {
 	l, read := binary.Uvarint(data)
 	if read < 1 {
-		return log.E.Err("failed to read uvarint length prefix")
+		return errorf.E("failed to read uvarint length prefix")
 	}
 	if int(l)+read > len(data) {
-		return log.E.Err("insufficient data in buffer to ")
+		return errorf.E("insufficient data in buffer to ")
 	}
 	t.b = data[read : read+int(l)]
 	return

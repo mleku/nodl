@@ -16,7 +16,7 @@ import (
 var l = GetStd()
 
 func GetStd() (ll *Log) {
-	ll, _ = New(os.Stdout)
+	ll, _, _ = New(os.Stdout)
 	return
 }
 
@@ -126,6 +126,9 @@ type Log struct {
 type Check struct {
 	F, E, W, I, D, T Chk
 }
+type Errorf struct {
+	F, E, W, I, D, T Err
+}
 
 func JoinStrings(a ...any) (s string) {
 	for i := range a {
@@ -201,7 +204,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	}
 }
 
-func New(writer io.Writer) (l *Log, c *Check) {
+func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	l = &Log{
 		F: GetPrinter(Fatal, writer),
 		E: GetPrinter(Error, writer),
@@ -217,6 +220,14 @@ func New(writer io.Writer) (l *Log, c *Check) {
 		I: l.I.Chk,
 		D: l.D.Chk,
 		T: l.T.Chk,
+	}
+	errorf = &Errorf{
+		F: l.F.Err,
+		E: l.E.Err,
+		W: l.W.Err,
+		I: l.I.Err,
+		D: l.D.Err,
+		T: l.T.Err,
 	}
 	return
 }

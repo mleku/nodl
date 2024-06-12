@@ -29,7 +29,6 @@ func TestAppendHexToByteString(t *testing.T) {
 			t.Fatal(err)
 		}
 		h = h[:0]
-
 	}
 }
 

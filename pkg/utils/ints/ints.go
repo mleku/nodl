@@ -6,7 +6,7 @@ import (
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
-var log, chk = lol.New(os.Stderr)
+var log, chk, errorf = lol.New(os.Stderr)
 
 // ByteStringToInt64 decodes a decimal number encoded in []byte (rather than
 // string) - there is no stdlib equivalent and this is ~2x as fast as
@@ -15,7 +15,7 @@ func ByteStringToInt64(b []byte) (n int64, err error) {
 	place := int64(1)
 	for i := range b {
 		if b[i] < '0' || b[i] > '9' {
-			err = log.E.Err("timestamp: invalid byte %q", b[i])
+			err = errorf.E("timestamp: invalid byte %q", b[i])
 			return
 		}
 		n += int64(b[i]-'0') * place

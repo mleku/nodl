@@ -7,7 +7,7 @@ import (
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
-var log, chk = lol.New(os.Stderr)
+var log, chk, errorf = lol.New(os.Stderr)
 
 type InvalidByteError = hex.InvalidByteError
 
@@ -73,7 +73,7 @@ func AppendHexToByteString(dst, src []byte) (b []byte) {
 // altogether.
 func HexByteStringToBytes(h []byte) (b []byte, err error) {
 	if len(h)%2 != 0 {
-		err = log.E.Err("invalid length of hex, got %d, must be even", len(h))
+		err = errorf.E("invalid length of hex, got %d, must be even", len(h))
 		return
 	}
 	for i := 0; i < len(h); i += 2 {
@@ -88,7 +88,7 @@ func HexByteStringToBytes(h []byte) (b []byte, err error) {
 				// log.I.F("%c %x", bb, (bb-l)<<(j*4))
 				v += (bb - l) << ((1 - j) * 4)
 			} else {
-				err = log.E.Err("invalid hex char %c at %d in %s", h[i], i+j,
+				err = errorf.E("invalid hex char %c at %d in %s", h[i], i+j,
 					string(h))
 				return
 			}
