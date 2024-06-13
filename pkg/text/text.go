@@ -2,7 +2,6 @@ package text
 
 import (
 	"bytes"
-	"encoding/binary"
 	"os"
 	"unsafe"
 
@@ -42,11 +41,6 @@ func (t *T) SetString(s string) {
 
 func (t *T) Set(b []byte) { t.b = b }
 
-func AppendFromBinary(dst, src []byte) (b []byte) {
-	dst = append(dst, src...)
-	return dst
-}
-
 func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
 
 func (t *T) MarshalJSON() (b []byte, err error) {
@@ -68,31 +62,17 @@ func (t *T) UnmarshalJSON(b []byte) (err error) {
 
 func (t *T) Len() int { return len(t.b) }
 
-func (t *T) Append(dst []byte) (b []byte) {
-	dst = binary.AppendUvarint(dst, uint64(len(t.b)))
-	dst = append(dst, t.b...)
-	b = dst
-	return
-}
-
 // MarshalBinary appends a varint prefix length prefix and then the text bytes.
 func (t *T) MarshalBinary() (data []byte, err error) {
-	data = make([]byte, 0, t.Len()+4) // should never be more than 268Mb
-	data = t.Append(data)
+	data = bytestring.Append(data, t.b)
 	return
 }
 
 // UnmarshalBinary expects a uvarint length prefix and then the specified amount
 // of bytes.
 func (t *T) UnmarshalBinary(data []byte) (err error) {
-	l, read := binary.Uvarint(data)
-	if read < 1 {
-		return errorf.E("failed to read uvarint length prefix")
+	if t.b, _, err = bytestring.Extract(data); chk.E(err) {
+		return
 	}
-	if int(l)+read > len(data) {
-		return errorf.E("insufficient data in buffer, expect %d have %d",
-			int(l)+read, len(data))
-	}
-	t.b = data[read : read+int(l)]
 	return
 }
