@@ -17,10 +17,11 @@ type T struct {
 	b []byte
 }
 
-func New() *T               { return &T{b: make([]byte, 0, sha256.Size)} }
-func (t *T) Bytes() []byte  { return t.b }
-func (t *T) String() string { return hex.EncodeToString(t.Bytes()) }
-func (t *T) Reset()         { t.b = t.b[:0] }
+func New() *T                 { return &T{b: make([]byte, 0, sha256.Size)} }
+func (t *T) Bytes() []byte    { return t.b }
+func (t *T) String() string   { return hex.EncodeToString(t.Bytes()) }
+func (t *T) Reset()           { t.b = t.b[:0] }
+func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
 
 func NewFromBytes(b []byte) (t *T, err error) {
 	if len(b) != sha256.Size {
@@ -40,7 +41,7 @@ func (t *T) Set(b []byte) (err error) {
 	return
 }
 
-func AppendFromBinary(dst, src []byte, quote bool) (b []byte) {
+func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
 	if quote {
 		dst = bytestring.AppendQuote(dst, src, hex.AppendEncode)
 	} else {
@@ -50,7 +51,7 @@ func AppendFromBinary(dst, src []byte, quote bool) (b []byte) {
 	return
 }
 
-func AppendFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
+func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
 	if unquote {
 		if dst, err = hex.AppendDecode(dst,
 			bytestring.Unquote(src)); chk.E(err) {
@@ -66,11 +67,9 @@ func AppendFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
 	return
 }
 
-func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
-
 func (t *T) MarshalJSON() (b []byte, err error) {
 	b = make([]byte, 0, sha256.Size*2+2)
-	b = AppendFromBinary(b, t.b, true)
+	b = AppendHexFromBinary(b, t.b, true)
 	return
 }
 
@@ -81,7 +80,7 @@ func (t *T) UnmarshalJSON(b []byte) (err error) {
 	}
 	// reset the slice
 	t.Reset()
-	if t.b, err = AppendFromHex(t.b, b, true); chk.E(err) {
+	if t.b, err = AppendBinaryFromHex(t.b, b, true); chk.E(err) {
 		return
 	}
 	return

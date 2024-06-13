@@ -28,11 +28,11 @@ nostr relay and support libraries built from scratch
   - [x] binary
   - [x] test
   - [x] bench
-- [ ] pubkey
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
+- [x] pubkey
+  - [x] json
+  - [x] binary
+  - [x] test
+  - [x] bench
 - [x] ints (byte string ascii decimal)
   - [x] test
   - [x] bench
