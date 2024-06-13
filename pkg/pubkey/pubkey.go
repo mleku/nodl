@@ -26,6 +26,9 @@ func (t *T) String() string   { return hex.EncodeToString(t.Bytes()) }
 func (t *T) Reset()           { t.b = t.b[:0] }
 func (t *T) Equal(t2 *T) bool { return bytes.Equal(t.b, t2.b) }
 
+// Valid parses the encoded bytes to ensure they are valid. If the pubkey needs
+// to actually be used, don't use this, instead convert it to an ec.PublicKey
+// using ToPubkey which actually returns the value.
 func (t *T) Valid() (err error) {
 	_, err = schnorr.ParsePubKey(t.b)
 	return
@@ -65,35 +68,9 @@ func (t *T) Set(b []byte) (err error) {
 	return
 }
 
-func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
-	if quote {
-		dst = bytestring.AppendQuote(dst, src, hex.AppendEncode)
-	} else {
-		dst = hex.AppendEncode(dst, src)
-	}
-	b = dst
-	return
-}
-
-func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
-	if unquote {
-		if dst, err = hex.AppendDecode(dst,
-			bytestring.Unquote(src)); chk.E(err) {
-
-			return
-		}
-	} else {
-		if dst, err = hex.AppendDecode(dst, src); chk.E(err) {
-			return
-		}
-	}
-	b = dst
-	return
-}
-
 func (t *T) MarshalJSON() (b []byte, err error) {
 	b = make([]byte, 0, schnorr.PubKeyBytesLen*2+2)
-	b = AppendHexFromBinary(b, t.b, true)
+	b = bytestring.AppendHexFromBinary(b, t.b, true)
 	return
 }
 
@@ -104,7 +81,7 @@ func (t *T) UnmarshalJSON(b []byte) (err error) {
 	}
 	// reset the slice
 	t.Reset()
-	if t.b, err = AppendBinaryFromHex(t.b, b, true); chk.E(err) {
+	if t.b, err = bytestring.AppendBinaryFromHex(t.b, b, true); chk.E(err) {
 		return
 	}
 	return

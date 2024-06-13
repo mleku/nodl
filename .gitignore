@@ -25,5 +25,8 @@
 !*.png
 !*.jpg
 !*.svg
+!*.tmpl
+!*.yml
+!CHANGELOG.md
 # ...even if they are in subdirectories
 !*/

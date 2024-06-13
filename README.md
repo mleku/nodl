@@ -51,8 +51,8 @@ nostr relay and support libraries built from scratch
   - [ ] binary
   - [ ] test
   - [ ] bench
-- [ ] signature
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
+- [x] signature
+  - [x] json
+  - [x] binary
+  - [x] test
+  - [x] bench

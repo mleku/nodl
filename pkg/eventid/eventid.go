@@ -41,35 +41,9 @@ func (t *T) Set(b []byte) (err error) {
 	return
 }
 
-func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
-	if quote {
-		dst = bytestring.AppendQuote(dst, src, hex.AppendEncode)
-	} else {
-		dst = hex.AppendEncode(dst, src)
-	}
-	b = dst
-	return
-}
-
-func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
-	if unquote {
-		if dst, err = hex.AppendDecode(dst,
-			bytestring.Unquote(src)); chk.E(err) {
-
-			return
-		}
-	} else {
-		if dst, err = hex.AppendDecode(dst, src); chk.E(err) {
-			return
-		}
-	}
-	b = dst
-	return
-}
-
 func (t *T) MarshalJSON() (b []byte, err error) {
 	b = make([]byte, 0, sha256.Size*2+2)
-	b = AppendHexFromBinary(b, t.b, true)
+	b = bytestring.AppendHexFromBinary(b, t.b, true)
 	return
 }
 
@@ -80,7 +54,7 @@ func (t *T) UnmarshalJSON(b []byte) (err error) {
 	}
 	// reset the slice
 	t.Reset()
-	if t.b, err = AppendBinaryFromHex(t.b, b, true); chk.E(err) {
+	if t.b, err = bytestring.AppendBinaryFromHex(t.b, b, true); chk.E(err) {
 		return
 	}
 	return

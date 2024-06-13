@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/utils/bytestring"
 	"lukechampine.com/frand"
 )
 
@@ -17,8 +18,9 @@ func TestAppendHexFromBinaryAppendBinaryFromHex(t *testing.T) {
 		if _, err = frand.Read(in); chk.E(err) {
 			t.Fatal(err)
 		}
-		hx = AppendHexFromBinary(hx, in, false)
-		if out, err = AppendBinaryFromHex(out, hx, false); chk.E(err) {
+		hx = bytestring.AppendHexFromBinary(hx, in, false)
+		if out, err = bytestring.AppendBinaryFromHex(out, hx,
+			false); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(in, out) {
@@ -39,8 +41,9 @@ func TestAppendHexFromBinaryAppendBinaryFromHexQuote(t *testing.T) {
 		if _, err = frand.Read(in); chk.E(err) {
 			t.Fatal(err)
 		}
-		hx = AppendHexFromBinary(hx, in, true)
-		if out, err = AppendBinaryFromHex(out, hx, true); chk.E(err) {
+		hx = bytestring.AppendHexFromBinary(hx, in, true)
+		if out, err = bytestring.AppendBinaryFromHex(out, hx,
+			true); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(in, out) {
@@ -90,7 +93,7 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, false)
+			hx = bytestring.AppendHexFromBinary(hx, in, false)
 			hx = hx[:0]
 		}
 	})
@@ -103,8 +106,9 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, false)
-			if out, err = AppendBinaryFromHex(out, hx, false); chk.E(err) {
+			hx = bytestring.AppendHexFromBinary(hx, in, false)
+			if out, err = bytestring.AppendBinaryFromHex(out, hx,
+				false); chk.E(err) {
 				b.Fatal(err)
 			}
 			if !bytes.Equal(in, out) {
@@ -123,7 +127,7 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, true)
+			hx = bytestring.AppendHexFromBinary(hx, in, true)
 			hx = hx[:0]
 		}
 	})
@@ -136,8 +140,9 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, true)
-			if out, err = AppendBinaryFromHex(out, hx, true); chk.E(err) {
+			hx = bytestring.AppendHexFromBinary(hx, in, true)
+			if out, err = bytestring.AppendBinaryFromHex(out, hx,
+				true); chk.E(err) {
 				b.Fatal(err)
 			}
 			if !bytes.Equal(in, out) {

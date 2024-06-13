@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/mleku/nodl/pkg/utils/bytestring"
 	"github.com/mleku/nodl/pkg/utils/ec"
 	"github.com/mleku/nodl/pkg/utils/ec/schnorr"
 	"lukechampine.com/frand"
@@ -18,8 +19,9 @@ func TestAppendFromBinaryAppendFromHex(t *testing.T) {
 		if _, err = frand.Read(in); chk.E(err) {
 			t.Fatal(err)
 		}
-		hx = AppendHexFromBinary(hx, in, false)
-		if out, err = AppendBinaryFromHex(out, hx, false); chk.E(err) {
+		hx = bytestring.AppendHexFromBinary(hx, in, false)
+		if out, err = bytestring.AppendBinaryFromHex(out, hx,
+			false); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(in, out) {
@@ -40,8 +42,9 @@ func TestAppendFromBinaryAppendFromHexQuote(t *testing.T) {
 		if _, err = frand.Read(in); chk.E(err) {
 			t.Fatal(err)
 		}
-		hx = AppendHexFromBinary(hx, in, true)
-		if out, err = AppendBinaryFromHex(out, hx, true); chk.E(err) {
+		hx = bytestring.AppendHexFromBinary(hx, in, true)
+		if out, err = bytestring.AppendBinaryFromHex(out, hx,
+			true); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(in, out) {
@@ -51,6 +54,7 @@ func TestAppendFromBinaryAppendFromHexQuote(t *testing.T) {
 		hx, out = hx[:0], out[:0]
 	}
 }
+
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var err error
 	var sk *ec.SecretKey
@@ -82,7 +86,7 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, false)
+			hx = bytestring.AppendHexFromBinary(hx, in, false)
 			hx = hx[:0]
 		}
 	})
@@ -95,8 +99,9 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, false)
-			if out, err = AppendBinaryFromHex(out, hx, false); chk.E(err) {
+			hx = bytestring.AppendHexFromBinary(hx, in, false)
+			if out, err = bytestring.AppendBinaryFromHex(out, hx,
+				false); chk.E(err) {
 				b.Fatal(err)
 			}
 			if !bytes.Equal(in, out) {
@@ -115,7 +120,7 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, true)
+			hx = bytestring.AppendHexFromBinary(hx, in, true)
 			hx = hx[:0]
 		}
 	})
@@ -128,8 +133,9 @@ func BenchmarkT(b *testing.B) {
 			if _, err = frand.Read(in); chk.E(err) {
 				b.Fatal(err)
 			}
-			hx = AppendHexFromBinary(hx, in, true)
-			if out, err = AppendBinaryFromHex(out, hx, true); chk.E(err) {
+			hx = bytestring.AppendHexFromBinary(hx, in, true)
+			if out, err = bytestring.AppendBinaryFromHex(out, hx,
+				true); chk.E(err) {
 				b.Fatal(err)
 			}
 			if !bytes.Equal(in, out) {
