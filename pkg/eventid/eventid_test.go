@@ -54,36 +54,6 @@ func TestAppendHexFromBinaryAppendBinaryFromHexQuote(t *testing.T) {
 	}
 }
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
-	in := make([]byte, sha256.Size)
-	var err error
-	if _, err = frand.Read(in); chk.E(err) {
-		t.Fatal(err)
-	}
-	var eid *T
-	if eid, err = NewFromBytes(in); chk.E(err) {
-		t.Fatal(err)
-	}
-	var j []byte
-	if j, err = eid.MarshalJSON(); chk.E(err) {
-		t.Fatal(err)
-	}
-	for _ = range 100 {
-		if _, err = frand.Read(in); chk.E(err) {
-			t.Fatal(err)
-		}
-		if err = eid.Set(in); chk.E(err) {
-			t.Fatal(err)
-		}
-		if j, err = eid.MarshalJSON(); chk.E(err) {
-			t.Fatal(err)
-		}
-		if err = eid.UnmarshalJSON(j); chk.E(err) {
-			t.Fatal(err)
-		}
-	}
-}
-
 func BenchmarkT(b *testing.B) {
 	b.Run("AppendHexFromBinary", func(b *testing.B) {
 		in := make([]byte, sha256.Size)
@@ -151,59 +121,6 @@ func BenchmarkT(b *testing.B) {
 					out)
 			}
 			hx, out = hx[:0], out[:0]
-		}
-	})
-	b.Run("AppendMarshalJSON", func(b *testing.B) {
-		in := make([]byte, sha256.Size)
-		var err error
-		if _, err = frand.Read(in); chk.E(err) {
-			b.Fatal(err)
-		}
-		var eid *T
-		if eid, err = NewFromBytes(in); chk.E(err) {
-			b.Fatal(err)
-		}
-		for i := 0; i < b.N; i++ {
-			if _, err = frand.Read(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = eid.Set(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if _, err = eid.MarshalJSON(); chk.E(err) {
-				b.Fatal(err)
-			}
-			eid.Reset()
-		}
-	})
-	b.Run("AppendMarshalJSONUnmarshalJSON", func(b *testing.B) {
-		in := make([]byte, sha256.Size)
-		var err error
-		if _, err = frand.Read(in); chk.E(err) {
-			b.Fatal(err)
-		}
-		var eid *T
-		if eid, err = NewFromBytes(in); chk.E(err) {
-			b.Fatal(err)
-		}
-		var j []byte
-		if j, err = eid.MarshalJSON(); chk.E(err) {
-			b.Fatal(err)
-		}
-		for i := 0; i < b.N; i++ {
-			if _, err = frand.Read(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = eid.Set(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if j, err = eid.MarshalJSON(); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = eid.UnmarshalJSON(j); chk.E(err) {
-				b.Fatal(err)
-			}
-			eid.Reset()
 		}
 	})
 }

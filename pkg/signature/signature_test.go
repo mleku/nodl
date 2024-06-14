@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/minio/sha256-simd"
 	"github.com/mleku/nodl/pkg/utils/bytestring"
-	"github.com/mleku/nodl/pkg/utils/ec"
 	"github.com/mleku/nodl/pkg/utils/ec/schnorr"
 	"lukechampine.com/frand"
 )
@@ -53,37 +51,6 @@ func TestAppendFromBinaryAppendFromHexQuote(t *testing.T) {
 				out)
 		}
 		hx, out = hx[:0], out[:0]
-	}
-}
-
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
-	var err error
-	var sk *ec.SecretKey
-	var sig *T
-	var pk *ec.PublicKey
-	if sk, err = ec.NewSecretKey(); chk.E(err) {
-		t.Fatal(err)
-	}
-	pk = sk.PubKey()
-	in := make([]byte, sha256.Size)
-	var j []byte
-	for _ = range 100 {
-		if _, err = frand.Read(in); chk.E(err) {
-			t.Fatal(err)
-		}
-		if sig, err = Sign(sk, in); chk.E(err) {
-			t.Fatal(err)
-		}
-		if j, err = sig.MarshalJSON(); chk.E(err) {
-			t.Fatal(err)
-		}
-		if err = sig.UnmarshalJSON(j); chk.E(err) {
-			t.Fatal(err)
-		}
-		if err = sig.Verify(in, pk); chk.E(err) {
-			t.Fatal(err)
-		}
-		j = j[:0]
 	}
 }
 
@@ -154,83 +121,6 @@ func BenchmarkT(b *testing.B) {
 					out)
 			}
 			hx, out = hx[:0], out[:0]
-		}
-	})
-	b.Run("SignMarshalJSON", func(b *testing.B) {
-		var err error
-		var sk *ec.SecretKey
-		var sig *T
-		if sk, err = ec.NewSecretKey(); chk.E(err) {
-			b.Fatal(err)
-		}
-		in := make([]byte, sha256.Size)
-		var j []byte
-		for i := 0; i < b.N; i++ {
-			if _, err = frand.Read(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if sig, err = Sign(sk, in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if j, err = sig.MarshalJSON(); chk.E(err) {
-				b.Fatal(err)
-			}
-			j = j[:0]
-		}
-	})
-	b.Run("SignMarshalJSONUnmarshalJSON", func(b *testing.B) {
-		var err error
-		var sk *ec.SecretKey
-		var sig *T
-		if sk, err = ec.NewSecretKey(); chk.E(err) {
-			b.Fatal(err)
-		}
-		in := make([]byte, sha256.Size)
-		var j []byte
-		for i := 0; i < b.N; i++ {
-			if _, err = frand.Read(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if sig, err = Sign(sk, in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if j, err = sig.MarshalJSON(); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = sig.UnmarshalJSON(j); chk.E(err) {
-				b.Fatal(err)
-			}
-			j = j[:0]
-		}
-	})
-	b.Run("SignMarshalJSONUnmarshalJSONVerify", func(b *testing.B) {
-		var err error
-		var sk *ec.SecretKey
-		var sig *T
-		var pk *ec.PublicKey
-		if sk, err = ec.NewSecretKey(); chk.E(err) {
-			b.Fatal(err)
-		}
-		pk = sk.PubKey()
-		in := make([]byte, sha256.Size)
-		var j []byte
-		for i := 0; i < b.N; i++ {
-			if _, err = frand.Read(in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if sig, err = Sign(sk, in); chk.E(err) {
-				b.Fatal(err)
-			}
-			if j, err = sig.MarshalJSON(); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = sig.UnmarshalJSON(j); chk.E(err) {
-				b.Fatal(err)
-			}
-			if err = sig.Verify(in, pk); chk.E(err) {
-				b.Fatal(err)
-			}
-			j = j[:0]
 		}
 	})
 }

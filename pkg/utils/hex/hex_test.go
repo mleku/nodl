@@ -17,7 +17,7 @@ func TestAppendHexToByteString(t *testing.T) {
 			t.Fatal(err)
 		}
 		h = AppendHexToByteString(h, bin)
-		if h, err = HexByteStringToBytes(h); chk.E(err) {
+		if h, err = ByteStringToBytes(h); chk.E(err) {
 			t.Fatal(err)
 		}
 		if bytes.Compare(bin, h) != 0 {
@@ -43,7 +43,7 @@ func BenchmarkAppendHexToByteString(b *testing.B) {
 				b.Fatal(err)
 			}
 			h = AppendHexToByteString(h, bin)
-			// if h, err = HexByteStringToBytes(h); chk.E(err) {
+			// if h, err = ByteStringToBytes(h); chk.E(err) {
 			// 	b.Fatal(err)
 			// }
 			h = h[:0]
@@ -55,7 +55,7 @@ func BenchmarkAppendHexToByteString(b *testing.B) {
 				b.Fatal(err)
 			}
 			h = AppendHexToByteString(h, bin)
-			if h, err = HexByteStringToBytes(h); chk.E(err) {
+			if h, err = ByteStringToBytes(h); chk.E(err) {
 				b.Fatal(err)
 			}
 			h = h[:0]

@@ -40,7 +40,7 @@ const (
 // need for indirections to the stack.
 //
 // The encoding is for lower case only, as is the counterpart
-// HexByteStringToBytes, because nostr standard encoding for hex strings is
+// ByteStringToBytes, because nostr standard encoding for hex strings is
 // lower case.
 func AppendHexToByteString(dst, src []byte) (b []byte) {
 	lb, cb := len(dst), cap(dst)
@@ -68,10 +68,10 @@ func AppendHexToByteString(dst, src []byte) (b []byte) {
 	return dst
 }
 
-// HexByteStringToBytes performs the decoding of hex encoded ASCII bytes
+// ByteStringToBytes performs the decoding of hex encoded ASCII bytes
 // in-place and returns the decoded raw bytes, avoiding a memory allocation
 // altogether.
-func HexByteStringToBytes(h []byte) (b []byte, err error) {
+func ByteStringToBytes(h []byte) (b []byte, err error) {
 	if len(h)%2 != 0 {
 		err = errorf.E("invalid length of hex, got %d, must be even", len(h))
 		return

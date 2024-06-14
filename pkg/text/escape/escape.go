@@ -1,5 +1,7 @@
 package text
 
+import "github.com/mleku/nodl/pkg/utils/bytestring"
+
 // NostrEscape for JSON encoding according to RFC8259.
 //
 // This is the efficient implementation based on the NIP-01 specification:
@@ -16,7 +18,7 @@ package text
 //	- A backspace, 0x08, as \b
 //	- A form feed, 0x0C, as \f
 //	UTF-8 should be used for encoding.
-func NostrEscape(dst, src []byte) []byte {
+func NostrEscape(dst, src bytestring.T) bytestring.T {
 	for i := 0; i < len(src); i++ {
 		c := src[i]
 		switch {
@@ -43,7 +45,7 @@ func NostrEscape(dst, src []byte) []byte {
 	return dst
 }
 
-func NostrUnescape(dst, src []byte) []byte {
+func NostrUnescape(dst, src bytestring.T) bytestring.T {
 	var i int
 	for ; i < len(src); i++ {
 		if src[i] == '\\' {

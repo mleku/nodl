@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mleku/nodl/pkg/utils/bytestring"
 	"github.com/mleku/nodl/pkg/utils/ec"
 	"github.com/mleku/nodl/pkg/utils/ec/schnorr"
 	"github.com/mleku/nodl/pkg/utils/lol"
@@ -87,35 +86,4 @@ func (t *T) Set(b []byte) (err error) {
 	}
 	t.b = b
 	return
-}
-
-func (t *T) MarshalJSON() (b []byte, err error) {
-	b = make([]byte, 0, schnorr.SignatureSize*2+2)
-	b = bytestring.AppendHexFromBinary(b, t.b, true)
-	return
-}
-
-func (t *T) UnmarshalJSON(b []byte) (err error) {
-	if len(b) < schnorr.SignatureSize*2+2 {
-		return errorf.E("signature: not enough bytes got %d required %d",
-			len(b), schnorr.SignatureSize*2+2)
-	}
-	// reset the slice
-	t.Reset()
-	if t.b, err = bytestring.AppendBinaryFromHex(t.b, b, true); chk.E(err) {
-		return
-	}
-	return
-}
-
-func (t *T) MarshalBinary() (data []byte, err error) { return t.b, nil }
-
-func (t *T) UnmarshalBinary(data []byte) (err error) {
-	if len(data) < schnorr.SignatureSize {
-		return errorf.E("signature: not enough bytes got %d required %d",
-			len(data), schnorr.SignatureSize)
-	}
-	t.b = data
-	return
-
 }

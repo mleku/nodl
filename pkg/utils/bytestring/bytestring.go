@@ -1,67 +1,81 @@
 package bytestring
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"os"
+	"unsafe"
 
 	"github.com/mleku/nodl/pkg/utils/lol"
 )
 
 var log, chk, errorf = lol.New(os.Stderr)
 
-type AppendBytesClosure func(dst, src []byte) []byte
+type T []byte
 
-type AppendClosure func(dst []byte) []byte
+func (t T) String() string {
+	return unsafe.String(&(t[0]), len(t))
+}
 
-func Unquote(b []byte) []byte { return b[1 : len(b)-1] }
+func (t T) Equal(other T) bool { return bytes.Equal(t, other) }
 
-func AppendQuote(dst, src []byte, ac AppendBytesClosure) []byte {
+type AppendBytesClosure func(dst, src T) T
+
+type AppendClosure func(dst T) T
+
+func Unquote(b T) T { return b[1 : len(b)-1] }
+
+func Noop(dst, src T) T { return append(dst, src...) }
+
+func AppendQuote(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '"')
 	dst = ac(dst, src)
 	dst = append(dst, '"')
 	return dst
 }
 
-func AppendSingleQuote(dst, src []byte, ac AppendBytesClosure) []byte {
+func Quote(dst, src T) T { return AppendQuote(dst, src, Noop) }
+
+func AppendSingleQuote(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '\'')
 	dst = ac(dst, src)
 	dst = append(dst, '\'')
 	return dst
 }
 
-func AppendBackticks(dst, src []byte, ac AppendBytesClosure) []byte {
+func AppendBackticks(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '`')
 	dst = ac(dst, src)
 	dst = append(dst, '`')
 	return dst
 }
 
-func AppendBrace(dst, src []byte, ac AppendBytesClosure) []byte {
+func AppendBrace(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '(')
 	dst = ac(dst, src)
 	dst = append(dst, ')')
 	return dst
 }
 
-func AppendParenthesis(dst, src []byte, ac AppendBytesClosure) []byte {
+func AppendParenthesis(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '{')
 	dst = ac(dst, src)
 	dst = append(dst, '}')
 	return dst
 }
 
-func AppendBracket(dst, src []byte, ac AppendBytesClosure) []byte {
+func AppendBracket(dst, src T, ac AppendBytesClosure) T {
 	dst = append(dst, '[')
 	dst = ac(dst, src)
 	dst = append(dst, ']')
 	return dst
 }
 
-func AppendList(dst []byte, separator byte, acs ...AppendClosure) []byte {
-	last := len(acs) - 1
-	for i := range acs {
-		dst = acs[i](dst)
+func AppendList(dst T, src []T, separator byte, ac AppendBytesClosure) T {
+	last := len(src) - 1
+	for i := range src {
+		dst = append(dst, ac(dst, src[i])...)
 		if i < last {
 			dst = append(dst, separator)
 		}
@@ -69,9 +83,11 @@ func AppendList(dst []byte, separator byte, acs ...AppendClosure) []byte {
 	return dst
 }
 
-func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
+func AppendHex(dst, src T) T { return hex.AppendEncode(dst, src) }
+
+func AppendHexFromBinary(dst, src T, quote bool) (b T) {
 	if quote {
-		dst = AppendQuote(dst, src, hex.AppendEncode)
+		dst = AppendQuote(dst, src, AppendHex)
 	} else {
 		dst = hex.AppendEncode(dst, src)
 	}
@@ -79,7 +95,7 @@ func AppendHexFromBinary(dst, src []byte, quote bool) (b []byte) {
 	return
 }
 
-func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
+func AppendBinaryFromHex(dst, src T, unquote bool) (b T, err error) {
 	if unquote {
 		if dst, err = hex.AppendDecode(dst,
 			Unquote(src)); chk.E(err) {
@@ -96,11 +112,11 @@ func AppendBinaryFromHex(dst, src []byte, unquote bool) (b []byte, err error) {
 }
 
 // Append is a straight append with length prefix.
-func Append(dst, src []byte) (b []byte) {
+func Append(dst, src T) (b T) {
 	// if an allocation or two may occur, do it all in one immediately.
 	minLen := len(src) + len(dst) + binary.MaxVarintLen32
 	if cap(dst) < minLen {
-		tmp := make([]byte, 0, minLen)
+		tmp := make(T, 0, minLen)
 		dst = append(tmp, dst...)
 	}
 	dst = binary.AppendUvarint(dst, uint64(len(src)))
@@ -109,7 +125,9 @@ func Append(dst, src []byte) (b []byte) {
 	return
 }
 
-func Extract(b []byte) (str, rem []byte, err error) {
+// Extract decodes the data based on the length prefix and returns a the the
+// remaining data from the provided slice.
+func Extract(b T) (str, rem T, err error) {
 	l, read := binary.Uvarint(b)
 	if read < 1 {
 		err = errorf.E("failed to read uvarint length prefix")
