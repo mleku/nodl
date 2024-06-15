@@ -1,58 +1,15 @@
+
+![nostr canary](./icon.png)
+
 # nodl
 
-nostr relay and support libraries built from scratch
+Tools for structuring, processing and encoding things for the nostr protocol.
 
-## todo
+This covers almost everything found in
+[go-nostr](https://github.com/nbd-wtf/go-nostr) except rewritten in fully
+idiomatic Go and
+restructured for better readability and organisation for a more friendly
+developer experience.
 
-### codecs
-
-- [ ] event
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
-- [ ] filter
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
-- [x] text
-  - [x] nip-01 escaping/quoting
-  - [x] nip-01 bench escape/unescape
-  - [x] json
-  - [x] binary
-  - [x] test
-  - [x] bench
-- [x] eventid
-  - [x] json
-  - [x] binary
-  - [x] test
-  - [x] bench
-- [x] pubkey
-  - [x] json
-  - [x] binary
-  - [x] test
-  - [x] bench
-- [x] ints (byte string ascii decimal)
-  - [x] test
-  - [x] bench
-- [x] timestamp
-  - [x] json
-  - [x] binary
-  - [x] test
-  - [x] bench
-- [ ] tag
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
-- [ ] tags
-  - [ ] json
-  - [ ] binary
-  - [ ] test
-  - [ ] bench
-- [x] signature
-  - [x] json
-  - [x] binary
-  - [x] test
-  - [x] bench
+[nostr-sdk](https://github.com/nbd-wtf/nostr-sdk) is also included as it 
+contains useful tools for client developers.
