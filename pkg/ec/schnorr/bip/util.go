@@ -1,4 +1,4 @@
-package appdata
+package bip
 
 import (
 	"os"

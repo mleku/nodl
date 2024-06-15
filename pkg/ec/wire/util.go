@@ -1,4 +1,4 @@
-package appdata
+package wire
 
 import (
 	"os"

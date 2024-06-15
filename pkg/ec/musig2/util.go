@@ -1,4 +1,4 @@
-package appdata
+package musig2
 
 import (
 	"os"

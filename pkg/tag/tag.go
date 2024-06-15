@@ -25,7 +25,7 @@ const (
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.
-type T []bstring.T
+type T []B
 
 // StartsWith checks a tag has the same initial set of elements.
 //
@@ -48,7 +48,7 @@ func (t T) StartsWith(prefix T) bool {
 }
 
 // Key returns the first element of the tags.
-func (t T) Key() bstring.T {
+func (t T) Key() B {
 	if len(t) > Key {
 		return t[Key]
 	}
@@ -56,7 +56,7 @@ func (t T) Key() bstring.T {
 }
 
 // Value returns the second element of the tag.
-func (t T) Value() bstring.T {
+func (t T) Value() B {
 	if len(t) > Value {
 		return t[Value]
 	}
@@ -66,19 +66,19 @@ func (t T) Value() bstring.T {
 var etag, ptag = []byte("e"), []byte("p")
 
 // Relay returns the third element of the tag.
-func (t T) Relay() string {
+func (t T) Relay() (s B) {
 	if (bytes.Equal(t.Key(), etag) ||
 		bytes.Equal(t.Key(), ptag)) &&
 		len(t) >= Relay {
 
 		return normalize.URL(t[Relay])
 	}
-	return ""
+	return
 }
 
 // MarshalTo T. Used for Serialization so string escaping should be as in
 // RFC8259.
-func (t T) MarshalTo(dst bstring.T) []byte {
+func (t T) MarshalTo(dst B) []byte {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {
@@ -116,9 +116,9 @@ func (t T) Clone() (c T) {
 }
 
 // Contains returns true if the provided element is found in the tag slice.
-func (t T) Contains(s string) bool {
+func (t T) Contains(s B) bool {
 	for i := range t {
-		if t[i] == s {
+		if bytes.Equal(t[i], s) {
 			return true
 		}
 	}
@@ -131,7 +131,7 @@ func (t T) Equals(t1 T) bool {
 		return false
 	}
 	for i := range t {
-		if t[i] != t1[i] {
+		if !bytes.Equal(t[i], t1[i]) {
 			return false
 		}
 	}

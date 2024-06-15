@@ -5,12 +5,10 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gookit/color"
-	"github.com/mleku/nodl/pkg/atomic"
 )
 
 var l = GetStd()
@@ -18,33 +16,6 @@ var l = GetStd()
 func GetStd() (ll *Log) {
 	ll, _, _ = New(os.Stdout)
 	return
-}
-
-func init() {
-	switch strings.ToUpper(os.Getenv("GODEBUG")) {
-	case "1", "TRUE", "ON":
-		SetLogLevel(Debug)
-		l.D.Ln("printing logs at this level and lower")
-	case "INFO":
-		SetLogLevel(Info)
-	case "DEBUG":
-		SetLogLevel(Debug)
-		l.D.Ln("printing logs at this level and lower")
-	case "TRACE":
-		SetLogLevel(Trace)
-		l.T.Ln("printing logs at this level and lower")
-	case "WARN":
-		SetLogLevel(Warn)
-	case "ERROR":
-		SetLogLevel(Error)
-	case "FATAL":
-		SetLogLevel(Fatal)
-	case "0", "OFF", "FALSE":
-		SetLogLevel(Off)
-	default:
-		SetLogLevel(Info)
-	}
-
 }
 
 const (
@@ -101,8 +72,7 @@ type (
 
 var (
 	// sep is just a convenient shortcut for this very longwinded expression
-	sep          = string(os.PathSeparator)
-	currentLevel = atomic.NewInt32(Info)
+	sep = string(os.PathSeparator)
 	// writer can be swapped out for any io.*writer* that you want to use instead of
 	// stdout.
 	writer io.Writer = os.Stderr
@@ -230,17 +200,6 @@ func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 		T: l.T.Err,
 	}
 	return
-}
-
-// SetLogLevel sets the log level via a string, which can be truncated down to
-// one character, similar to nmcli's argument processor, as the first letter is
-// unique. This could be used with a linter to make larger command sets.
-func SetLogLevel(l int) {
-	currentLevel.Store(int32(l))
-}
-
-func GetLogLevel() (l int) {
-	return int(currentLevel.Load())
 }
 
 // UnixNanoAsFloat e

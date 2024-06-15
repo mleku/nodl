@@ -16,26 +16,26 @@ package bstring
 //	- A backspace, 0x08, as \b
 //	- A form feed, 0x0C, as \f
 //	UTF-8 should be used for encoding.
-func NostrEscape(dst, src T) T {
+func NostrEscape(dst, src B) B {
 	for i := 0; i < len(src); i++ {
 		c := src[i]
 		switch {
 		case c == '"':
 			// quotation mark
-			dst = append(dst, []byte{'\\', '"'}...)
+			dst = append(dst, B{'\\', '"'}...)
 		case c == '\\':
 			// reverse solidus
-			dst = append(dst, []byte{'\\', '\\'}...)
+			dst = append(dst, B{'\\', '\\'}...)
 		case c == '\b':
-			dst = append(dst, []byte{'\\', 'b'}...)
+			dst = append(dst, B{'\\', 'b'}...)
 		case c == '\t':
-			dst = append(dst, []byte{'\\', 't'}...)
+			dst = append(dst, B{'\\', 't'}...)
 		case c == '\n':
-			dst = append(dst, []byte{'\\', 'n'}...)
+			dst = append(dst, B{'\\', 'n'}...)
 		case c == '\f':
-			dst = append(dst, []byte{'\\', 'f'}...)
+			dst = append(dst, B{'\\', 'f'}...)
 		case c == '\r':
-			dst = append(dst, []byte{'\\', 'r'}...)
+			dst = append(dst, B{'\\', 'r'}...)
 		default:
 			dst = append(dst, c)
 		}
@@ -43,7 +43,7 @@ func NostrEscape(dst, src T) T {
 	return dst
 }
 
-func NostrUnescape(dst, src T) T {
+func NostrUnescape(dst, src B) B {
 	var i int
 	for ; i < len(src); i++ {
 		if src[i] == '\\' {

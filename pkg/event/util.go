@@ -4,10 +4,13 @@ import (
 	"os"
 
 	"github.com/mleku/nodl/pkg/lol"
-	"github.com/mleku/nodl/pkg/util"
+)
+
+type (
+	B = []byte
+	S = string
 )
 
 var (
 	log, chk, errorf = lol.New(os.Stderr)
-	B                = util.B
 )

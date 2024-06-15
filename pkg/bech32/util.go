@@ -1,4 +1,4 @@
-package appdata
+package bech32
 
 import (
 	"os"

@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"github.com/mleku/nodl/pkg/bstring"
 	"github.com/mleku/nodl/pkg/kinds"
 	"github.com/mleku/nodl/pkg/tag"
 	"github.com/mleku/nodl/pkg/timestamp"
@@ -15,7 +14,7 @@ type T struct {
 	Since   timestamp.T `json:"since,omitempty"`
 	Until   timestamp.T `json:"until,omitempty"`
 	Limit   int         `json:"limit,omitempty"`
-	Search  bstring.T   `json:"search,omitempty"`
+	Search  B           `json:"search,omitempty"`
 }
 
 type TagMap map[string]tag.T

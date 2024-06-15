@@ -1,4 +1,4 @@
-package appdata
+package ec
 
 import (
 	"os"

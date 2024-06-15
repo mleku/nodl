@@ -1,7 +1,6 @@
 package event
 
 import (
-	"github.com/mleku/nodl/pkg/bstring"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/timestamp"
@@ -11,9 +10,9 @@ import (
 // defines its JSON string based format.
 type T struct {
 	// ID is the SHA256 hash of the canonical encoding of the event
-	ID bstring.T `json:"id"`
+	ID B `json:"id"`
 	// PubKey is the public key of the event creator in *hexadecimal* format
-	PubKey bstring.T `json:"pubkey"`
+	PubKey B `json:"pubkey"`
 	// CreatedAt is the UNIX timestamp of the event according to the event
 	// creator (never trust a timestamp!)
 	CreatedAt timestamp.T `json:"created_at"`
@@ -24,8 +23,8 @@ type T struct {
 	Tags tags.T `json:"tags"`
 	// Content is an arbitrary string that can contain anything, but usually
 	// conforming to a specification relating to the Kind and the Tags.
-	Content bstring.T `json:"content"`
+	Content B `json:"content"`
 	// Sig is the signature on the ID hash that validates as coming from the
 	// Pubkey.
-	Sig bstring.T `json:"sig"`
+	Sig B `json:"sig"`
 }

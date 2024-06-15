@@ -1,4 +1,4 @@
-package appdata
+package atomic
 
 import (
 	"os"

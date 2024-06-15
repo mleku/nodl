@@ -15,7 +15,7 @@ type T []tag.T
 
 // GetFirst gets the first tag in tags that matches the prefix, see
 // [T.StartsWith]
-func (t T) GetFirst(tagPrefix []string) *tag.T {
+func (t T) GetFirst(tagPrefix []B) *tag.T {
 	for _, v := range t {
 		if v.StartsWith(tagPrefix) {
 			return &v
@@ -25,7 +25,7 @@ func (t T) GetFirst(tagPrefix []string) *tag.T {
 }
 
 // GetLast gets the last tag in tags that matches the prefix, see [T.StartsWith]
-func (t T) GetLast(tagPrefix []string) *tag.T {
+func (t T) GetLast(tagPrefix []B) *tag.T {
 	for i := len(t) - 1; i >= 0; i-- {
 		v := t[i]
 		if v.StartsWith(tagPrefix) {
@@ -36,7 +36,7 @@ func (t T) GetLast(tagPrefix []string) *tag.T {
 }
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
-func (t T) GetAll(tagPrefix ...string) T {
+func (t T) GetAll(tagPrefix ...B) T {
 	result := make(T, 0, len(t))
 	for _, v := range t {
 		if v.StartsWith(tagPrefix) {
@@ -47,7 +47,7 @@ func (t T) GetAll(tagPrefix ...string) T {
 }
 
 // FilterOut removes all tags that match the prefix, see [T.StartsWith]
-func (t T) FilterOut(tagPrefix []string) T {
+func (t T) FilterOut(tagPrefix []B) T {
 	filtered := make(T, 0, len(t))
 	for _, v := range t {
 		if !v.StartsWith(tagPrefix) {
@@ -90,16 +90,16 @@ func (t T) Scan(src any) (err error) {
 
 // ContainsAny returns true if any of the strings given in `values` matches any
 // of the tag elements.
-func (t T) ContainsAny(tagName string, values ...string) bool {
+func (t T) ContainsAny(tagName B, values ...B) bool {
 	for _, v := range t {
 		if len(v) < 2 {
 			continue
 		}
-		if v.Key() != tagName {
+		if !bytes.Equal(v.Key(), tagName) {
 			continue
 		}
 		for _, candidate := range values {
-			if v.Value() == candidate {
+			if bytes.Equal(v.Value(), candidate) {
 				return true
 			}
 		}
@@ -135,7 +135,7 @@ func (t T) String() string {
 	return buf.String()
 }
 
-func (t T) Slice() (slice [][]string) {
+func (t T) Slice() (slice [][]B) {
 	for i := range t {
 		slice = append(slice, t[i])
 	}

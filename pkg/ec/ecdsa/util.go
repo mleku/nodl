@@ -1,4 +1,4 @@
-package appdata
+package ecdsa
 
 import (
 	"os"

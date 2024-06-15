@@ -1,4 +1,4 @@
-package appdata
+package hex
 
 import (
 	"os"

@@ -3,10 +3,9 @@ package normalize
 import (
 	"bytes"
 	"net/url"
-	"strconv"
 	"strings"
 
-	"github.com/mleku/nodl/pkg/bstring"
+	"github.com/mleku/nodl/pkg/ints"
 )
 
 // URL normalizes the URL
@@ -17,7 +16,7 @@ import (
 // - Adds ws:// to addresses with any other port
 //
 // - Converts http/s to ws/s
-func URL(u bstring.T) bstring.T {
+func URL(u B) (b B) {
 	if len(u) == 0 {
 		return nil
 	}
@@ -33,48 +32,48 @@ func URL(u bstring.T) bstring.T {
 	if bytes.Contains(u, []byte(":")) &&
 		!(bytes.HasPrefix(u, B("http://")) ||
 			bytes.HasPrefix(u, B("https://")) ||
-			strings.HasPrefix(u, "ws://") ||
-			strings.HasPrefix(u, "wss://")) {
-		split := strings.Split(u, ":")
+			bytes.HasPrefix(u, B("ws://")) ||
+			bytes.HasPrefix(u, B("wss://"))) {
+		split := bytes.Split(u, B(":"))
 		if len(split) != 2 {
 			log.D.F("Error: more than one ':' in URL: '%s'", u)
 			// this is a malformed URL if it has more than one ":", return empty
 			// since this function does not return an error explicitly.
-			return ""
+			return
 		}
 
-		port, err := strconv.ParseInt(split[1], 10, 64)
-		if err != nil {
+		port, err := ints.ByteStringToInt64(split[1])
+		if chk.E(err) {
 			log.D.F("Error normalizing URL '%s': %s", u, err)
 			// again, without an error we must return nil
-			return ""
+			return
 		}
 		if port > 65535 {
 			log.D.F("Port on address %d: greater than maximum 65535", port)
-			return ""
+			return
 		}
 		// if the port is explicitly set to 443 we assume it is wss:// and drop
 		// the port.
 		if port == 443 {
-			u = "wss://" + split[0]
+			u = append(B("wss://"), split[0]...)
 		} else {
-			u = "ws://" + u
+			u = append(B("ws://"), u...)
 		}
 	}
 
 	// if prefix isn't specified as http/s or websocket, assume secure websocket
 	// and add wss prefix (this is the most common).
-	if !(strings.HasPrefix(u, "http://") ||
-		strings.HasPrefix(u, "https://") ||
-		strings.HasPrefix(u, "ws://") ||
-		strings.HasPrefix(u, "wss://")) {
-		u = "wss://" + u
+	if !(bytes.HasPrefix(u, B("http://")) ||
+		bytes.HasPrefix(u, B("https://")) ||
+		bytes.HasPrefix(u, B("ws://")) ||
+		bytes.HasPrefix(u, B("wss://"))) {
+		u = append(B("wss://"), u...)
 	}
 	var err error
 	var p *url.URL
-	p, err = url.Parse(u)
+	p, err = url.Parse(string(u))
 	if err != nil {
-		return ""
+		return
 	}
 	// convert http/s to ws/s
 	switch p.Scheme {
@@ -84,8 +83,8 @@ func URL(u bstring.T) bstring.T {
 		p.Scheme = "ws"
 	}
 	// remove trailing path slash
-	p.Path = strings.TrimRight(p.Path, "/")
-	return p.String()
+	p.Path = S(bytes.TrimRight(B(p.Path), "/"))
+	return B(p.String())
 }
 
 // Reason takes a string message that is to be sent in an `OK` or `CLOSED`

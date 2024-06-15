@@ -1,4 +1,4 @@
-package appdata
+package bip340
 
 import (
 	"os"

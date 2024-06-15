@@ -1,4 +1,4 @@
-package appdata
+package data
 
 import (
 	"os"

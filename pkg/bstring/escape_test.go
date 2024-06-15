@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg/lol"
 	"lukechampine.com/frand"
 )
 
@@ -52,7 +51,6 @@ func TestRandomEscapeByteString(t *testing.T) {
 	// random content that ensures the escaping is correct without creating a
 	// fixed set of test vectors.
 
-	lol.SetLogLevel(lol.Debug)
 	for i := 0; i < 1000; i++ {
 		l := src.Intn(1<<8) + 32
 		s1 := GenRandString(l, src)

@@ -1,59 +1,59 @@
 package bstring
 
-type AppendBytesClosure func(dst, src T) T
+type AppendBytesClosure func(dst, src B) B
 
-type AppendClosure func(dst T) T
+type AppendClosure func(dst B) B
 
-func Unquote(b T) T { return b[1 : len(b)-1] }
+func Unquote(b B) B { return b[1 : len(b)-1] }
 
-func Noop(dst, src T) T { return append(dst, src...) }
+func Noop(dst, src B) B { return append(dst, src...) }
 
-func AppendQuote(dst, src T, ac AppendBytesClosure) T {
+func AppendQuote(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '"')
 	dst = ac(dst, src)
 	dst = append(dst, '"')
 	return dst
 }
 
-func Quote(dst, src T) T { return AppendQuote(dst, src, Noop) }
+func Quote(dst, src B) B { return AppendQuote(dst, src, Noop) }
 
-func AppendSingleQuote(dst, src T, ac AppendBytesClosure) T {
+func AppendSingleQuote(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '\'')
 	dst = ac(dst, src)
 	dst = append(dst, '\'')
 	return dst
 }
 
-func AppendBackticks(dst, src T, ac AppendBytesClosure) T {
+func AppendBackticks(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '`')
 	dst = ac(dst, src)
 	dst = append(dst, '`')
 	return dst
 }
 
-func AppendBrace(dst, src T, ac AppendBytesClosure) T {
+func AppendBrace(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '(')
 	dst = ac(dst, src)
 	dst = append(dst, ')')
 	return dst
 }
 
-func AppendParenthesis(dst, src T, ac AppendBytesClosure) T {
+func AppendParenthesis(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '{')
 	dst = ac(dst, src)
 	dst = append(dst, '}')
 	return dst
 }
 
-func AppendBracket(dst, src T, ac AppendBytesClosure) T {
+func AppendBracket(dst, src B, ac AppendBytesClosure) B {
 	dst = append(dst, '[')
 	dst = ac(dst, src)
 	dst = append(dst, ']')
 	return dst
 }
 
-func AppendList(dst T, src []T, separator byte,
-	ac AppendBytesClosure) T {
+func AppendList(dst B, src []B, separator byte,
+	ac AppendBytesClosure) B {
 	last := len(src) - 1
 	for i := range src {
 		dst = append(dst, ac(dst, src[i])...)

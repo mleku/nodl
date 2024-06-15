@@ -1,4 +1,4 @@
-package appdata
+package secp256k1
 
 import (
 	"os"
