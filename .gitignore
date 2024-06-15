@@ -25,6 +25,7 @@
 !*.toml
 !*.png
 !*.svg
+!*.md
 # ...even if they are in subdirectories
 !*/
 
