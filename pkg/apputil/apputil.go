@@ -9,9 +9,9 @@ import (
 // as needed
 func EnsureDir(fileName string) {
 	dirName := filepath.Dir(fileName)
-	if _, serr := os.Stat(dirName); serr != nil {
+	if _, serr := os.Stat(dirName); chk.E(serr) {
 		merr := os.MkdirAll(dirName, os.ModePerm)
-		if merr != nil {
+		if chk.E(merr) {
 			panic(merr)
 		}
 	}
@@ -20,5 +20,5 @@ func EnsureDir(fileName string) {
 // FileExists reports whether the named file or directory exists.
 func FileExists(filePath string) bool {
 	_, e := os.Stat(filePath)
-	return e == nil
+	return !chk.E(e)
 }

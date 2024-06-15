@@ -1,15 +1,13 @@
 package normalize
 
 import (
+	"bytes"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
-	"github.com/mleku/nodl/pkg/lol"
+	"github.com/mleku/nodl/pkg/bstring"
 )
-
-var log, chk, errorf = lol.New(os.Stderr)
 
 // URL normalizes the URL
 //
@@ -19,12 +17,12 @@ var log, chk, errorf = lol.New(os.Stderr)
 // - Adds ws:// to addresses with any other port
 //
 // - Converts http/s to ws/s
-func URL(u string) string {
-	if u == "" {
-		return ""
+func URL(u bstring.T) bstring.T {
+	if len(u) == 0 {
+		return nil
 	}
-	u = strings.TrimSpace(u)
-	u = strings.ToLower(u)
+	u = bytes.TrimSpace(u)
+	u = bytes.ToLower(u)
 
 	// if address has a port number, we can probably assume it is insecure
 	// websocket as most public or production relays have a domain name and a
@@ -32,9 +30,9 @@ func URL(u string) string {
 	//
 	// if a protocol prefix is present, we assume it is already complete.
 	// Converting http/s to websocket equivalent will be done later anyway.
-	if strings.Contains(u, ":") &&
-		!(strings.HasPrefix(u, "http://") ||
-			strings.HasPrefix(u, "https://") ||
+	if bytes.Contains(u, []byte(":")) &&
+		!(bytes.HasPrefix(u, B("http://")) ||
+			bytes.HasPrefix(u, B("https://")) ||
 			strings.HasPrefix(u, "ws://") ||
 			strings.HasPrefix(u, "wss://")) {
 		split := strings.Split(u, ":")

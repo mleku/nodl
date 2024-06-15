@@ -1,13 +1,5 @@
 package ints
 
-import (
-	"os"
-
-	"github.com/mleku/nodl/pkg/lol"
-)
-
-var log, chk, errorf = lol.New(os.Stderr)
-
 // ByteStringToInt64 decodes a decimal number encoded in []byte (rather than
 // string) - there is no stdlib equivalent and this is ~2x as fast as
 // strconv.Atoi because of string memory handling.

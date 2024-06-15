@@ -24,7 +24,7 @@ func GetDataDir(goos, appName string, roaming bool) string {
 	var homeDir string
 	var usr *user.User
 	var e error
-	if usr, e = user.Current(); e == nil {
+	if usr, e = user.Current(); chk.E(e) {
 		homeDir = usr.HomeDir
 	}
 	// Fall back to standard HOME environment variable that works for most POSIX

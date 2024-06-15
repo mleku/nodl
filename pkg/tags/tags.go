@@ -5,13 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 
-	"github.com/mleku/nodl/pkg/lol"
 	"github.com/mleku/nodl/pkg/tag"
 )
-
-var log, chk, errorf = lol.New(os.Stderr)
 
 // T is a list of T - which are lists of string elements with ordering and no
 // uniqueness constraint (not a set).

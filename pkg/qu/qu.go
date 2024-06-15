@@ -2,17 +2,12 @@ package qu
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/mleku/nodl/pkg/atomic"
 	"github.com/mleku/nodl/pkg/lol"
-)
-
-var (
-	log, chk, errorf = lol.New(os.Stderr)
 )
 
 // C is your basic empty struct signalling channel

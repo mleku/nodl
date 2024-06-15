@@ -2,13 +2,10 @@ package lol_test
 
 import (
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/mleku/nodl/pkg/lol"
 )
-
-var log, chk, errorf = lol.New(os.Stdout)
 
 func TestGetLogger(t *testing.T) {
 	for i := 0; i < 100; i++ {

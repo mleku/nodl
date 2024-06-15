@@ -8,12 +8,7 @@ import (
 	"strings"
 
 	"github.com/mleku/nodl/pkg/atomic"
-	"github.com/mleku/nodl/pkg/lol"
 	"github.com/mleku/nodl/pkg/qu"
-)
-
-var (
-	log, chk, errorf = lol.New(os.Stderr)
 )
 
 type HandlerWithSource struct {

@@ -3,10 +3,9 @@ package tag
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
-	"mleku.net/g/m/pkg/nostr/normalize"
-	"mleku.net/g/m/pkg/nostr/wire/text"
+	"github.com/mleku/nodl/pkg/bstring"
+	"github.com/mleku/nodl/pkg/normalize"
 )
 
 // The tag position meanings so they are clear when reading.
@@ -26,13 +25,13 @@ const (
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.
-type T []string
+type T []bstring.T
 
 // StartsWith checks a tag has the same initial set of elements.
 //
 // The last element is treated specially in that it is considered to match if
 // the candidate has the same initial substring as its corresponding element.
-func (t T) StartsWith(prefix []string) bool {
+func (t T) StartsWith(prefix T) bool {
 	prefixLen := len(prefix)
 
 	if prefixLen > len(t) {
@@ -40,33 +39,38 @@ func (t T) StartsWith(prefix []string) bool {
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if prefix[i] != t[i] {
+		if bytes.Equal(prefix[i], t[i]) {
 			return false
 		}
 	}
 	// check last element just for a prefix
-	return strings.HasPrefix(t[prefixLen-1], prefix[prefixLen-1])
+	return bytes.HasPrefix(t[prefixLen-1], prefix[prefixLen-1])
 }
 
 // Key returns the first element of the tags.
-func (t T) Key() string {
+func (t T) Key() bstring.T {
 	if len(t) > Key {
 		return t[Key]
 	}
-	return ""
+	return nil
 }
 
 // Value returns the second element of the tag.
-func (t T) Value() string {
+func (t T) Value() bstring.T {
 	if len(t) > Value {
 		return t[Value]
 	}
-	return ""
+	return nil
 }
+
+var etag, ptag = []byte("e"), []byte("p")
 
 // Relay returns the third element of the tag.
 func (t T) Relay() string {
-	if (t.Key() == "e" || t.Key() == "p") && len(t) > Relay {
+	if (bytes.Equal(t.Key(), etag) ||
+		bytes.Equal(t.Key(), ptag)) &&
+		len(t) >= Relay {
+
 		return normalize.URL(t[Relay])
 	}
 	return ""
@@ -74,13 +78,13 @@ func (t T) Relay() string {
 
 // MarshalTo T. Used for Serialization so string escaping should be as in
 // RFC8259.
-func (t T) MarshalTo(dst []byte) []byte {
+func (t T) MarshalTo(dst bstring.T) []byte {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst = text.EscapeByteString(dst, []byte(s))
+		dst = bstring.NostrEscape(dst, s)
 	}
 	dst = append(dst, ']')
 	return dst
