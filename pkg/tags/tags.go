@@ -115,7 +115,7 @@ func (t T) MarshalTo(dst []byte) []byte {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst = t.MarshalTo(dst)
+		dst = t.Marshal(dst)
 	}
 	dst = append(dst, ']')
 	return dst

@@ -1,4 +1,4 @@
-package bstring
+package text
 
 import (
 	"encoding/hex"

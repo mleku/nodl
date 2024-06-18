@@ -18,6 +18,21 @@ func ByteStringToInt64(b []byte) (n int64, err error) {
 	return
 }
 
+func ExtractInt64FromByteString(b B) (n int64, rem B) {
+	place := int64(1)
+	for i := range b {
+		if b[i] < '0' || b[i] > '9' {
+			rem = b[i:]
+			return
+		}
+		n += int64(b[i]-'0') * place
+		if i < len(b) {
+			place *= 10
+		}
+	}
+	return
+}
+
 // Int64AppendToByteString encodes an int64 into ASCII decimal format in a
 // []byte - it is almost 3x faster than using strconv.Itoa because of string
 // memory handling.

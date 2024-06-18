@@ -12,7 +12,7 @@ import (
 var common []byte
 
 func main() {
-	filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(".", func(path S, info os.FileInfo, err error) error {
 		if path != "." && info.IsDir() {
 			if strings.HasPrefix(filepath.Base(path), ".") {
 				return filepath.SkipDir
@@ -30,7 +30,7 @@ func main() {
 				filepath.Base(path) == "atomic" {
 				return nil
 			}
-			if !strings.HasPrefix(path, "cmd"+string(filepath.Separator)) {
+			if !strings.HasPrefix(path, "cmd"+S(filepath.Separator)) {
 				b = bytes.Replace(
 					common,
 					B("package main"),
@@ -39,7 +39,7 @@ func main() {
 				)
 			}
 			_ = b
-			log.I.F("\n%s", string(b))
+			log.I.F("\n%s", S(b))
 			chk.E(os.WriteFile(filepath.Join(path, "util.go"), b, 0660))
 		}
 		return nil

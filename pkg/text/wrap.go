@@ -1,4 +1,4 @@
-package bstring
+package text
 
 type AppendBytesClosure func(dst, src B) B
 

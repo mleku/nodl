@@ -3,6 +3,9 @@ package timestamp
 import (
 	"encoding/binary"
 	"time"
+	"unsafe"
+
+	"github.com/mleku/nodl/pkg/ints"
 )
 
 // T is a convenience type for UNIX 64 bit timestamps of 1 second
@@ -25,8 +28,8 @@ func (t T) Time() time.Time { return time.Unix(int64(t), 0) }
 // Int returns the timestamp as an int.
 func (t T) Int() int { return int(t) }
 
-func (t T) Bytes() (b []byte) {
-	b = make([]byte, 8)
+func (t T) Bytes() (b B) {
+	b = make(B, 8)
 	binary.BigEndian.PutUint64(b, uint64(t))
 	return
 }
@@ -39,3 +42,35 @@ func FromUnix(t int64) T { return T(t) }
 
 // FromBytes converts from a string of raw bytes.
 func FromBytes(b []byte) T { return T(binary.BigEndian.Uint64(b)) }
+
+func FromVarint(b B) (t T, rem B, err error) {
+	n, read := binary.Varint(b)
+	if read < 1 {
+		err = errorf.E("failed to decode varint timestamp %v", b)
+		return
+	}
+	t = T(n)
+	rem = b[:read]
+	return
+}
+
+func ToVarint(dst B, t T) B { return binary.AppendVarint(dst, int64(t)) }
+
+func (t T) Varint(dst B) (b B) { return ToVarint(dst, t) }
+
+func (t T) String() S {
+	b := make([]byte, 0, 19)
+	ints.Int64AppendToByteString(b, t.I64())
+	return unsafe.String(&b[0], len(b))
+}
+
+func (t T) ByteString(dst B) (b B) {
+	return ints.Int64AppendToByteString(dst, t.I64())
+}
+
+func FromByteString(b B) (t T, rem B) {
+	var n int64
+	n, rem = ints.ExtractInt64FromByteString(b)
+	t = T(n)
+	return
+}

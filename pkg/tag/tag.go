@@ -2,10 +2,10 @@ package tag
 
 import (
 	"bytes"
-	"fmt"
+	"unsafe"
 
-	"github.com/mleku/nodl/pkg/bstring"
 	"github.com/mleku/nodl/pkg/normalize"
+	"github.com/mleku/nodl/pkg/text"
 )
 
 // The tag position meanings so they are clear when reading.
@@ -63,7 +63,7 @@ func (t T) Value() B {
 	return nil
 }
 
-var etag, ptag = []byte("e"), []byte("p")
+var etag, ptag = B("e"), B("p")
 
 // Relay returns the third element of the tag.
 func (t T) Relay() (s B) {
@@ -76,34 +76,66 @@ func (t T) Relay() (s B) {
 	return
 }
 
-// MarshalTo T. Used for Serialization so string escaping should be as in
-// RFC8259.
-func (t T) MarshalTo(dst B) []byte {
+// Marshal appends the JSON form to the passed bytes.
+func (t T) Marshal(dst B) (b B) {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst = bstring.NostrEscape(dst, s)
+		dst = text.AppendQuote(dst, s, text.NostrEscape)
 	}
 	dst = append(dst, ']')
 	return dst
 }
 
-func (t T) String() string {
-	buf := new(bytes.Buffer)
-	buf.WriteByte('[')
-	last := len(t) - 1
-	for i := range t {
-		buf.WriteByte('"')
-		_, _ = fmt.Fprint(buf, t[i])
-		buf.WriteByte('"')
-		if i < last {
-			buf.WriteByte(',')
+// Unmarshal decodes the provided JSON tag list (array of strings), and returns
+// any remainder after the close bracket has been encountered.
+func Unmarshal(b B) (t T, rem B, err error) {
+	var inQuotes, openedBracket bool
+	var quoteStart int
+	for i := 0; i < len(b); i++ {
+		if !openedBracket {
+			if b[i] == '[' {
+				openedBracket = true
+			}
+			continue
+		}
+		if !inQuotes {
+			if b[i] == '"' {
+				inQuotes = true
+				quoteStart = i + 1
+				continue
+			}
+			if b[i] == ']' {
+				rem = b[i+1:]
+				return
+			}
+		} else {
+			if b[i] == '\\' {
+				if i < len(b)-1 {
+					i++
+				}
+				continue
+			} else if b[i] == '"' {
+				inQuotes = false
+				bb := b[quoteStart:i]
+				bbb := text.NostrUnescape(bb)
+				t = append(t, bbb)
+				continue
+			}
 		}
 	}
-	buf.WriteByte(']')
-	return buf.String()
+	if !openedBracket || inQuotes {
+		log.I.F("\n%v\n%s", t, rem)
+		return nil, nil, errorf.E("tag: failed to parse tag")
+	}
+	return
+}
+
+func (t T) String() string {
+	b := t.Marshal(nil)
+	return unsafe.String(&b[0], len(b))
 }
 
 // Clone makes a new tag.T with the same members.
@@ -125,8 +157,8 @@ func (t T) Contains(s B) bool {
 	return false
 }
 
-// Equals checks that the provided tag list matches.
-func (t T) Equals(t1 T) bool {
+// Equal checks that the provided tag list matches.
+func (t T) Equal(t1 T) bool {
 	if len(t) != len(t1) {
 		return false
 	}
