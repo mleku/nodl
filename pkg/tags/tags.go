@@ -141,3 +141,49 @@ func (t T) Slice() (slice [][]B) {
 	}
 	return
 }
+
+func (t T) Equal(tgs2 T) bool {
+	for i := range t {
+		if !t[i].Equal(tgs2[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (t T) Marshal(dst B) (b B) {
+	dst = append(dst, '[')
+	for i, s := range t {
+		if i > 0 {
+			dst = append(dst, ',')
+		}
+		dst = s.Marshal(dst)
+	}
+	dst = append(dst, ']')
+	return dst
+}
+
+func Unmarshal(b B) (t T, rem B, err error) {
+	rem = b
+	for len(rem) > 0 {
+		switch rem[0] {
+		case '[':
+			var tt tag.T
+			if rem[1] == '[' {
+				rem = rem[1:]
+			}
+			if tt, rem, err = tag.Unmarshal(rem); chk.E(err) {
+				return
+			}
+			t = append(t, tt)
+			// continue
+		case ',':
+			rem = rem[1:]
+			// next
+		case ']':
+			rem = rem[1:]
+			// the end
+		}
+	}
+	return
+}
