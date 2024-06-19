@@ -2,6 +2,8 @@ package kind
 
 import (
 	"sync"
+
+	"github.com/mleku/nodl/pkg/ints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the
@@ -12,6 +14,17 @@ type T uint16
 func (ki T) ToInt() int       { return int(ki) }
 func (ki T) ToUint16() uint16 { return uint16(ki) }
 func (ki T) Name() string     { return GetString(ki) }
+
+func (ki T) Marshal(dst B) (b B) {
+	return ints.Int64AppendToByteString(dst, int64(ki))
+}
+
+func Unmarshal(b B) (ki T, rem B, err error) {
+	var n int64
+	n, rem = ints.ExtractInt64FromByteString(b)
+	ki = T(n)
+	return
+}
 
 // The event kinds are put in a separate package so they will be referred to as
 // `kind.EventType` rather than `nostr.KindEventType` as this is correct Go

@@ -164,7 +164,7 @@ func (t T) Marshal(dst B) (b B) {
 }
 
 func Unmarshal(b B) (t T, rem B, err error) {
-	rem = b
+	rem = b[:]
 	for len(rem) > 0 {
 		switch rem[0] {
 		case '[':

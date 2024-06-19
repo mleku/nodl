@@ -95,35 +95,18 @@ func Unmarshal(b B) (t T, rem B, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
 	for i := 0; i < len(b); i++ {
-		if !openedBracket {
-			if b[i] == '[' {
-				openedBracket = true
-			}
-			continue
-		}
-		if !inQuotes {
+		if !openedBracket && b[i] == '[' {
+			openedBracket = true
+		} else if !inQuotes {
 			if b[i] == '"' {
-				inQuotes = true
-				quoteStart = i + 1
-				continue
+				inQuotes, quoteStart = true, i+1
+			} else if b[i] == ']' {
+				return t, b[i+1:], err
 			}
-			if b[i] == ']' {
-				rem = b[i+1:]
-				return
-			}
-		} else {
-			if b[i] == '\\' {
-				if i < len(b)-1 {
-					i++
-				}
-				continue
-			} else if b[i] == '"' {
-				inQuotes = false
-				bb := b[quoteStart:i]
-				bbb := text.NostrUnescape(bb)
-				t = append(t, bbb)
-				continue
-			}
+		} else if b[i] == '\\' && i < len(b)-1 {
+			i++
+		} else if b[i] == '"' {
+			inQuotes, t = false, append(t, text.NostrUnescape(b[quoteStart:i]))
 		}
 	}
 	if !openedBracket || inQuotes {

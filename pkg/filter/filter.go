@@ -6,6 +6,7 @@ import (
 	"github.com/mleku/nodl/pkg/timestamp"
 )
 
+// T is the primary query form for requesting events from a nostr relay.
 type T struct {
 	IDs     tag.T       `json:"ids,omitempty"`
 	Kinds   kinds.T     `json:"kinds,omitempty"`
