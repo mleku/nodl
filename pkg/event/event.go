@@ -1,8 +1,10 @@
 package event
 
 import (
-	"reflect"
+	"io"
 
+	"github.com/minio/sha256-simd"
+	"github.com/mleku/nodl/pkg/ec/schnorr"
 	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
@@ -33,66 +35,235 @@ type T struct {
 	Sig B `json:"sig"`
 }
 
-var fields []B
-
-func init() {
-	v := reflect.ValueOf(T{})
-	for i := 0; i < v.Type().NumField(); i++ {
-		fields = append(fields, B(v.Type().Field(i).Tag.Get("json")))
-	}
-}
+var (
+	Id        = B("id")
+	Pubkey    = B("pubkey")
+	CreatedAt = B("created_at")
+	Kind      = B("kind")
+	Tags      = B("tags")
+	Content   = B("content")
+	Sig       = B("sig")
+)
 
 func (t T) Marshal(dst B) (b B) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
 	dst = append(dst, '"')
-	dst = append(dst, fields[0]...)
+	dst = append(dst, Id...)
 	dst = append(dst, '"', ':')
 	dst = text.AppendQuote(dst, t.ID, hex.EncAppend)
 	dst = append(dst, ',')
 	// PubKey
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[1]...)
+	dst = append(dst, Pubkey...)
 	dst = append(dst, '"', ':')
 	dst = append(dst, '"')
 	dst = text.AppendQuote(dst, t.PubKey, hex.EncAppend)
 	dst = append(dst, '"', ',')
 	// CreatedAt
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[2]...)
+	dst = append(dst, CreatedAt...)
 	dst = append(dst, '"', ':')
-	dst = t.CreatedAt.Marshal(dst)
+	dst = t.CreatedAt.FromVarint(dst)
 	dst = append(dst, ',')
 	// Kind
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[3]...)
+	dst = append(dst, Kind...)
 	dst = append(dst, '"', ':')
 	dst = t.Kind.Marshal(dst)
 	dst = append(dst, ',')
 	// Tags
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[4]...)
+	dst = append(dst, Tags...)
 	dst = append(dst, '"', ':')
 	dst = t.Tags.Marshal(dst)
 	dst = append(dst, ',')
 	// Content
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[5]...)
+	dst = append(dst, Content...)
 	dst = append(dst, '"', ':')
 	dst = text.AppendQuote(dst, t.Content, text.NostrEscape)
 	dst = append(dst, ',')
 	// Sig
 	dst = append(dst, ',', '"')
-	dst = append(dst, fields[6]...)
+	dst = append(dst, Sig...)
 	dst = append(dst, '"', ':')
 	dst = text.AppendQuote(dst, t.Sig, hex.EncAppend)
 	// close parentheses
 	dst = append(dst, '}')
 	return
 }
+
+// states of the unmarshaler
+const (
+	beforeOpen = iota
+	openParen
+	inKey
+	inKV
+	inVal
+	betweenKV
+	afterClose
+)
+
+func UnmarshalHex(b B) (t B, rem B, err error) {
+	rem = b[:]
+	var inQuote bool
+	var start int
+	for i := 0; i < len(b); i++ {
+		if !inQuote {
+			if b[i] == '"' {
+				inQuote = true
+				start = i + 1
+			}
+		} else {
+			if b[i] == '"' {
+				t = b[start:i]
+				rem = b[i+1:]
+				break
+			}
+		}
+	}
+	if !inQuote {
+		err = io.EOF
+		return
+	}
+	l := len(t)
+	if l%2 != 0 {
+		err = errorf.E("invalid length for hex: %d, %0x", len(t), t)
+		return
+	}
+	if _, err = hex.DecBytes(t, t); chk.E(err) {
+		return
+	}
+	t = t[:l/2]
+	return
+}
+
 func Unmarshal(b B) (t T, rem B, err error) {
 	rem = b[:]
+	var key B
+	var state int
+	for ; len(rem) > 0; rem = rem[1:] {
+		switch state {
+		case beforeOpen:
+			if rem[0] == '{' {
+				state = openParen
+			}
+		case openParen:
+			if rem[0] == '"' {
+				state = inKey
+			}
+		case inKey:
+			if rem[0] == '"' {
+				state = inKV
+			} else {
+				key = append(key, rem[0])
+			}
+		case inKV:
+			if rem[0] == ':' {
+				state = inVal
+			}
+		case inVal:
+			switch key[0] {
+			case Id[0]:
+				if len(key) < len(Id) {
+					goto invalid
+				}
+				var id B
+				if id, rem, err = UnmarshalHex(rem); chk.E(err) {
+					return
+				}
+				if len(id) != sha256.Size {
+					err = errorf.E("invalid ID, require %d got %d", sha256.Size,
+						len(id))
+					return
+				}
+				t.ID = id
+				state = betweenKV
+			case Pubkey[0]:
+				if len(key) < len(Pubkey) {
+					goto invalid
+				}
+				var pk B
+				if pk, rem, err = UnmarshalHex(rem); chk.E(err) {
+					return
+				}
+				if len(pk) != schnorr.PubKeyBytesLen {
+					err = errorf.E("invalid pubkey, require %d got %d",
+						schnorr.PubKeyBytesLen, len(pk))
+					return
+				}
+				t.PubKey = pk
+				state = betweenKV
+			case Kind[0]:
+				if len(key) < len(Kind) {
+					goto invalid
+				}
+				if t.Kind, rem, err = kind.Unmarshal(rem); chk.E(err) {
+					return
+				}
+				state = betweenKV
+			case Tags[0]:
+				if len(key) < len(Tags) {
+					goto invalid
+				}
+				if t.Tags, rem, err = tags.Unmarshal(rem); chk.E(err) {
+					return
+				}
+				state = betweenKV
+			case Sig[0]:
+				if len(key) < len(Sig) {
+					goto invalid
+				}
+				var sig B
+				if sig, rem, err = UnmarshalHex(rem); chk.E(err) {
+					return
+				}
+				if len(sig) != schnorr.SignatureSize {
+					err = errorf.E("invalid sig, require %d got %d",
+						schnorr.SignatureSize, len(sig))
+					return
+				}
+				t.Sig = sig
+				state = betweenKV
+			case Content[0]:
+				// this can be one of two, but minimum of the shortest
+				if len(key) < len(Content) {
+					goto invalid
+				}
+				if key[1] == Content[1] {
 
+				} else if key[1] == CreatedAt[1] {
+					if len(key) < len(CreatedAt) {
+						goto invalid
+					}
+					if t.CreatedAt, rem, err = timestamp.Unmarshal(rem); chk.E(err) {
+						return
+					}
+				} else {
+					goto invalid
+				}
+			default:
+				goto invalid
+			}
+			key = key[:0]
+		case betweenKV:
+			if rem[0] == '}' {
+				rem = rem[1:]
+				state = afterClose
+			} else if rem[0] == ',' {
+				state = openParen
+				rem = rem[1:]
+				continue
+			}
+		}
+	}
+	if len(rem) == 0 && state != afterClose {
+		err = errorf.E("invalid event,'%s'", S(b))
+	}
+	return
+invalid:
+	err = errorf.E("invalid key, rem: '%s'", S(rem))
 	return
 }

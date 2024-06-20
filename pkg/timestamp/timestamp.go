@@ -56,7 +56,7 @@ func FromVarint(b B) (t T, rem B, err error) {
 
 func ToVarint(dst B, t T) B { return binary.AppendVarint(dst, int64(t)) }
 
-func (t T) Marshal(dst B) (b B) { return ToVarint(dst, t) }
+func (t T) FromVarint(dst B) (b B) { return ToVarint(dst, t) }
 
 func (t T) String() S {
 	b := make([]byte, 0, 19)
@@ -64,13 +64,13 @@ func (t T) String() S {
 	return unsafe.String(&b[0], len(b))
 }
 
-func (t T) ByteString(dst B) (b B) {
+func (t T) Marshal(dst B) (b B) {
 	return ints.Int64AppendToByteString(dst, t.I64())
 }
 
-func Unmarshal(b B) (t T, rem B) {
+func Unmarshal(b B) (t T, rem B, err error) {
 	var n int64
-	n, rem = ints.ExtractInt64FromByteString(b)
+	n, rem, err = ints.ExtractInt64FromByteString(b)
 	t = T(n)
 	return
 }

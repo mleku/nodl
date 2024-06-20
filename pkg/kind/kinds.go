@@ -21,18 +21,13 @@ func (ki T) Marshal(dst B) (b B) {
 
 func Unmarshal(b B) (ki T, rem B, err error) {
 	var n int64
-	n, rem = ints.ExtractInt64FromByteString(b)
+	if n, rem, err = ints.ExtractInt64FromByteString(b); chk.E(err) {
+		return
+	}
 	ki = T(n)
 	return
 }
 
-// The event kinds are put in a separate package so they will be referred to as
-// `kind.EventType` rather than `nostr.KindEventType` as this is correct Go
-// idiom and the version in https://mleku.net/g/m/pkg/nostr is unclear and
-// excessive in length, impeding readability. Repeating 'nostr' in these
-// constant names is redundant as they are only used in this context, and
-// creating a special type for them makes this implicit and enforced by the
-// compiler at compile time.
 const (
 	// ProfileMetadata is an event type that stores user profile data, pet
 	// names, bio, lightning address, etc.

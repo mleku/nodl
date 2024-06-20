@@ -26,6 +26,7 @@
 !*.png
 !*.svg
 !*.md
+!*.txt
 # ...even if they are in subdirectories
 !*/
 
