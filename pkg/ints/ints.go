@@ -6,7 +6,7 @@ import (
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry
-//go:generate go run gen/pregen.go
+//go:generate go run ./gen/.
 
 //go:embed base10k.txt
 var base10k []byte
