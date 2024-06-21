@@ -1,6 +1,9 @@
 package ints
 
-import _ "embed"
+import (
+	_ "embed"
+	"io"
+)
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry
 //go:generate go run gen/pregen.go
@@ -10,48 +13,71 @@ var base10k []byte
 
 const base = 10000
 
-var powers []int64
-
-func init() {
-	var begin int64 = 1
-	for _ = range 20 {
-		powers = append(powers, begin)
-		begin *= 10
-	}
+var powers = []int64{
+	1,
+	1_0000,
+	1_0000_0000,
+	1_0000_0000_0000,
+	1_0000_0000_0000_0000,
 }
 
+// ExtractInt64FromByteString reads a string, which must be a positive integer
+// no larger than math.MaxInt64, skipping any non-numeric content before it
 func ExtractInt64FromByteString(b B) (n int64, rem B, err error) {
-	var i int
-	rem = b
-	if len(b) == 0 {
+	var sLen int
+	// skip any non-numbers first
+	for ; sLen < len(b) && (b[sLen] < '0' || b[sLen] > '9'); sLen++ {
+	}
+	if sLen == len(b) {
+		err = io.EOF
 		return
 	}
+	b = b[sLen:]
 	// count the digits
-	for ; i < len(b) && b[i] >= '0' && b[i] <= '9'; i++ {
+	for ; sLen < len(b) && b[sLen] >= '0' && b[sLen] <= '9'; sLen++ {
+	}
+	if sLen == 0 {
+		err = errorf.E("zero length number")
+		return
+	}
+	if sLen > 19 {
+		err = errorf.E("too big number for int64")
 	}
 	// the length of the string found
-	rem = b[i:]
-	b = b[:i]
-	for j := range b {
-		n += int64(b[j]-'0') * powers[i-j-1]
+	rem = b[sLen:]
+	b = b[:sLen]
+	for _, ch := range b {
+		ch -= '0'
+		n = n*10 + int64(ch)
 	}
 	return
 }
 
-// Int64AppendToByteString encodes an int64 into ASCII decimal format in a
-// []byte.
+// Int64AppendToByteString encodes an *positive* int64 into ASCII decimal format
+// in a []byte. This is only for use with timestamp.T and kind.T.
 func Int64AppendToByteString(dst []byte, n int64) (b []byte) {
 	var i int
-	q := n / base
-	r := 4 * (n - q*base)
-	n = q
-	bb := base10k[r : r+4]
-	for i = range bb {
-		if bb[i] != '0' {
-			bb = bb[i:]
-			break
+	var trimmed bool
+	k := len(powers)
+	for k > 0 {
+		k--
+		q := n / powers[k]
+		if !trimmed && q == 0 {
+			continue
 		}
+		offset := q * 4
+		bb := base10k[offset : offset+4]
+		if !trimmed {
+			for i = range bb {
+				if bb[i] != '0' {
+					bb = bb[i:]
+					trimmed = true
+					break
+				}
+			}
+		}
+		dst = append(dst, bb...)
+		n = n - q*powers[k]
 	}
-	dst = append(dst, bb...)
 	return dst
 }
