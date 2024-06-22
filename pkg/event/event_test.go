@@ -34,3 +34,40 @@ func TestUnmarshal(t *testing.T) {
 		_, _, _ = ev, rem, out
 	}
 }
+
+func BenchmarkUnmarshalMarshal(bb *testing.B) {
+	var i int
+	var ev T
+	var out B
+	var err error
+	bb.Run("Unmarshal", func(bb *testing.B) {
+		bb.ReportAllocs()
+		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+		for i = 0; i < bb.N; i++ {
+			if !scanner.Scan() {
+				scanner = bufio.NewScanner(bytes.NewBuffer(eventCache))
+				scanner.Scan()
+			}
+			b := scanner.Bytes()
+			if _, _, err = Unmarshal(b); chk.E(err) {
+				bb.Fatal(err)
+			}
+		}
+	})
+	bb.Run("UnmarshalMarshal", func(bb *testing.B) {
+		bb.ReportAllocs()
+		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+		for i = 0; i < bb.N; i++ {
+			if !scanner.Scan() {
+				scanner = bufio.NewScanner(bytes.NewBuffer(eventCache))
+				scanner.Scan()
+			}
+			b := scanner.Bytes()
+			if _, _, err = Unmarshal(b); chk.E(err) {
+				bb.Fatal(err)
+			}
+			out = ev.Marshal(out)
+			out = out[:0]
+		}
+	})
+}
