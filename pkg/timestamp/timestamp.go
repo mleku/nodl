@@ -60,7 +60,7 @@ func (t T) FromVarint(dst B) (b B) { return ToVarint(dst, t) }
 
 func (t T) String() S {
 	b := make([]byte, 0, 19)
-	ints.Int64AppendToByteString(b, t.I64())
+	b = ints.Int64AppendToByteString(b, t.I64())
 	return unsafe.String(&b[0], len(b))
 }
 

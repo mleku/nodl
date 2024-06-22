@@ -56,6 +56,9 @@ func ExtractInt64FromByteString(b B) (n int64, rem B, err error) {
 // Int64AppendToByteString encodes an *positive* int64 into ASCII decimal format
 // in a []byte. This is only for use with timestamp.T and kind.T.
 func Int64AppendToByteString(dst []byte, n int64) (b []byte) {
+	if n == 0 {
+		return append(dst, '0')
+	}
 	var i int
 	var trimmed bool
 	k := len(powers)

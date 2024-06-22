@@ -57,43 +57,43 @@ func (t T) Marshal(dst B) (b B) {
 	dst = text.AppendQuote(dst, t.ID, hex.EncAppend)
 	dst = append(dst, ',')
 	// PubKey
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, Pubkey...)
 	dst = append(dst, '"', ':')
-	dst = append(dst, '"')
 	dst = text.AppendQuote(dst, t.PubKey, hex.EncAppend)
-	dst = append(dst, '"', ',')
+	dst = append(dst, ',')
 	// CreatedAt
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, CreatedAt...)
 	dst = append(dst, '"', ':')
 	dst = ints.Int64AppendToByteString(dst, t.CreatedAt.I64())
 	dst = append(dst, ',')
 	// Kind
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, Kind...)
 	dst = append(dst, '"', ':')
 	dst = t.Kind.Marshal(dst)
 	dst = append(dst, ',')
 	// Tags
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, Tags...)
 	dst = append(dst, '"', ':')
 	dst = t.Tags.Marshal(dst)
 	dst = append(dst, ',')
 	// Content
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, Content...)
 	dst = append(dst, '"', ':')
 	dst = text.AppendQuote(dst, t.Content, text.NostrEscape)
 	dst = append(dst, ',')
 	// Sig
-	dst = append(dst, ',', '"')
+	dst = append(dst, '"')
 	dst = append(dst, Sig...)
 	dst = append(dst, '"', ':')
 	dst = text.AppendQuote(dst, t.Sig, hex.EncAppend)
 	// close parentheses
 	dst = append(dst, '}')
+	b = dst
 	return
 }
 
@@ -164,6 +164,7 @@ func UnmarshalContent(b B) (content, rem B, err error) {
 		} else if rem[0] == '"' {
 			if !escaping {
 				rem = rem[1:]
+				content = text.NostrUnescape(content)
 				return
 			}
 			content = append(content, rem[0])
