@@ -42,7 +42,7 @@ func URL(u B) (b B) {
 			return
 		}
 
-		port, err := ints.ByteStringToInt64(split[1])
+		port, _, err := ints.ExtractInt64FromByteString(split[1])
 		if chk.E(err) {
 			log.D.F("Error normalizing URL '%s': %s", u, err)
 			// again, without an error we must return nil

@@ -171,6 +171,10 @@ func Unmarshal(b B) (t T, rem B, err error) {
 			var tt tag.T
 			if rem[1] == '[' {
 				rem = rem[1:]
+				continue
+			} else if rem[1] == ']' {
+				rem = rem[1:]
+				return
 			}
 			if tt, rem, err = tag.Unmarshal(rem); chk.E(err) {
 				return
@@ -183,6 +187,7 @@ func Unmarshal(b B) (t T, rem B, err error) {
 		case ']':
 			rem = rem[1:]
 			// the end
+			return
 		}
 	}
 	return

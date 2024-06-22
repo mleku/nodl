@@ -27,6 +27,7 @@
 !*.svg
 !*.md
 !*.txt
+!*.jsonl
 # ...even if they are in subdirectories
 !*/
 

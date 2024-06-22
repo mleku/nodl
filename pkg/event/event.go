@@ -6,10 +6,12 @@ import (
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/nodl/pkg/ec/schnorr"
 	"github.com/mleku/nodl/pkg/hex"
+	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
+	"github.com/templexxx/xhex"
 )
 
 // T is the primary datatype of nostr. This is the form of the structure that
@@ -65,7 +67,7 @@ func (t T) Marshal(dst B) (b B) {
 	dst = append(dst, ',', '"')
 	dst = append(dst, CreatedAt...)
 	dst = append(dst, '"', ':')
-	dst = t.CreatedAt.FromVarint(dst)
+	dst = ints.Int64AppendToByteString(dst, t.CreatedAt.I64())
 	dst = append(dst, ',')
 	// Kind
 	dst = append(dst, ',', '"')
@@ -106,7 +108,7 @@ const (
 	afterClose
 )
 
-func UnmarshalHex(b B) (t B, rem B, err error) {
+func UnmarshalHex(b B) (h B, rem B, err error) {
 	rem = b[:]
 	var inQuote bool
 	var start int
@@ -118,7 +120,7 @@ func UnmarshalHex(b B) (t B, rem B, err error) {
 			}
 		} else {
 			if b[i] == '"' {
-				t = b[start:i]
+				h = b[start:i]
 				rem = b[i+1:]
 				break
 			}
@@ -128,23 +130,59 @@ func UnmarshalHex(b B) (t B, rem B, err error) {
 		err = io.EOF
 		return
 	}
-	l := len(t)
+	l := len(h)
 	if l%2 != 0 {
-		err = errorf.E("invalid length for hex: %d, %0x", len(t), t)
+		err = errorf.E("invalid length for hex: %d, %0x", len(h), h)
 		return
 	}
-	if _, err = hex.DecBytes(t, t); chk.E(err) {
+	if err = xhex.Decode(h, h); chk.E(err) {
 		return
 	}
-	t = t[:l/2]
+	h = h[:l/2]
 	return
 }
 
-func Unmarshal(b B) (t T, rem B, err error) {
+func UnmarshalContent(b B) (content, rem B, err error) {
+	rem = b[:]
+	for ; len(rem) >= 0; rem = rem[1:] {
+		// advance to open quotes
+		if rem[0] == '"' {
+			rem = rem[1:]
+			break
+		}
+	}
+	if len(rem) == 0 {
+		err = io.EOF
+		return
+	}
+	var escaping bool
+	for len(rem) > 0 {
+		if rem[0] == '\\' {
+			escaping = true
+			content = append(content, rem[0])
+			rem = rem[1:]
+		} else if rem[0] == '"' {
+			if !escaping {
+				rem = rem[1:]
+				return
+			}
+			content = append(content, rem[0])
+			rem = rem[1:]
+			escaping = false
+		} else {
+			escaping = false
+			content = append(content, rem[0])
+			rem = rem[1:]
+		}
+	}
+	return
+}
+
+func Unmarshal(b B) (ev T, rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
-	for ; len(rem) > 0; rem = rem[1:] {
+	for ; len(rem) >= 0; rem = rem[1:] {
 		switch state {
 		case beforeOpen:
 			if rem[0] == '{' {
@@ -179,7 +217,7 @@ func Unmarshal(b B) (t T, rem B, err error) {
 						len(id))
 					return
 				}
-				t.ID = id
+				ev.ID = id
 				state = betweenKV
 			case Pubkey[0]:
 				if len(key) < len(Pubkey) {
@@ -194,13 +232,13 @@ func Unmarshal(b B) (t T, rem B, err error) {
 						schnorr.PubKeyBytesLen, len(pk))
 					return
 				}
-				t.PubKey = pk
+				ev.PubKey = pk
 				state = betweenKV
 			case Kind[0]:
 				if len(key) < len(Kind) {
 					goto invalid
 				}
-				if t.Kind, rem, err = kind.Unmarshal(rem); chk.E(err) {
+				if ev.Kind, rem, err = kind.Unmarshal(rem); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -208,7 +246,7 @@ func Unmarshal(b B) (t T, rem B, err error) {
 				if len(key) < len(Tags) {
 					goto invalid
 				}
-				if t.Tags, rem, err = tags.Unmarshal(rem); chk.E(err) {
+				if ev.Tags, rem, err = tags.Unmarshal(rem); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -221,11 +259,11 @@ func Unmarshal(b B) (t T, rem B, err error) {
 					return
 				}
 				if len(sig) != schnorr.SignatureSize {
-					err = errorf.E("invalid sig, require %d got %d",
-						schnorr.SignatureSize, len(sig))
+					err = errorf.E("invalid sig length, require %d got %d '%s'",
+						schnorr.SignatureSize, len(sig), rem)
 					return
 				}
-				t.Sig = sig
+				ev.Sig = sig
 				state = betweenKV
 			case Content[0]:
 				// this can be one of two, but minimum of the shortest
@@ -233,14 +271,18 @@ func Unmarshal(b B) (t T, rem B, err error) {
 					goto invalid
 				}
 				if key[1] == Content[1] {
-
+					if ev.Content, rem, err = UnmarshalContent(rem); chk.E(err) {
+						return
+					}
+					state = betweenKV
 				} else if key[1] == CreatedAt[1] {
 					if len(key) < len(CreatedAt) {
 						goto invalid
 					}
-					if t.CreatedAt, rem, err = timestamp.Unmarshal(rem); chk.E(err) {
+					if ev.CreatedAt, rem, err = timestamp.Unmarshal(rem); chk.E(err) {
 						return
 					}
+					state = betweenKV
 				} else {
 					goto invalid
 				}
@@ -249,13 +291,16 @@ func Unmarshal(b B) (t T, rem B, err error) {
 			}
 			key = key[:0]
 		case betweenKV:
+			if len(rem) == 0 {
+				return
+			}
 			if rem[0] == '}' {
-				rem = rem[1:]
 				state = afterClose
+				rem = rem[1:]
 			} else if rem[0] == ',' {
 				state = openParen
-				rem = rem[1:]
-				continue
+			} else if rem[0] == '"' {
+				state = inKey
 			}
 		}
 	}
@@ -264,6 +309,7 @@ func Unmarshal(b B) (t T, rem B, err error) {
 	}
 	return
 invalid:
-	err = errorf.E("invalid key, rem: '%s'", S(rem))
+	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
+		S(rem))
 	return
 }
