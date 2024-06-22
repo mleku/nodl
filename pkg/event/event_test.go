@@ -12,7 +12,7 @@ var eventCache []byte
 
 func TestUnmarshal(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
-	var ev T
+	var ev *T
 	var rem, out B
 	var err error
 	for scanner.Scan() {
@@ -37,9 +37,10 @@ func TestUnmarshal(t *testing.T) {
 
 func BenchmarkUnmarshalMarshal(bb *testing.B) {
 	var i int
-	var ev T
 	var out B
+	var ev *T
 	var err error
+	evts := make([]*T, 0, 10000)
 	bb.Run("Unmarshal", func(bb *testing.B) {
 		bb.ReportAllocs()
 		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
@@ -49,25 +50,22 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 				scanner.Scan()
 			}
 			b := scanner.Bytes()
-			if _, _, err = Unmarshal(b); chk.E(err) {
+			if ev, _, err = Unmarshal(b); chk.E(err) {
 				bb.Fatal(err)
 			}
+			evts = append(evts, ev)
 		}
 	})
-	bb.Run("UnmarshalMarshal", func(bb *testing.B) {
+	bb.Run("Marshal", func(bb *testing.B) {
 		bb.ReportAllocs()
-		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+		var counter int
 		for i = 0; i < bb.N; i++ {
-			if !scanner.Scan() {
-				scanner = bufio.NewScanner(bytes.NewBuffer(eventCache))
-				scanner.Scan()
-			}
-			b := scanner.Bytes()
-			if _, _, err = Unmarshal(b); chk.E(err) {
-				bb.Fatal(err)
-			}
-			out = ev.Marshal(out)
+			out = evts[counter].Marshal(out)
 			out = out[:0]
+			counter++
+			if counter != len(evts) {
+				counter = 0
+			}
 		}
 	})
 }

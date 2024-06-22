@@ -179,7 +179,8 @@ func UnmarshalContent(b B) (content, rem B, err error) {
 	return
 }
 
-func Unmarshal(b B) (ev T, rem B, err error) {
+func Unmarshal(b B) (ev *T, rem B, err error) {
+	ev = &T{}
 	rem = b[:]
 	var key B
 	var state int
