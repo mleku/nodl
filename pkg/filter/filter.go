@@ -1,32 +1,118 @@
 package filter
 
 import (
+	"github.com/mleku/nodl/pkg/hex"
+	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kinds"
-	"github.com/mleku/nodl/pkg/tag"
+	"github.com/mleku/nodl/pkg/tags"
+	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
 )
 
 // T is the primary query form for requesting events from a nostr relay.
 type T struct {
-	IDs     tag.T       `json:"ids,omitempty"`
+	IDs     []B         `json:"ids,omitempty"`
 	Kinds   kinds.T     `json:"kinds,omitempty"`
-	Authors tag.T       `json:"authors,omitempty"`
-	Tags    TagMap      `json:"-,omitempty"`
+	Authors []B         `json:"authors,omitempty"`
+	Tags    tags.T      `json:"-,omitempty"`
 	Since   timestamp.T `json:"since,omitempty"`
 	Until   timestamp.T `json:"until,omitempty"`
 	Limit   int         `json:"limit,omitempty"`
 	Search  B           `json:"search,omitempty"`
 }
 
-type TagMap map[string]tag.T
+var (
+	IDs     = B("id")
+	Kinds   = B("kinds")
+	Authors = B("authors")
+	Tags    = B("tags")
+	Since   = B("since")
+	Until   = B("until")
+	Limit   = B("limit")
+	Search  = B("search")
+)
 
-func (t TagMap) Clone() (t1 TagMap) {
-	if t == nil {
-		return
+func (t T) Marshal(dst B) (b B) {
+	// open parentheses
+	dst = append(dst, '{')
+	if len(t.IDs) > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, IDs...)
+		dst = append(dst, '"', ':')
+		dst = append(dst, '[')
+		for i := range t.IDs {
+			dst = text.AppendQuote(dst, t.IDs[i], hex.EncAppend)
+			if i != len(t.IDs)-1 {
+				dst = append(dst, ',')
+			}
+		}
+		dst = append(dst, ']')
+		dst = append(dst, ',')
 	}
-	t1 = make(TagMap)
-	for i := range t {
-		t1[i] = t[i]
+	if len(t.Kinds) > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Kinds...)
+		dst = append(dst, '"', ':')
+		dst = append(dst, '[')
+		for i := range t.Kinds {
+			dst = t.Kinds[i].Marshal(dst)
+			if i != len(t.IDs)-1 {
+				dst = append(dst, ',')
+			}
+		}
+		dst = append(dst, ']')
+		dst = append(dst, ',')
 	}
+	if len(t.Authors) > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Authors...)
+		dst = append(dst, '"', ':')
+		dst = append(dst, '[')
+		for i := range t.IDs {
+			dst = text.AppendQuote(dst, t.Authors[i], hex.EncAppend)
+			if i != len(t.IDs)-1 {
+				dst = append(dst, ',')
+			}
+		}
+		dst = append(dst, ']')
+		dst = append(dst, ',')
+	}
+	if len(t.Tags) > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Tags...)
+		dst = append(dst, '"', ':')
+		dst = t.Tags.Marshal(dst)
+		dst = append(dst, ',')
+	}
+	if t.Since > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Since...)
+		dst = append(dst, '"', ':')
+		dst = ints.Int64AppendToByteString(dst, t.Since.I64())
+		dst = append(dst, ',')
+	}
+	if t.Until > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Until...)
+		dst = append(dst, '"', ':')
+		dst = ints.Int64AppendToByteString(dst, t.Until.I64())
+		dst = append(dst, ',')
+	}
+	if t.Limit > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Limit...)
+		dst = append(dst, '"', ':')
+		dst = ints.Int64AppendToByteString(dst, int64(t.Limit))
+		dst = append(dst, ',')
+	}
+	if len(t.Search) > 0 {
+		dst = append(dst, '"')
+		dst = append(dst, Search...)
+		dst = append(dst, '"', ':')
+		dst = text.AppendQuote(dst, t.Search, text.NostrEscape)
+	}
+	// close parentheses
+	dst = append(dst, '}')
+	b = dst
 	return
 }

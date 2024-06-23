@@ -192,3 +192,14 @@ func Unmarshal(b B) (t T, rem B, err error) {
 	}
 	return
 }
+
+func (t T) Clone() (t1 T) {
+	t1 = make(T, 0, len(t))
+	for i := range t {
+		t1 = append(t1, make(T, 0, len(t[i]))...)
+		for j := range t[i] {
+			t1[j] = append(t1[j], t[i][j])
+		}
+	}
+	return
+}

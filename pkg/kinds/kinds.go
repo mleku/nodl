@@ -1,20 +1,10 @@
 package kinds
 
 import (
-	"mleku.net/g/m/pkg/nostr/kind"
-	"mleku.net/g/m/pkg/nostr/wire/array"
+	"github.com/mleku/nodl/pkg/kind"
 )
 
 type T []kind.T
-
-// ToArray converts to the generic array.T type ([]interface{})
-func (k T) ToArray() (a array.T) {
-	a = make(array.T, len(k))
-	for i := range k {
-		a[i] = k[i]
-	}
-	return
-}
 
 func FromIntSlice(is []int) (k T) {
 	for i := range is {

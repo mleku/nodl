@@ -1,6 +1,6 @@
 package kinds
 
-import "mleku.net/g/m/pkg/nostr/kind"
+import "github.com/mleku/nodl/pkg/kind"
 
 var PrivilegedKinds = T{
 	kind.EncryptedDirectMessage,
