@@ -51,45 +51,31 @@ func (t T) Marshal(dst B) (b B) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
-	dst = append(dst, '"')
-	dst = append(dst, Id...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Id)
 	dst = text.AppendQuote(dst, t.ID, hex.EncAppend)
 	dst = append(dst, ',')
 	// PubKey
-	dst = append(dst, '"')
-	dst = append(dst, Pubkey...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Pubkey)
 	dst = text.AppendQuote(dst, t.PubKey, hex.EncAppend)
 	dst = append(dst, ',')
 	// CreatedAt
-	dst = append(dst, '"')
-	dst = append(dst, CreatedAt...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, CreatedAt)
 	dst = ints.Int64AppendToByteString(dst, t.CreatedAt.I64())
 	dst = append(dst, ',')
 	// Kind
-	dst = append(dst, '"')
-	dst = append(dst, Kind...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Kind)
 	dst = t.Kind.Marshal(dst)
 	dst = append(dst, ',')
 	// Tags
-	dst = append(dst, '"')
-	dst = append(dst, Tags...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Tags)
 	dst = t.Tags.Marshal(dst)
 	dst = append(dst, ',')
 	// Content
-	dst = append(dst, '"')
-	dst = append(dst, Content...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Content)
 	dst = text.AppendQuote(dst, t.Content, text.NostrEscape)
 	dst = append(dst, ',')
 	// Sig
-	dst = append(dst, '"')
-	dst = append(dst, Sig...)
-	dst = append(dst, '"', ':')
+	dst = text.JSONKey(dst, Sig)
 	dst = text.AppendQuote(dst, t.Sig, hex.EncAppend)
 	// close parentheses
 	dst = append(dst, '}')

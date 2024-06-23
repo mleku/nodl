@@ -10,7 +10,7 @@ import (
 //go:embed tenthousand.jsonl
 var eventCache []byte
 
-func TestUnmarshal(t *testing.T) {
+func TestTMarshal_Unmarshal(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
 	var ev *T
 	var rem, out B

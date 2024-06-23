@@ -36,9 +36,7 @@ func (t T) Marshal(dst B) (b B) {
 	// open parentheses
 	dst = append(dst, '{')
 	if len(t.IDs) > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, IDs...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, IDs)
 		dst = append(dst, '[')
 		for i := range t.IDs {
 			dst = text.AppendQuote(dst, t.IDs[i], hex.EncAppend)
@@ -50,9 +48,7 @@ func (t T) Marshal(dst B) (b B) {
 		dst = append(dst, ',')
 	}
 	if len(t.Kinds) > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Kinds...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Kinds)
 		dst = append(dst, '[')
 		for i := range t.Kinds {
 			dst = t.Kinds[i].Marshal(dst)
@@ -64,9 +60,7 @@ func (t T) Marshal(dst B) (b B) {
 		dst = append(dst, ',')
 	}
 	if len(t.Authors) > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Authors...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Authors)
 		dst = append(dst, '[')
 		for i := range t.IDs {
 			dst = text.AppendQuote(dst, t.Authors[i], hex.EncAppend)
@@ -78,37 +72,27 @@ func (t T) Marshal(dst B) (b B) {
 		dst = append(dst, ',')
 	}
 	if len(t.Tags) > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Tags...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Tags)
 		dst = t.Tags.Marshal(dst)
 		dst = append(dst, ',')
 	}
 	if t.Since > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Since...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Since)
 		dst = ints.Int64AppendToByteString(dst, t.Since.I64())
 		dst = append(dst, ',')
 	}
 	if t.Until > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Until...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Until)
 		dst = ints.Int64AppendToByteString(dst, t.Until.I64())
 		dst = append(dst, ',')
 	}
 	if t.Limit > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Limit...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Limit)
 		dst = ints.Int64AppendToByteString(dst, int64(t.Limit))
 		dst = append(dst, ',')
 	}
 	if len(t.Search) > 0 {
-		dst = append(dst, '"')
-		dst = append(dst, Search...)
-		dst = append(dst, '"', ':')
+		dst = text.JSONKey(dst, Search)
 		dst = text.AppendQuote(dst, t.Search, text.NostrEscape)
 	}
 	// close parentheses
