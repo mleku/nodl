@@ -11,7 +11,6 @@ import (
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
-	"github.com/templexxx/xhex"
 )
 
 // T is the primary datatype of nostr. This is the form of the structure that
@@ -83,51 +82,6 @@ func (t T) Marshal(dst B) (b B) {
 	return
 }
 
-// states of the unmarshaler
-const (
-	beforeOpen = iota
-	openParen
-	inKey
-	inKV
-	inVal
-	betweenKV
-	afterClose
-)
-
-func UnmarshalHex(b B) (h B, rem B, err error) {
-	rem = b[:]
-	var inQuote bool
-	var start int
-	for i := 0; i < len(b); i++ {
-		if !inQuote {
-			if b[i] == '"' {
-				inQuote = true
-				start = i + 1
-			}
-		} else {
-			if b[i] == '"' {
-				h = b[start:i]
-				rem = b[i+1:]
-				break
-			}
-		}
-	}
-	if !inQuote {
-		err = io.EOF
-		return
-	}
-	l := len(h)
-	if l%2 != 0 {
-		err = errorf.E("invalid length for hex: %d, %0x", len(h), h)
-		return
-	}
-	if err = xhex.Decode(h, h); chk.E(err) {
-		return
-	}
-	h = h[:l/2]
-	return
-}
-
 func UnmarshalContent(b B) (content, rem B, err error) {
 	rem = b[:]
 	for ; len(rem) >= 0; rem = rem[1:] {
@@ -165,6 +119,17 @@ func UnmarshalContent(b B) (content, rem B, err error) {
 	return
 }
 
+// states of the unmarshaler
+const (
+	beforeOpen = iota
+	openParen
+	inKey
+	inKV
+	inVal
+	betweenKV
+	afterClose
+)
+
 func Unmarshal(b B) (ev *T, rem B, err error) {
 	ev = &T{}
 	rem = b[:]
@@ -197,7 +162,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 					goto invalid
 				}
 				var id B
-				if id, rem, err = UnmarshalHex(rem); chk.E(err) {
+				if id, rem, err = text.UnmarshalHex(rem); chk.E(err) {
 					return
 				}
 				if len(id) != sha256.Size {
@@ -212,7 +177,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 					goto invalid
 				}
 				var pk B
-				if pk, rem, err = UnmarshalHex(rem); chk.E(err) {
+				if pk, rem, err = text.UnmarshalHex(rem); chk.E(err) {
 					return
 				}
 				if len(pk) != schnorr.PubKeyBytesLen {
@@ -243,7 +208,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 					goto invalid
 				}
 				var sig B
-				if sig, rem, err = UnmarshalHex(rem); chk.E(err) {
+				if sig, rem, err = text.UnmarshalHex(rem); chk.E(err) {
 					return
 				}
 				if len(sig) != schnorr.SignatureSize {
