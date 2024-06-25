@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -9,16 +10,18 @@ import (
 	"github.com/mleku/nodl/pkg/ec/secp256k1"
 	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"
+	"github.com/mleku/nodl/pkg/kinds"
 	"github.com/mleku/nodl/pkg/tag"
+	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
 	"lukechampine.com/frand"
 )
 
-func TestT_Marshal(t *testing.T) {
+func TestT_MarshalUnmarshal(t *testing.T) {
 	var err error
-	for _ = range 100 {
+	for _ = range 5 {
 		f := &T{}
-		for _ = range 10 {
+		for _ = range 1000 {
 			id := make(B, sha256.Size)
 			frand.Read(id)
 			f.IDs = append(f.IDs, id)
@@ -50,7 +53,82 @@ func TestT_Marshal(t *testing.T) {
 		f.Search = B("token search text")
 		dst := make([]byte, 0, 4000000)
 		dst = f.Marshal(dst)
-		log.I.F("%s", dst)
-
+		// now unmarshal
+		var f2 *T
+		var rem B
+		if f2, rem, err = Unmarshal(dst); chk.E(err) {
+			t.Fatalf("unmarshal error: %v\n%s\n%s", err, dst, rem)
+		}
+		dst2 := f2.Marshal(nil)
+		if bytes.Equal(dst, dst2) {
+			t.Fatalf("marshal error: %v\n%s\n%s", err, dst, dst2)
+		}
 	}
+}
+
+func TestUnmarshalHexArray(t *testing.T) {
+	var ha []B
+	h := make(B, sha256.Size)
+	frand.Read(h)
+	var dst B
+	for _ = range 20 {
+		hh := sha256.Sum256(h)
+		h = hh[:]
+		ha = append(ha, h)
+	}
+	dst = append(dst, '[')
+	for i := range ha {
+		dst = text.AppendQuote(dst, ha[i], hex.EncAppend)
+		if i != len(ha)-1 {
+			dst = append(dst, ',')
+		}
+	}
+	dst = append(dst, ']')
+	log.I.F("%s", dst)
+	var ha2 []B
+	var rem B
+	var err error
+	if ha2, rem, err = text.UnmarshalHexArray(dst, 32); chk.E(err) {
+		t.Fatal(err)
+	}
+	if len(ha2) != len(ha) {
+		t.Fatalf("failed to unmarshal, got %d fields, expected %d", len(ha2),
+			len(ha))
+	}
+	if len(rem) > 0 {
+		t.Fatalf("failed to unmarshal, remnant afterwards '%s'", rem)
+	}
+	for i := range ha2 {
+		if !bytes.Equal(ha[i], ha2[i]) {
+			t.Fatalf("failed to unmarshal at element %d; got %x, expected %x",
+				i, ha[i], ha2[i])
+		}
+	}
+	log.I.F("%s", text.MarshalHexArray(nil, ha2))
+}
+
+func TestUnmarshalKindsArray(t *testing.T) {
+	k := make(kinds.T, 100)
+	for i := range k {
+		k[i] = kind.T(frand.Intn(65535))
+	}
+	var dst B
+	dst = text.MarshalKindsArray(dst, k)
+	log.I.F("%s", dst)
+	var k2 kinds.T
+	var rem B
+	var err error
+	if k2, rem, err = text.UnmarshalKindsArray(dst); chk.E(err) {
+		t.Fatal(err)
+	}
+	if len(rem) > 0 {
+		t.Fatalf("failed to unmarshal, remnant afterwards '%s'", rem)
+	}
+	for i := range k {
+		if k[i] != k2[i] {
+			t.Fatalf("failed to unmarshal at element %d; got %x, expected %x",
+				i, k[i], k2[i])
+		}
+	}
+	log.I.F("%s", text.MarshalKindsArray(nil, k2))
 }

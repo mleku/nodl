@@ -1,8 +1,6 @@
 package event
 
 import (
-	"io"
-
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/nodl/pkg/ec/schnorr"
 	"github.com/mleku/nodl/pkg/hex"
@@ -79,43 +77,6 @@ func (t T) Marshal(dst B) (b B) {
 	// close parentheses
 	dst = append(dst, '}')
 	b = dst
-	return
-}
-
-func UnmarshalContent(b B) (content, rem B, err error) {
-	rem = b[:]
-	for ; len(rem) >= 0; rem = rem[1:] {
-		// advance to open quotes
-		if rem[0] == '"' {
-			rem = rem[1:]
-			break
-		}
-	}
-	if len(rem) == 0 {
-		err = io.EOF
-		return
-	}
-	var escaping bool
-	for len(rem) > 0 {
-		if rem[0] == '\\' {
-			escaping = true
-			content = append(content, rem[0])
-			rem = rem[1:]
-		} else if rem[0] == '"' {
-			if !escaping {
-				rem = rem[1:]
-				content = text.NostrUnescape(content)
-				return
-			}
-			content = append(content, rem[0])
-			rem = rem[1:]
-			escaping = false
-		} else {
-			escaping = false
-			content = append(content, rem[0])
-			rem = rem[1:]
-		}
-	}
 	return
 }
 
@@ -224,7 +185,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 					goto invalid
 				}
 				if key[1] == Content[1] {
-					if ev.Content, rem, err = UnmarshalContent(rem); chk.E(err) {
+					if ev.Content, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
 						return
 					}
 					state = betweenKV

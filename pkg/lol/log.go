@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gookit/color"
 )
 
 var l = GetStd()
@@ -78,13 +77,13 @@ var (
 	writer io.Writer = os.Stderr
 	// LevelSpecs specifies the id, string name and color-printing function
 	LevelSpecs = []LevelSpec{
-		{Off, "   ", color.Bit24(0, 0, 0, false).Sprint},
-		{Fatal, "FTL", color.Bit24(128, 0, 0, false).Sprint},
-		{Error, "ERR", color.Bit24(255, 0, 0, false).Sprint},
-		{Warn, "WRN", color.Bit24(0, 255, 0, false).Sprint},
-		{Info, "INF", color.Bit24(255, 255, 0, false).Sprint},
-		{Debug, "DBG", color.Bit24(0, 125, 255, false).Sprint},
-		{Trace, "TRC", color.Bit24(125, 0, 255, false).Sprint},
+		{Off, "   ", fmt.Sprint},
+		{Fatal, "FTL", fmt.Sprint},
+		{Error, "ERR", fmt.Sprint},
+		{Warn, "WRN", fmt.Sprint},
+		{Info, "INF", fmt.Sprint},
+		{Debug, "DBG", fmt.Sprint},
+		{Trace, "TRC", fmt.Sprint},
 	}
 )
 
@@ -213,12 +212,12 @@ func UnixNanoAsFloat() (s string) {
 	lb -= 10
 	lt -= 9
 	copy(timeBytes[:lb], timeText[:lt])
-	return color.Bit24(0, 128, 255, false).Sprint(string(timeBytes))
+	return fmt.Sprint(string(timeBytes))
 }
 
 func GetLoc(skip int) (output string) {
 	_, file, line, _ := runtime.Caller(skip)
-	output = color.Bit24(0, 128, 255, false).Sprint(
+	output = fmt.Sprint(
 		file, ":", line,
 	)
 	return

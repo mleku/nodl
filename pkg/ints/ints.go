@@ -2,7 +2,6 @@ package ints
 
 import (
 	_ "embed"
-	"io"
 )
 
 // run this to regenerate (pointlessly) the base 10 array of 4 places per entry
@@ -21,20 +20,15 @@ var powers = []int64{
 	1_0000_0000_0000_0000,
 }
 
+const zero = '0'
+const nine = '9'
+
 // ExtractInt64FromByteString reads a string, which must be a positive integer
 // no larger than math.MaxInt64, skipping any non-numeric content before it
 func ExtractInt64FromByteString(b B) (n int64, rem B, err error) {
 	var sLen int
-	// skip any non-numbers first
-	for ; sLen < len(b) && (b[sLen] < '0' || b[sLen] > '9'); sLen++ {
-	}
-	if sLen == len(b) {
-		err = io.EOF
-		return
-	}
-	b = b[sLen:]
 	// count the digits
-	for ; sLen < len(b) && b[sLen] >= '0' && b[sLen] <= '9'; sLen++ {
+	for ; sLen < len(b) && b[sLen] >= zero && b[sLen] <= nine && b[sLen] != ','; sLen++ {
 	}
 	if sLen == 0 {
 		err = errorf.E("zero length number")
@@ -42,12 +36,13 @@ func ExtractInt64FromByteString(b B) (n int64, rem B, err error) {
 	}
 	if sLen > 19 {
 		err = errorf.E("too big number for int64")
+		return
 	}
 	// the length of the string found
 	rem = b[sLen:]
 	b = b[:sLen]
 	for _, ch := range b {
-		ch -= '0'
+		ch -= zero
 		n = n*10 + int64(ch)
 	}
 	return
