@@ -15,7 +15,7 @@ type T []tag.T
 
 // GetFirst gets the first tag in tags that matches the prefix, see
 // [T.StartsWith]
-func (t T) GetFirst(tagPrefix []B) *tag.T {
+func (t T) GetFirst(tagPrefix tag.T) *tag.T {
 	for _, v := range t {
 		if v.StartsWith(tagPrefix) {
 			return &v

@@ -27,6 +27,14 @@ const (
 // Not a set, there can be repeating elements.
 type T []B
 
+func New(fields ...string) (t T) {
+	t = make(T, len(fields))
+	for i, field := range fields {
+		t[i] = B(field)
+	}
+	return
+}
+
 // StartsWith checks a tag has the same initial set of elements.
 //
 // The last element is treated specially in that it is considered to match if
@@ -39,7 +47,7 @@ func (t T) StartsWith(prefix T) bool {
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if bytes.Equal(prefix[i], t[i]) {
+		if !bytes.Equal(prefix[i], t[i]) {
 			return false
 		}
 	}
