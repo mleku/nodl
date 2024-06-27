@@ -28,6 +28,7 @@
 !*.md
 !*.txt
 !*.jsonl
+!*.bin
 # ...even if they are in subdirectories
 !*/
 
