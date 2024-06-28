@@ -19,25 +19,25 @@ func TestChallenge(t *testing.T) {
 		t.Fatal(err)
 	}
 	pk := schnorr.SerializePubKey(sec.PubKey())
-	var b B
-	for _ = range 10000 {
+	var b1, b2, b3, b4 B
+	for _ = range 1000 {
 		ch := auth.GenerateChallenge()
 		chal := Challenge{Challenge: ch}
-		if b, err = chal.Marshal(b); chk.E(err) {
+		if b1, err = chal.Marshal(b1); chk.E(err) {
 			t.Fatal(err)
 		}
+		oChal := make(B, len(b1))
+		copy(oChal, b1)
 		var chal2 *Challenge
 		var rem B
 		var l string
-		if l, b, err = sentinel.Identify(b); chk.E(err) {
+		if l, b1, err = sentinel.Identify(b1); chk.E(err) {
 			t.Fatal(err)
 		}
-		orig := make(B, len(b))
-		copy(orig, b)
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		if chal2, rem, err = UnmarshalChallenge(b); chk.E(err) {
+		if chal2, rem, err = UnmarshalChallenge(b1); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -47,22 +47,38 @@ func TestChallenge(t *testing.T) {
 			t.Fatalf("challenge mismatch\n%s\n%s",
 				chal.Challenge, chal2.Challenge)
 		}
+		if b2, err = chal2.Marshal(b2); chk.E(err) {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(oChal, b2) {
+			t.Fatalf("challenge mismatch\n%s\n%s", oChal, b2)
+		}
 		resp := Response{Event: auth.CreateUnsigned(pk, ch, relayURL)}
 		if err = resp.Event.SignWithSecKey(sec); chk.E(err) {
 			t.Fatal(err)
 		}
-		var b2 B
-		if b2, err = resp.Marshal(b2); chk.E(err) {
+		if b3, err = resp.Marshal(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		orig2 := make(B, len(b2))
-		copy(orig2, b2)
+		oResp := make(B, len(b3))
+		copy(oResp, b3)
+		if l, b3, err = sentinel.Identify(b3); chk.E(err) {
+			t.Fatal(err)
+		}
+		if l != L {
+			t.Fatalf("invalid sentinel %s, expect %s", l, L)
+		}
 		var resp2 *Response
-		if resp2, _, err = UnmarshalResponse(b2); chk.E(err) {
+		if resp2, _, err = UnmarshalResponse(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		if b2, err = resp2.Marshal(b2); chk.E(err) {
+		if b4, err = resp2.Marshal(b4); chk.E(err) {
 			t.Fatal(err)
 		}
+		if !bytes.Equal(oResp, b4) {
+			t.Fatalf("challenge mismatch\n%s\n%s", oResp, b4)
+		}
+		b1, b2, b3, b4 = b1[:0], b2[:0], b3[:0], b4[:0]
+		oChal, oResp = oChal[:0], oChal[:0]
 	}
 }
