@@ -5,8 +5,6 @@ import (
 
 	"github.com/mleku/nodl/pkg/ec/schnorr"
 	k1 "github.com/mleku/nodl/pkg/ec/secp256k1"
-	"github.com/mleku/nodl/pkg/hex"
-	"lukechampine.com/frand"
 )
 
 func TestCreateUnsigned(t *testing.T) {
@@ -19,7 +17,7 @@ func TestCreateUnsigned(t *testing.T) {
 	pk := schnorr.SerializePubKey(sec.PubKey())
 	const relayURL = "wss://example.com"
 	for _ = range 100 {
-		challenge := hex.Enc(frand.Bytes(16))
+		challenge := GenerateChallenge()
 		ev := CreateUnsigned(pk, challenge, relayURL)
 		if err = ev.SignWithSecKey(sec); chk.E(err) {
 			t.Fatal(err)
@@ -28,7 +26,8 @@ func TestCreateUnsigned(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !ok {
-			t.Fatalf("failed to validate auth event\n%s", ev.Marshal(nil))
+			bb, _ := ev.Marshal(nil)
+			t.Fatalf("failed to validate auth event\n%s", bb)
 		}
 	}
 }

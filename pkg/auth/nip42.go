@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"net/url"
 	"strings"
 	"time"
@@ -14,15 +16,24 @@ import (
 
 const Required = "auth-required"
 
+// GenerateChallenge creates a reasonable, 96 byte base64 challenge string
+func GenerateChallenge() (b B) {
+	bb := make(B, 12)
+	b = make(B, 16)
+	_, _ = rand.Read(bb)
+	base64.StdEncoding.Encode(b, bb)
+	return
+}
+
 // CreateUnsigned creates an event which should be sent via an "AUTH" command.
 // If the authentication succeeds, the user will be authenticated as pubkey.
-func CreateUnsigned(pubkey B, challenge, relayURL string) (ev *event.T) {
+func CreateUnsigned(pubkey, challenge B, relayURL string) (ev *event.T) {
 	return &event.T{
 		PubKey:    pubkey,
 		CreatedAt: timestamp.Now(),
 		Kind:      kind.ClientAuthentication,
 		Tags: tags.T{tag.New("relay", relayURL),
-			tag.New("challenge", challenge)},
+			tag.New("challenge", string(challenge))},
 	}
 }
 
@@ -35,9 +46,12 @@ func parseURL(input string) (*url.URL, error) {
 	)
 }
 
+var ChallengeTag = B("challenge")
+var RelayTag = B("relay")
+
 // Validate checks whether event is a valid NIP-42 event for given challenge and relayURL.
 // The result of the validation is encoded in the ok bool.
-func Validate(evt *event.T, challenge string,
+func Validate(evt *event.T, challenge B,
 	relayURL string) (ok bool, err error) {
 
 	if evt.Kind != kind.ClientAuthentication {
@@ -46,7 +60,7 @@ func Validate(evt *event.T, challenge string,
 		log.D.Ln(err)
 		return
 	}
-	if evt.Tags.GetFirst(tag.New("challenge", challenge)) == nil {
+	if evt.Tags.GetFirst(tag.T{ChallengeTag, challenge}) == nil {
 		err = log.E.Err("challenge tag missing from auth response")
 		log.D.Ln(err)
 		return
@@ -58,7 +72,7 @@ func Validate(evt *event.T, challenge string,
 		return
 	}
 	r := evt.Tags.
-		GetFirst(tag.New("relay", "")).Value()
+		GetFirst(tag.T{RelayTag, nil}).Value()
 	if len(r) == 0 {
 		err = log.E.Err("relay tag missing from auth response")
 		log.D.Ln(err)

@@ -28,7 +28,9 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		out = ev.Marshal(out)
+		if out, err = ev.Marshal(out); chk.E(err) {
+			t.Fatal(err)
+		}
 		if !bytes.Equal(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
@@ -78,7 +80,8 @@ func TestT_SignWithSecKey(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !valid {
-			t.Fatalf("invalid signature\n%s", ev.Marshal(nil))
+			b, _ := ev.Marshal(nil)
+			t.Fatalf("invalid signature\n%s", b)
 		}
 	}
 }
@@ -108,7 +111,7 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 		bb.ReportAllocs()
 		var counter int
 		for i = 0; i < bb.N; i++ {
-			out = evts[counter].Marshal(out)
+			out, _ = evts[counter].Marshal(out)
 			out = out[:0]
 			counter++
 			if counter != len(evts) {
