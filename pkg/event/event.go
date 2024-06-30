@@ -36,6 +36,10 @@ type T struct {
 	Sig B `json:"sig"`
 }
 
+func New() (ev *T) {
+	return &T{}
+}
+
 var (
 	Id        = B("id")
 	Pubkey    = B("pubkey")
@@ -64,7 +68,7 @@ func (e Descending) Less(i, j int) bool { return e[i].CreatedAt > e[j].CreatedAt
 
 func (e Descending) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
 
-func (ev *T) Marshal(dst B) (b B, err error) {
+func (ev *T) MarshalJSON(dst B) (b B, err error) {
 	// open parentheses
 	dst = append(dst, '{')
 	// ID
@@ -81,11 +85,11 @@ func (ev *T) Marshal(dst B) (b B, err error) {
 	dst = append(dst, ',')
 	// Kind
 	dst = text.JSONKey(dst, Kind)
-	dst = ev.Kind.Marshal(dst)
+	dst, _ = ev.Kind.MarshalJSON(dst)
 	dst = append(dst, ',')
 	// Tags
 	dst = text.JSONKey(dst, Tags)
-	dst = ev.Tags.Marshal(dst)
+	dst, _ = ev.Tags.MarshalJSON(dst)
 	dst = append(dst, ',')
 	// Content
 	dst = text.JSONKey(dst, Content)
@@ -100,13 +104,8 @@ func (ev *T) Marshal(dst B) (b B, err error) {
 	return
 }
 
-func (ev *T) MarshalJSON() (b B, err error) {
-	b, err = ev.Marshal(nil)
-	return
-}
-
 func (ev *T) Serialize() (b B) {
-	b, _ = ev.Marshal(nil)
+	b, _ = ev.MarshalJSON(nil)
 	return
 }
 
@@ -121,8 +120,7 @@ const (
 	afterClose
 )
 
-func Unmarshal(b B) (ev *T, rem B, err error) {
-	ev = &T{}
+func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
@@ -182,17 +180,21 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 				if len(key) < len(Kind) {
 					goto invalid
 				}
-				if ev.Kind, rem, err = kind.Unmarshal(rem); chk.E(err) {
+				var ki any
+				if ki, rem, err = kind.New().UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
+				ev.Kind = ki.(kind.T)
 				state = betweenKV
 			case Tags[0]:
 				if len(key) < len(Tags) {
 					goto invalid
 				}
-				if ev.Tags, rem, err = tags.Unmarshal(rem); chk.E(err) {
+				var ta any
+				if ta, rem, err = ev.Tags.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
+				ev.Tags = ta.(tags.T)
 				state = betweenKV
 			case Sig[0]:
 				if len(key) < len(Sig) {
@@ -223,9 +225,11 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 					if len(key) < len(CreatedAt) {
 						goto invalid
 					}
-					if ev.CreatedAt, rem, err = timestamp.Unmarshal(rem); chk.E(err) {
+					var ca any
+					if ca, rem, err = timestamp.New().UnmarshalJSON(rem); chk.E(err) {
 						return
 					}
+					ev.CreatedAt = ca.(timestamp.T)
 					state = betweenKV
 				} else {
 					goto invalid
@@ -236,6 +240,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 			key = key[:0]
 		case betweenKV:
 			if len(rem) == 0 {
+				ea = ev
 				return
 			}
 			if rem[0] == '}' {
@@ -251,6 +256,7 @@ func Unmarshal(b B) (ev *T, rem B, err error) {
 	if len(rem) == 0 && state != afterClose {
 		err = errorf.E("invalid event,'%s'", S(b))
 	}
+	ea = ev
 	return
 invalid:
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
@@ -266,7 +272,7 @@ func (ev *T) ToCanonical() (b B) {
 	b = append(b, ',')
 	b = ints.Int64AppendToByteString(b, int64(ev.Kind))
 	b = append(b, ',')
-	b = ev.Tags.Marshal(b)
+	b, _ = ev.Tags.MarshalJSON(b)
 	b = append(b, ',')
 	b = text.AppendQuote(b, ev.Content, text.NostrEscape)
 	b = append(b, ']')

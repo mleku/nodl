@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"unsafe"
 
+	"github.com/mleku/nodl/pkg/codec"
 	"github.com/mleku/nodl/pkg/normalize"
 	"github.com/mleku/nodl/pkg/text"
 )
@@ -84,8 +85,8 @@ func (t T) Relay() (s B) {
 	return
 }
 
-// Marshal appends the JSON form to the passed bytes.
-func (t T) Marshal(dst B) (b B) {
+// MarshalJSON appends the JSON form to the passed bytes.
+func (t T) MarshalJSON(dst codec.B) (b codec.B, err error) {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {
@@ -94,12 +95,12 @@ func (t T) Marshal(dst B) (b B) {
 		dst = text.AppendQuote(dst, s, text.NostrEscape)
 	}
 	dst = append(dst, ']')
-	return dst
+	return dst, err
 }
 
-// Unmarshal decodes the provided JSON tag list (array of strings), and returns
-// any remainder after the close bracket has been encountered.
-func Unmarshal(b B) (t T, rem B, err error) {
+// UnmarshalJSON decodes the provided JSON tag list (array of strings), and
+// returns any remainder after the close bracket has been encountered.
+func (t T) UnmarshalJSON(b B) (a any, rem B, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
 	for i := 0; i < len(b); i++ {
@@ -114,18 +115,20 @@ func Unmarshal(b B) (t T, rem B, err error) {
 		} else if b[i] == '\\' && i < len(b)-1 {
 			i++
 		} else if b[i] == '"' {
-			inQuotes, t = false, append(t, text.NostrUnescape(b[quoteStart:i]))
+			inQuotes = false
+			t = append(t, text.NostrUnescape(b[quoteStart:i]))
 		}
 	}
 	if !openedBracket || inQuotes {
 		log.I.F("\n%v\n%s", t, rem)
-		return nil, nil, errorf.E("tag: failed to parse tag")
+		return t, nil, errorf.E("tag: failed to parse tag")
 	}
+	a = t
 	return
 }
 
 func (t T) String() string {
-	b := t.Marshal(nil)
+	b, _ := t.MarshalJSON(nil)
 	return unsafe.String(&b[0], len(b))
 }
 
@@ -149,13 +152,15 @@ func (t T) Contains(s B) bool {
 }
 
 // Equal checks that the provided tag list matches.
-func (t T) Equal(t1 T) bool {
-	if len(t) != len(t1) {
-		return false
-	}
-	for i := range t {
-		if !bytes.Equal(t[i], t1[i]) {
+func (t T) Equal(ta any) bool {
+	if t1, ok := ta.(T); ok {
+		if len(t) != len(t1) {
 			return false
+		}
+		for i := range t {
+			if !bytes.Equal(t[i], t1[i]) {
+				return false
+			}
 		}
 	}
 	return true

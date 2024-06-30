@@ -6,12 +6,21 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mleku/nodl/pkg/codec"
 	"github.com/mleku/nodl/pkg/tag"
 )
 
 // T is a list of T - which are lists of string elements with ordering and no
 // uniqueness constraint (not a set).
 type T []tag.T
+
+func New(fields ...tag.T) (t T) {
+	t = make(T, len(fields))
+	for i, field := range fields {
+		t[i] = field
+	}
+	return
+}
 
 // GetFirst gets the first tag in tags that matches the prefix, see
 // [T.StartsWith]
@@ -115,7 +124,7 @@ func (t T) MarshalTo(dst []byte) []byte {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst = t.Marshal(dst)
+		dst, _ = t.MarshalJSON(dst)
 	}
 	dst = append(dst, ']')
 	return dst
@@ -142,44 +151,47 @@ func (t T) Slice() (slice [][]B) {
 	return
 }
 
-func (t T) Equal(tgs2 T) bool {
-	for i := range t {
-		if !t[i].Equal(tgs2[i]) {
-			return false
+func (t T) Equal(ta any) bool {
+	if t1, ok := ta.(T); ok {
+		for i := range t {
+			if !t[i].Equal(t1) {
+				return false
+			}
 		}
 	}
 	return true
 }
 
-func (t T) Marshal(dst B) (b B) {
+func (t T) MarshalJSON(dst codec.B) (b codec.B, err error) {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
-		dst = s.Marshal(dst)
+		dst, _ = s.MarshalJSON(dst)
 	}
 	dst = append(dst, ']')
-	return dst
+	return dst, err
 }
 
-func Unmarshal(b B) (t T, rem B, err error) {
+func (t T) UnmarshalJSON(b B) (a any, rem B, err error) {
 	rem = b[:]
 	for len(rem) > 0 {
 		switch rem[0] {
 		case '[':
-			var tt tag.T
 			if rem[1] == '[' {
 				rem = rem[1:]
 				continue
 			} else if rem[1] == ']' {
 				rem = rem[1:]
+				a = t
 				return
 			}
-			if tt, rem, err = tag.Unmarshal(rem); chk.E(err) {
+			var tt any
+			if tt, rem, err = tag.New().UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			t = append(t, tt)
+			t = append(t, tt.(tag.T))
 			// continue
 		case ',':
 			rem = rem[1:]
@@ -187,6 +199,7 @@ func Unmarshal(b B) (t T, rem B, err error) {
 		case ']':
 			rem = rem[1:]
 			// the end
+			a = t
 			return
 		}
 	}

@@ -148,7 +148,7 @@ func UnmarshalHexArray(b B, size int) (t []B, rem B, err error) {
 func MarshalKindsArray(dst B, ka kinds.T) (b B) {
 	dst = append(dst, '[')
 	for i := range ka {
-		dst = ka[i].Marshal(dst)
+		dst, _ = ka[i].MarshalJSON(dst)
 		if i != len(ka)-1 {
 			dst = append(dst, ',')
 		}
@@ -178,6 +178,7 @@ func UnmarshalKindsArray(b B) (k kinds.T, rem B, err error) {
 			}
 			k = append(k, kind.T(kk))
 			if rem[0] == ']' {
+				rem = rem[1:]
 				return
 			}
 		}

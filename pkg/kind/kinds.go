@@ -11,20 +11,22 @@ import (
 // idiom, the Go standard library, and much, conformant, existing code.
 type T uint16
 
+func New() (ki T) { return }
+
 func (ki T) ToInt() int       { return int(ki) }
 func (ki T) ToUint16() uint16 { return uint16(ki) }
 func (ki T) Name() string     { return GetString(ki) }
 
-func (ki T) Marshal(dst B) (b B) {
-	return ints.Int64AppendToByteString(dst, int64(ki))
+func (ki T) MarshalJSON(dst B) (b B, err error) {
+	return ints.Int64AppendToByteString(dst, int64(ki)), err
 }
 
-func Unmarshal(b B) (ki T, rem B, err error) {
+func (ki T) UnmarshalJSON(b B) (ka any, rem B, err error) {
 	var n int64
 	if n, rem, err = ints.ExtractInt64FromByteString(b); chk.E(err) {
 		return
 	}
-	ki = T(n)
+	ka = T(n)
 	return
 }
 

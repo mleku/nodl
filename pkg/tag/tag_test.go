@@ -6,7 +6,7 @@ import (
 	"lukechampine.com/frand"
 )
 
-func TestMarshalUnmarshal(t *testing.T) {
+func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var b B
 	for _ = range 1000 {
 		n := frand.Intn(64) + 2
@@ -16,8 +16,8 @@ func TestMarshalUnmarshal(t *testing.T) {
 			_, _ = frand.Read(b1)
 			tg = append(tg, b1)
 		}
-		b = tg.Marshal(b)
-		tg2, rem, err := Unmarshal(b)
+		b, _ = tg.MarshalJSON(b)
+		tg2, rem, err := T{}.UnmarshalJSON(b)
 		if chk.E(err) {
 			t.Fatal(err)
 		}
@@ -31,7 +31,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalUnmarshal(bb *testing.B) {
+func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 	b := make(B, 0, 40000000)
 	tg := make(T, 0, 2048)
 	n := 4096
@@ -40,19 +40,20 @@ func BenchmarkMarshalUnmarshal(bb *testing.B) {
 		_, _ = frand.Read(b1)
 		tg = append(tg, b1)
 	}
-	bb.Run("tag.Marshal", func(bb *testing.B) {
+	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
-			b = tg.Marshal(b)
+			b, _ = tg.MarshalJSON(b)
 			b = b[:0]
 			tg = tg[:0]
 		}
 	})
-	bb.Run("tag.MarshalUnmarshal", func(bb *testing.B) {
+	bb.Run("tag.MarshalJSONUnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
+		var tg2 T
 		for i := 0; i < bb.N; i++ {
-			b = tg.Marshal(b)
-			_, _, _ = Unmarshal(b)
+			b, _ = tg.MarshalJSON(b)
+			_, _, _ = tg2.UnmarshalJSON(b)
 			b = b[:0]
 			tg = tg[:0]
 		}

@@ -22,6 +22,8 @@ type T struct {
 	Search  B           `json:"search,omitempty"`
 }
 
+func New() (f *T) { return &T{} }
+
 var (
 	IDs     = B("ids")
 	Kinds   = B("kinds")
@@ -33,47 +35,47 @@ var (
 	Search  = B("search")
 )
 
-func (t T) Marshal(dst B) (b B) {
+func (f *T) MarshalJSON(dst B) (b B, err error) {
 	// open parentheses
 	dst = append(dst, '{')
-	if len(t.IDs) > 0 {
+	if len(f.IDs) > 0 {
 		dst = text.JSONKey(dst, IDs)
-		dst = text.MarshalHexArray(dst, t.IDs)
+		dst = text.MarshalHexArray(dst, f.IDs)
 		dst = append(dst, ',')
 	}
-	if len(t.Kinds) > 0 {
+	if len(f.Kinds) > 0 {
 		dst = text.JSONKey(dst, Kinds)
-		dst = text.MarshalKindsArray(dst, t.Kinds)
+		dst = text.MarshalKindsArray(dst, f.Kinds)
 		dst = append(dst, ',')
 	}
-	if len(t.Authors) > 0 {
+	if len(f.Authors) > 0 {
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, t.Authors)
+		dst = text.MarshalHexArray(dst, f.Authors)
 		dst = append(dst, ',')
 	}
-	if len(t.Tags) > 0 {
+	if len(f.Tags) > 0 {
 		dst = text.JSONKey(dst, Tags)
-		dst = t.Tags.Marshal(dst)
+		dst, _ = f.Tags.MarshalJSON(dst)
 		dst = append(dst, ',')
 	}
-	if t.Since > 0 {
+	if f.Since > 0 {
 		dst = text.JSONKey(dst, Since)
-		dst = ints.Int64AppendToByteString(dst, t.Since.I64())
+		dst = ints.Int64AppendToByteString(dst, f.Since.I64())
 		dst = append(dst, ',')
 	}
-	if t.Until > 0 {
+	if f.Until > 0 {
 		dst = text.JSONKey(dst, Until)
-		dst = ints.Int64AppendToByteString(dst, t.Until.I64())
+		dst = ints.Int64AppendToByteString(dst, f.Until.I64())
 		dst = append(dst, ',')
 	}
-	if t.Limit > 0 {
+	if f.Limit > 0 {
 		dst = text.JSONKey(dst, Limit)
-		dst = ints.Int64AppendToByteString(dst, int64(t.Limit))
+		dst = ints.Int64AppendToByteString(dst, int64(f.Limit))
 		dst = append(dst, ',')
 	}
-	if len(t.Search) > 0 {
+	if len(f.Search) > 0 {
 		dst = text.JSONKey(dst, Search)
-		dst = text.AppendQuote(dst, t.Search, text.NostrEscape)
+		dst = text.AppendQuote(dst, f.Search, text.NostrEscape)
 	}
 	// close parentheses
 	dst = append(dst, '}')
@@ -92,8 +94,7 @@ const (
 	afterClose
 )
 
-func Unmarshal(b B) (f *T, rem B, err error) {
-	f = &T{}
+func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
@@ -149,9 +150,11 @@ func Unmarshal(b B) (f *T, rem B, err error) {
 				if len(key) < len(Tags) {
 					goto invalid
 				}
-				if f.Tags, rem, err = tags.Unmarshal(rem); chk.E(err) {
+				var ta any
+				if ta, rem, err = f.Tags.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
+				f.Tags = ta.(tags.T)
 				state = betweenKV
 			case Until[0]:
 				if len(key) < len(Until) {
@@ -205,6 +208,7 @@ func Unmarshal(b B) (f *T, rem B, err error) {
 			key = key[:0]
 		case betweenKV:
 			if len(rem) == 0 {
+				fa = f
 				return
 			}
 			if rem[0] == '}' {
@@ -217,6 +221,7 @@ func Unmarshal(b B) (f *T, rem B, err error) {
 			}
 		}
 	}
+	fa = f
 invalid:
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
 		S(rem))

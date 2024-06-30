@@ -12,6 +12,8 @@ import (
 // precision.
 type T int64
 
+func New() (t T) { return }
+
 // Now returns the current UNIX timestamp of the current second.
 func Now() T { return T(time.Now().Unix()) }
 
@@ -64,13 +66,13 @@ func (t T) String() S {
 	return unsafe.String(&b[0], len(b))
 }
 
-func (t T) Marshal(dst B) (b B) {
-	return ints.Int64AppendToByteString(dst, t.I64())
+func (t T) MarshalJSON(dst B) (b B, err error) {
+	return ints.Int64AppendToByteString(dst, t.I64()), err
 }
 
-func Unmarshal(b B) (t T, rem B, err error) {
+func (t T) UnmarshalJSON(b B) (ta any, rem B, err error) {
 	var n int64
 	n, rem, err = ints.ExtractInt64FromByteString(b)
-	t = T(n)
+	ta = T(n)
 	return
 }

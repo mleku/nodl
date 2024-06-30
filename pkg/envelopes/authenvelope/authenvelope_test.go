@@ -7,12 +7,12 @@ import (
 	"github.com/mleku/nodl/pkg/auth"
 	"github.com/mleku/nodl/pkg/ec/schnorr"
 	k1 "github.com/mleku/nodl/pkg/ec/secp256k1"
-	"github.com/mleku/nodl/pkg/envelopes/sentinel"
+	"github.com/mleku/nodl/pkg/envelopes"
 )
 
 const relayURL = "wss://example.com"
 
-func TestChallenge(t *testing.T) {
+func TestAuth(t *testing.T) {
 	var err error
 	var sec *k1.SecretKey
 	if sec, err = k1.GenerateSecretKey(); chk.E(err) {
@@ -23,23 +23,24 @@ func TestChallenge(t *testing.T) {
 	for _ = range 1000 {
 		ch := auth.GenerateChallenge()
 		chal := Challenge{Challenge: ch}
-		if b1, err = chal.Marshal(b1); chk.E(err) {
+		if b1, err = chal.MarshalJSON(b1); chk.E(err) {
 			t.Fatal(err)
 		}
 		oChal := make(B, len(b1))
 		copy(oChal, b1)
-		var chal2 *Challenge
 		var rem B
 		var l string
-		if l, b1, err = sentinel.Identify(b1); chk.E(err) {
+		if l, b1, err = envelopes.Identify(b1); chk.E(err) {
 			t.Fatal(err)
 		}
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		if chal2, rem, err = UnmarshalChallenge(b1); chk.E(err) {
+		var c2 any
+		if c2, rem, err = NewChallenge().UnmarshalJSON(b1); chk.E(err) {
 			t.Fatal(err)
 		}
+		chal2 := c2.(*Challenge)
 		if len(rem) != 0 {
 			t.Fatal("remainder should be empty")
 		}
@@ -47,7 +48,7 @@ func TestChallenge(t *testing.T) {
 			t.Fatalf("challenge mismatch\n%s\n%s",
 				chal.Challenge, chal2.Challenge)
 		}
-		if b2, err = chal2.Marshal(b2); chk.E(err) {
+		if b2, err = c2.(*Challenge).MarshalJSON(b2); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(oChal, b2) {
@@ -57,22 +58,23 @@ func TestChallenge(t *testing.T) {
 		if err = resp.Event.SignWithSecKey(sec); chk.E(err) {
 			t.Fatal(err)
 		}
-		if b3, err = resp.Marshal(b3); chk.E(err) {
+		if b3, err = resp.MarshalJSON(b3); chk.E(err) {
 			t.Fatal(err)
 		}
 		oResp := make(B, len(b3))
 		copy(oResp, b3)
-		if l, b3, err = sentinel.Identify(b3); chk.E(err) {
+		if l, b3, err = envelopes.Identify(b3); chk.E(err) {
 			t.Fatal(err)
 		}
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		var resp2 *Response
-		if resp2, _, err = UnmarshalResponse(b3); chk.E(err) {
+		var r2 any
+		if r2, _, err = NewResponse().UnmarshalJSON(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		if b4, err = resp2.Marshal(b4); chk.E(err) {
+		resp2 := r2.(*Response)
+		if b4, err = resp2.MarshalJSON(b4); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(oResp, b4) {

@@ -1,4 +1,4 @@
-package sentinel
+package codec
 
 import (
 	"os"

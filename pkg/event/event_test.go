@@ -21,14 +21,16 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 		b := scanner.Bytes()
 		c := make(B, 0, len(b))
 		c = append(c, b...)
-		if ev, rem, err = Unmarshal(b); chk.E(err) {
+		var ea any
+		if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		if out, err = ev.Marshal(out); chk.E(err) {
+		ev = ea.(*T)
+		if out, err = ev.MarshalJSON(out); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(out, c) {
@@ -39,14 +41,14 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 }
 func TestT_CheckSignature(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
-	var ev *T
 	var rem, out B
 	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		c := make(B, 0, len(b))
 		c = append(c, b...)
-		if ev, rem, err = Unmarshal(b); chk.E(err) {
+		var ea any
+		if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -54,7 +56,7 @@ func TestT_CheckSignature(t *testing.T) {
 				rem)
 		}
 		var valid bool
-		if valid, err = ev.CheckSignature(); chk.E(err) {
+		if valid, err = ea.(*T).CheckSignature(); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !valid {
@@ -80,7 +82,7 @@ func TestT_SignWithSecKey(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !valid {
-			b, _ := ev.Marshal(nil)
+			b, _ := ev.MarshalJSON(nil)
 			t.Fatalf("invalid signature\n%s", b)
 		}
 	}
@@ -89,10 +91,9 @@ func TestT_SignWithSecKey(t *testing.T) {
 func BenchmarkUnmarshalMarshal(bb *testing.B) {
 	var i int
 	var out B
-	var ev *T
 	var err error
 	evts := make([]*T, 0, 10000)
-	bb.Run("Unmarshal", func(bb *testing.B) {
+	bb.Run("UnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
 		for i = 0; i < bb.N; i++ {
@@ -101,17 +102,18 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 				scanner.Scan()
 			}
 			b := scanner.Bytes()
-			if ev, _, err = Unmarshal(b); chk.E(err) {
+			var ea any
+			if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
 				bb.Fatal(err)
 			}
-			evts = append(evts, ev)
+			evts = append(evts, ea.(*T))
 		}
 	})
-	bb.Run("Marshal", func(bb *testing.B) {
+	bb.Run("MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		var counter int
 		for i = 0; i < bb.N; i++ {
-			out, _ = evts[counter].Marshal(out)
+			out, _ = evts[counter].MarshalJSON(out)
 			out = out[:0]
 			counter++
 			if counter != len(evts) {
