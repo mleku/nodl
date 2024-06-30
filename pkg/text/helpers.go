@@ -58,12 +58,14 @@ func UnmarshalHex(b B) (h B, rem B, err error) {
 	return
 }
 
+// UnmarshalQuoted performs an in-place unquoting of NIP-01 quoted byte string.
 func UnmarshalQuoted(b B) (content, rem B, err error) {
 	rem = b[:]
 	for ; len(rem) >= 0; rem = rem[1:] {
 		// advance to open quotes
 		if rem[0] == '"' {
 			rem = rem[1:]
+			content = rem
 			break
 		}
 	}
@@ -72,23 +74,25 @@ func UnmarshalQuoted(b B) (content, rem B, err error) {
 		return
 	}
 	var escaping bool
+	var contentLen int
 	for len(rem) > 0 {
 		if rem[0] == '\\' {
 			escaping = true
-			content = append(content, rem[0])
+			contentLen++
 			rem = rem[1:]
 		} else if rem[0] == '"' {
 			if !escaping {
 				rem = rem[1:]
+				content = content[:contentLen]
 				content = NostrUnescape(content)
 				return
 			}
-			content = append(content, rem[0])
+			contentLen++
 			rem = rem[1:]
 			escaping = false
 		} else {
 			escaping = false
-			content = append(content, rem[0])
+			contentLen++
 			rem = rem[1:]
 		}
 	}
