@@ -1,6 +1,7 @@
 package kinds
 
 import (
+	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kind"
 )
 
@@ -55,4 +56,52 @@ func (k T) Equals(t1 T) bool {
 		}
 	}
 	return true
+}
+
+func (k T) MarshalJSON(dst B) (b B, err error) {
+	b = dst
+	b = append(b, '[')
+	for i := range k {
+		b, _ = k[i].MarshalJSON(b)
+		if i != len(k)-1 {
+			b = append(b, ',')
+		}
+	}
+	b = append(b, ']')
+	return
+}
+
+func (k T) UnmarshalJSON(b B) (a any, rem B, err error) {
+	rem = b
+	var openedBracket bool
+	for ; len(rem) > 0; rem = rem[1:] {
+		if !openedBracket && rem[0] == '[' {
+			openedBracket = true
+			continue
+		} else if openedBracket {
+			if rem[0] == ']' {
+				// done
+				return
+			} else if rem[0] == ',' {
+				continue
+			}
+			var kk any
+			if kk, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+				return
+			}
+			k = append(k, kind.T(kk.(ints.T)))
+			if rem[0] == ']' {
+				rem = rem[1:]
+				a = k
+				return
+			}
+		}
+	}
+	if !openedBracket {
+		log.I.F("\n%v\n%s", k, rem)
+		return nil, nil, errorf.E("kinds: failed to unmarshal\n%s\n%s\n%s", k,
+			b, rem)
+	}
+	a = k
+	return
 }

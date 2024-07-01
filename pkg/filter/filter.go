@@ -49,7 +49,12 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	}
 	if len(f.Kinds) > 0 {
 		dst = text.JSONKey(dst, Kinds)
-		dst = text.MarshalKindsArray(dst, f.Kinds)
+		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
+			return
+		}
+		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
+			return
+		}
 		dst = append(dst, ',')
 	}
 	if len(f.Authors) > 0 {
@@ -143,9 +148,11 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 				if len(key) < len(Kinds) {
 					goto invalid
 				}
-				if f.Kinds, rem, err = text.UnmarshalKindsArray(rem); chk.E(err) {
+				var k any
+				if k, rem, err = f.Kinds.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
+				f.Kinds = k.(kinds.T)
 				state = betweenKV
 			case Authors[0]:
 				if len(key) < len(Authors) {

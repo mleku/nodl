@@ -39,7 +39,6 @@ func main() {
 				)
 			}
 			_ = b
-			log.I.F("\n%s", S(b))
 			chk.E(os.WriteFile(filepath.Join(path, "util.go"), b, 0660))
 		}
 		return nil
