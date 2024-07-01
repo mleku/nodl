@@ -1,10 +1,14 @@
 package filter
 
 import (
+	"bytes"
+
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/nodl/pkg/ec/schnorr"
+	"github.com/mleku/nodl/pkg/event"
 	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kinds"
+	"github.com/mleku/nodl/pkg/tag"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
@@ -12,9 +16,9 @@ import (
 
 // T is the primary query form for requesting events from a nostr relay.
 type T struct {
-	IDs     []B         `json:"ids,omitempty"`
+	IDs     tag.T       `json:"ids,omitempty"`
 	Kinds   kinds.T     `json:"kinds,omitempty"`
-	Authors []B         `json:"authors,omitempty"`
+	Authors tag.T       `json:"authors,omitempty"`
 	Tags    tags.T      `json:"-,omitempty"`
 	Since   timestamp.T `json:"since,omitempty"`
 	Until   timestamp.T `json:"until,omitempty"`
@@ -60,17 +64,23 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	}
 	if f.Since > 0 {
 		dst = text.JSONKey(dst, Since)
-		dst = ints.Int64AppendToByteString(dst, f.Since.I64())
+		if dst, err = ints.T(f.Since).MarshalJSON(dst); chk.E(err) {
+			return
+		}
 		dst = append(dst, ',')
 	}
 	if f.Until > 0 {
 		dst = text.JSONKey(dst, Until)
-		dst = ints.Int64AppendToByteString(dst, f.Until.I64())
+		if dst, err = ints.T(f.Until).MarshalJSON(dst); chk.E(err) {
+			return
+		}
 		dst = append(dst, ',')
 	}
 	if f.Limit > 0 {
 		dst = text.JSONKey(dst, Limit)
-		dst = ints.Int64AppendToByteString(dst, int64(f.Limit))
+		if dst, err = ints.T(f.Limit).MarshalJSON(dst); chk.E(err) {
+			return
+		}
 		dst = append(dst, ',')
 	}
 	if len(f.Search) > 0 {
@@ -160,21 +170,21 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 				if len(key) < len(Until) {
 					goto invalid
 				}
-				var u int64
-				if u, rem, err = ints.ExtractInt64FromByteString(rem); chk.E(err) {
+				var u any
+				if u, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Until = timestamp.T(u)
+				f.Until = timestamp.T(u.(ints.T))
 				state = betweenKV
 			case Limit[0]:
 				if len(key) < len(Limit) {
 					goto invalid
 				}
-				var l int64
-				if l, rem, err = ints.ExtractInt64FromByteString(rem); chk.E(err) {
+				var l any
+				if l, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Limit = int(l)
+				f.Limit = int(l.(ints.T))
 				state = betweenKV
 			case Search[0]:
 				if len(key) < len(Since) {
@@ -195,11 +205,11 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 					if len(key) < len(Since) {
 						goto invalid
 					}
-					var s int64
-					if s, rem, err = ints.ExtractInt64FromByteString(rem); chk.E(err) {
+					var s any
+					if s, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
 						return
 					}
-					f.Until = timestamp.T(s)
+					f.Until = timestamp.T(s.(ints.T))
 					state = betweenKV
 				}
 			default:
@@ -226,4 +236,43 @@ invalid:
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
 		S(rem))
 	return
+}
+
+func (f *T) Matches(ev *event.T) bool {
+	if ev == nil {
+		// log.T.F("nil event")
+		return false
+	}
+	if len(f.IDs) > 0 && !f.IDs.Contains(ev.ID) {
+		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		return false
+	}
+	if len(f.Kinds) > 0 && !f.Kinds.Contains(ev.Kind) {
+		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		return false
+	}
+	if len(f.Authors) > 0 && !f.Authors.Contains(ev.PubKey) {
+		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		return false
+	}
+	for i, v := range f.Tags {
+		// remove the hash prefix (idk why this thing even exists tbh)
+		if bytes.HasPrefix(v[0], B("#")) {
+			f.Tags[i][0] = f.Tags[i][0][1:]
+		}
+		if len(v) > 0 && !ev.Tags.ContainsAny(v[0], v...) {
+			// log.T.F("no matching tags in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+			return false
+		}
+		// special case for p tags
+	}
+	if f.Since != 0 && ev.CreatedAt < f.Since {
+		// log.T.F("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		return false
+	}
+	if f.Until != 0 && ev.CreatedAt > f.Until {
+		// log.T.F("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+		return false
+	}
+	return true
 }

@@ -8,19 +8,24 @@ import (
 	"lukechampine.com/frand"
 )
 
-func TestByteStringToInt64(t *testing.T) {
-	b := make([]byte, 0, 8)
-	var m, n int64
+func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+	b := make(B, 0, 8)
+	var rem B
+	var n T
 	var err error
-	_, _ = m, err
 	for _ = range 10000000 {
-		n = int64(frand.Intn(math.MaxInt64))
-		b = Int64AppendToByteString(b, n)
-		if m, _, err = ExtractInt64FromByteString(b); chk.E(err) {
+		n = T(frand.Intn(math.MaxInt64))
+		b, err = n.MarshalJSON(b)
+		var mi any
+		if mi, rem, err = New().UnmarshalJSON(b); chk.E(err) {
 			t.Fatal(err)
 		}
+		m := mi.(T)
 		if n != m {
 			t.Fatalf("failed to convert to int64 at %d %s %d", n, b, m)
+		}
+		if len(rem) > 0 {
+			t.Fatalf("leftover bytes after converting back: '%s'", rem)
 		}
 		b = b[:0]
 	}
@@ -29,28 +34,24 @@ func TestByteStringToInt64(t *testing.T) {
 func BenchmarkByteStringToInt64(bb *testing.B) {
 	b := make([]byte, 0, 19)
 	var i int
-	var err error
-	testInts := make([]int64, 10000)
+	testInts := make([]T, 10000)
 	for i = range 10000 {
-		testInts[i] = int64(frand.Intn(math.MaxInt64))
+		testInts[i] = T(frand.Intn(math.MaxInt64))
 	}
-
-	bb.Run("Int64AppendToByteString", func(bb *testing.B) {
+	bb.Run("MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			b = Int64AppendToByteString(b, n)
+			b, _ = n.MarshalJSON(b)
 			b = b[:0]
 		}
 	})
-	bb.Run("ByteStringToInt64ToByteString", func(bb *testing.B) {
+	bb.Run("MarshalJSONUnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
 			n := testInts[i%10000]
-			b = Int64AppendToByteString(b, int64(n))
-			if _, _, err = ExtractInt64FromByteString(b); chk.E(err) {
-				bb.Fatal(err)
-			}
+			b, _ = n.MarshalJSON(b)
+			_, _, _ = New().UnmarshalJSON(b)
 			b = b[:0]
 		}
 	})
@@ -69,8 +70,7 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 		for i = 0; i < bb.N; i++ {
 			n := testInts[i%10000]
 			s = strconv.Itoa(int(n))
-			_, err = strconv.Atoi(s)
+			_, _ = strconv.Atoi(s)
 		}
 	})
-
 }

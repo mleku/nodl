@@ -12,7 +12,11 @@ var base10k []byte
 
 const base = 10000
 
-var powers = []int64{
+type T uint64
+
+func New() T { return 0 }
+
+var powers = []T{
 	1,
 	1_0000,
 	1_0000_0000,
@@ -23,36 +27,13 @@ var powers = []int64{
 const zero = '0'
 const nine = '9'
 
-// ExtractInt64FromByteString reads a string, which must be a positive integer
-// no larger than math.MaxInt64, skipping any non-numeric content before it
-func ExtractInt64FromByteString(b B) (n int64, rem B, err error) {
-	var sLen int
-	// count the digits
-	for ; sLen < len(b) && b[sLen] >= zero && b[sLen] <= nine && b[sLen] != ','; sLen++ {
-	}
-	if sLen == 0 {
-		err = errorf.E("zero length number")
-		return
-	}
-	if sLen > 19 {
-		err = errorf.E("too big number for int64")
-		return
-	}
-	// the length of the string found
-	rem = b[sLen:]
-	b = b[:sLen]
-	for _, ch := range b {
-		ch -= zero
-		n = n*10 + int64(ch)
-	}
-	return
-}
-
-// Int64AppendToByteString encodes an *positive* int64 into ASCII decimal format
-// in a []byte. This is only for use with timestamp.T and kind.T.
-func Int64AppendToByteString(dst []byte, n int64) (b []byte) {
+// MarshalJSON encodes an uint64 into ASCII decimal format in a
+// []byte.
+func (n T) MarshalJSON(dst B) (b B, err error) {
+	b = dst
 	if n == 0 {
-		return append(dst, '0')
+		b = append(b, '0')
+		return
 	}
 	var i int
 	var trimmed bool
@@ -74,8 +55,34 @@ func Int64AppendToByteString(dst []byte, n int64) (b []byte) {
 				}
 			}
 		}
-		dst = append(dst, bb...)
+		b = append(b, bb...)
 		n = n - q*powers[k]
 	}
-	return dst
+	return
+}
+
+// UnmarshalJSON reads a string, which must be a positive integer no larger than
+// math.MaxUint64, skipping any non-numeric content before it.
+func (n T) UnmarshalJSON(b B) (a any, rem B, err error) {
+	var sLen int
+	// count the digits
+	for ; sLen < len(b) && b[sLen] >= zero && b[sLen] <= nine && b[sLen] != ','; sLen++ {
+	}
+	if sLen == 0 {
+		err = errorf.E("zero length number")
+		return
+	}
+	if sLen > 20 {
+		err = errorf.E("too big number for uint64")
+		return
+	}
+	// the length of the string found
+	rem = b[sLen:]
+	b = b[:sLen]
+	for _, ch := range b {
+		ch -= zero
+		n = n*10 + T(ch)
+	}
+	a = n
+	return
 }

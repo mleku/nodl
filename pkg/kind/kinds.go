@@ -18,15 +18,15 @@ func (ki T) ToUint16() uint16 { return uint16(ki) }
 func (ki T) Name() string     { return GetString(ki) }
 
 func (ki T) MarshalJSON(dst B) (b B, err error) {
-	return ints.Int64AppendToByteString(dst, int64(ki)), err
+	return ints.T(ki).MarshalJSON(dst)
 }
 
 func (ki T) UnmarshalJSON(b B) (ka any, rem B, err error) {
-	var n int64
-	if n, rem, err = ints.ExtractInt64FromByteString(b); chk.E(err) {
+	var n any
+	if n, rem, err = ints.New().UnmarshalJSON(b); chk.E(err) {
 		return
 	}
-	ka = T(n)
+	ka = T(n.(ints.T))
 	return
 }
 

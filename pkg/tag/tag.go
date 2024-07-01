@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"unsafe"
 
-	"github.com/mleku/nodl/pkg/codec"
 	"github.com/mleku/nodl/pkg/normalize"
 	"github.com/mleku/nodl/pkg/text"
 )
@@ -27,6 +26,13 @@ const (
 //
 // Not a set, there can be repeating elements.
 type T []B
+
+func NewWithCap(c int) T { return make([]B, 0, c) }
+
+func (t T) Append(b B) (tt T) { return append(t, b) }
+func (t T) Len() int          { return len(t) }
+func (t T) Cap() int          { return cap(t) }
+func (t T) Clear() (tt T)     { return t[:0] }
 
 func New(fields ...string) (t T) {
 	t = make(T, len(fields))
@@ -86,7 +92,7 @@ func (t T) Relay() (s B) {
 }
 
 // MarshalJSON appends the JSON form to the passed bytes.
-func (t T) MarshalJSON(dst codec.B) (b codec.B, err error) {
+func (t T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, '[')
 	for i, s := range t {
 		if i > 0 {

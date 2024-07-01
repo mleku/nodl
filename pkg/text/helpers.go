@@ -176,11 +176,11 @@ func UnmarshalKindsArray(b B) (k kinds.T, rem B, err error) {
 			} else if rem[0] == ',' {
 				continue
 			}
-			var kk int64
-			if kk, rem, err = ints.ExtractInt64FromByteString(rem); chk.E(err) {
+			var kk any
+			if kk, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			k = append(k, kind.T(kk))
+			k = append(k, kind.T(kk.(ints.T)))
 			if rem[0] == ']' {
 				rem = rem[1:]
 				return

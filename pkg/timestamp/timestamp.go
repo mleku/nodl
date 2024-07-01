@@ -60,19 +60,22 @@ func ToVarint(dst B, t T) B { return binary.AppendVarint(dst, int64(t)) }
 
 func (t T) FromVarint(dst B) (b B) { return ToVarint(dst, t) }
 
-func (t T) String() S {
-	b := make([]byte, 0, 19)
-	b = ints.Int64AppendToByteString(b, t.I64())
+func (t T) String() (s S) {
+	b := make([]byte, 0, 20)
+	var err error
+	if b, err = ints.T(t).MarshalJSON(b); chk.E(err) {
+		return
+	}
 	return unsafe.String(&b[0], len(b))
 }
 
 func (t T) MarshalJSON(dst B) (b B, err error) {
-	return ints.Int64AppendToByteString(dst, t.I64()), err
+	return ints.T(t).MarshalJSON(dst)
 }
 
 func (t T) UnmarshalJSON(b B) (ta any, rem B, err error) {
-	var n int64
-	n, rem, err = ints.ExtractInt64FromByteString(b)
-	ta = T(n)
+	var n any
+	n, rem, err = ints.New().UnmarshalJSON(b)
+	ta = T(n.(ints.T))
 	return
 }

@@ -81,7 +81,9 @@ func (ev *T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, ',')
 	// CreatedAt
 	dst = text.JSONKey(dst, CreatedAt)
-	dst = ints.Int64AppendToByteString(dst, ev.CreatedAt.I64())
+	if dst, err = ints.T(ev.CreatedAt).MarshalJSON(dst); chk.E(err) {
+		return
+	}
 	dst = append(dst, ',')
 	// Kind
 	dst = text.JSONKey(dst, Kind)
@@ -268,9 +270,14 @@ func (ev *T) ToCanonical() (b B) {
 	b = append(b, "[0,\""...)
 	b = hex.EncAppend(b, ev.PubKey)
 	b = append(b, "\","...)
-	b = ints.Int64AppendToByteString(b, ev.CreatedAt.I64())
+	var err error
+	if b, err = ints.T(ev.CreatedAt).MarshalJSON(b); chk.E(err) {
+		return
+	}
 	b = append(b, ',')
-	b = ints.Int64AppendToByteString(b, int64(ev.Kind))
+	if b, err = ints.T(ev.Kind).MarshalJSON(b); chk.E(err) {
+		return
+	}
 	b = append(b, ',')
 	b, _ = ev.Tags.MarshalJSON(b)
 	b = append(b, ',')
