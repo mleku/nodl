@@ -41,6 +41,7 @@ func (ff T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 		case '[':
 			if len(rem) > 1 && rem[1] == ']' {
 				rem = rem[1:]
+				fa = ff
 				return
 			}
 			var ffa any
@@ -59,5 +60,6 @@ func (ff T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 			return
 		}
 	}
+	fa = ff
 	return
 }
