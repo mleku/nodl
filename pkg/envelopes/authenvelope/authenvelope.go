@@ -38,8 +38,7 @@ func (c *Challenge) UnmarshalJSON(b B) (ta any, rem B, err error) {
 		} else if openQuotes {
 			for i := range rem {
 				if rem[i] == '"' {
-					*c = Challenge{Challenge: text.
-						NostrUnescape(rem[:i])}
+					*c = Challenge{Challenge: text.NostrUnescape(rem[:i])}
 					// no need to read any more, any garbage after this point is
 					// irrelevant
 					rem = rem[:0]

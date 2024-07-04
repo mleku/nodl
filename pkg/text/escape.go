@@ -49,7 +49,7 @@ func NostrEscape(dst, src B) B {
 // appending it to the provided slice, it rewrites it, eliminating a memory
 // copy. Keep in mind that the original JSON will be mangled by this operation,
 // but the resultant slices will cost zero allocations.
-func NostrUnescape(dst B) B {
+func NostrUnescape(dst B) (b B) {
 	var r, w int
 	for ; r < len(dst); r++ {
 		if dst[r] == '\\' {
@@ -87,5 +87,6 @@ func NostrUnescape(dst B) B {
 			w++
 		}
 	}
-	return dst[:w]
+	b = dst[:w]
+	return
 }
