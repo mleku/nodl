@@ -14,23 +14,21 @@ var eventCache []byte
 
 func TestTMarshal_Unmarshal(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
-	var ev *T
 	var rem, out B
 	var err error
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		c := make(B, 0, len(b))
 		c = append(c, b...)
-		var ea any
-		if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
+		ea := New()
+		if _, err = ea.UnmarshalJSON(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
 			t.Fatalf("some of input remaining after marshal/unmarshal: '%s'",
 				rem)
 		}
-		ev = ea.(*T)
-		if out, err = ev.MarshalJSON(out); chk.E(err) {
+		if out, err = ea.MarshalJSON(out); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(out, c) {
@@ -39,6 +37,7 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 		out = out[:0]
 	}
 }
+
 func TestT_CheckSignature(t *testing.T) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
 	var rem, out B
@@ -47,8 +46,8 @@ func TestT_CheckSignature(t *testing.T) {
 		b := scanner.Bytes()
 		c := make(B, 0, len(b))
 		c = append(c, b...)
-		var ea any
-		if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
+		ea := New()
+		if _, err = ea.UnmarshalJSON(b); chk.E(err) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
@@ -56,7 +55,7 @@ func TestT_CheckSignature(t *testing.T) {
 				rem)
 		}
 		var valid bool
-		if valid, err = ea.(*T).CheckSignature(); chk.E(err) {
+		if valid, err = ea.CheckSignature(); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !valid {
@@ -102,11 +101,11 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 				scanner.Scan()
 			}
 			b := scanner.Bytes()
-			var ea any
-			if ea, _, err = New().UnmarshalJSON(b); chk.E(err) {
+			ea := New()
+			if _, err = ea.UnmarshalJSON(b); chk.E(err) {
 				bb.Fatal(err)
 			}
-			evts = append(evts, ea.(*T))
+			evts = append(evts, ea)
 		}
 	})
 	bb.Run("MarshalJSON", func(bb *testing.B) {

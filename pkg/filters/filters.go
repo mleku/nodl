@@ -5,12 +5,14 @@ import (
 	"github.com/mleku/nodl/pkg/filter"
 )
 
-type T []*filter.T
+type T struct {
+	F []*filter.T
+}
 
-func New() (f T) { return }
+func New() (f *T) { return &T{} }
 
-func (ff T) Match(event *event.T) bool {
-	for _, f := range ff {
+func (f *T) Match(event *event.T) bool {
+	for _, f := range f.F {
 		if f.Matches(event) {
 			return true
 		}
@@ -18,12 +20,12 @@ func (ff T) Match(event *event.T) bool {
 	return false
 }
 
-func (ff T) MarshalJSON(dst B) (b B, err error) {
+func (f *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')
-	end := len(ff) - 1
-	for i := range ff {
-		if b, err = ff[i].MarshalJSON(b); chk.E(err) {
+	end := len(f.F) - 1
+	for i := range f.F {
+		if b, err = f.F[i].MarshalJSON(b); chk.E(err) {
 			return
 		}
 		if i < end {
@@ -34,21 +36,20 @@ func (ff T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (ff T) UnmarshalJSON(b B) (fa any, rem B, err error) {
+func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b[:]
 	for len(rem) > 0 {
 		switch rem[0] {
 		case '[':
 			if len(rem) > 1 && rem[1] == ']' {
 				rem = rem[1:]
-				fa = ff
 				return
 			}
-			var ffa any
-			if ffa, rem, err = filter.New().UnmarshalJSON(rem); chk.E(err) {
+			ffa := filter.New()
+			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			ff = append(ff, ffa.(*filter.T))
+			f.F = append(f.F, ffa)
 			// continue
 		case ',':
 			rem = rem[1:]
@@ -56,10 +57,8 @@ func (ff T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 		case ']':
 			rem = rem[1:]
 			// the end
-			fa = ff
 			return
 		}
 	}
-	fa = ff
 	return
 }

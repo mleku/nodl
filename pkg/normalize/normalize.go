@@ -46,21 +46,21 @@ func URL(u B) (b B) {
 			// since this function does not return an error explicitly.
 			return
 		}
-
-		p, _, err := ints.New().UnmarshalJSON(split[1])
+		p := ints.New(0)
+		_, err := p.UnmarshalJSON(split[1])
 		if chk.E(err) {
 			log.D.F("Error normalizing URL '%s': %s", u, err)
 			// again, without an error we must return nil
 			return
 		}
-		port := p.(ints.T)
-		if port > 65535 {
-			log.D.F("Port on address %d: greater than maximum 65535", port)
+		if p.Uint64() > 65535 {
+			log.D.F("Port on address %d: greater than maximum 65535",
+				p.Uint64())
 			return
 		}
 		// if the port is explicitly set to 443 we assume it is wss:// and drop
 		// the port.
-		if port == 443 {
+		if p.Uint16() == 443 {
 			u = append(WSS, split[0]...)
 		} else {
 			u = append(WSS, u...)

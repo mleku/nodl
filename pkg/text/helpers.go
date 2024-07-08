@@ -149,11 +149,11 @@ func UnmarshalHexArray(b B, size int) (t []B, rem B, err error) {
 	return
 }
 
-func MarshalKindsArray(dst B, ka kinds.T) (b B) {
+func MarshalKindsArray(dst B, ka *kinds.T) (b B) {
 	dst = append(dst, '[')
-	for i := range ka {
-		dst, _ = ka[i].MarshalJSON(dst)
-		if i != len(ka)-1 {
+	for i := range ka.K {
+		dst, _ = ka.K[i].MarshalJSON(dst)
+		if i != len(ka.K)-1 {
 			dst = append(dst, ',')
 		}
 	}
@@ -162,8 +162,9 @@ func MarshalKindsArray(dst B, ka kinds.T) (b B) {
 	return
 }
 
-func UnmarshalKindsArray(b B) (k kinds.T, rem B, err error) {
+func UnmarshalKindsArray(b B) (k *kinds.T, rem B, err error) {
 	rem = b
+	k = &kinds.T{}
 	var openedBracket bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		if !openedBracket && rem[0] == '[' {
@@ -176,11 +177,11 @@ func UnmarshalKindsArray(b B) (k kinds.T, rem B, err error) {
 			} else if rem[0] == ',' {
 				continue
 			}
-			var kk any
-			if kk, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+			kk := ints.New(0)
+			if rem, err = kk.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			k = append(k, kind.T(kk.(ints.T)))
+			k.K = append(k.K, kind.New(kk.Uint16()))
 			if rem[0] == ']' {
 				rem = rem[1:]
 				return

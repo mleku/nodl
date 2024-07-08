@@ -36,19 +36,18 @@ func TestAuth(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		var c2 any
-		if c2, rem, err = NewChallenge().UnmarshalJSON(b1); chk.E(err) {
+		c2 := NewChallenge()
+		if rem, err = c2.UnmarshalJSON(b1); chk.E(err) {
 			t.Fatal(err)
 		}
-		chal2 := c2.(*Challenge)
 		if len(rem) != 0 {
 			t.Fatal("remainder should be empty")
 		}
-		if !bytes.Equal(chal.Challenge, chal2.Challenge) {
+		if !bytes.Equal(chal.Challenge, c2.Challenge) {
 			t.Fatalf("challenge mismatch\n%s\n%s",
-				chal.Challenge, chal2.Challenge)
+				chal.Challenge, c2.Challenge)
 		}
-		if b2, err = c2.(*Challenge).MarshalJSON(b2); chk.E(err) {
+		if b2, err = c2.MarshalJSON(b2); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(oChal, b2) {
@@ -69,12 +68,11 @@ func TestAuth(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
-		var r2 any
-		if r2, _, err = NewResponse().UnmarshalJSON(b3); chk.E(err) {
+		r2 := NewResponse()
+		if _, err = r2.UnmarshalJSON(b3); chk.E(err) {
 			t.Fatal(err)
 		}
-		resp2 := r2.(*Response)
-		if b4, err = resp2.MarshalJSON(b4); chk.E(err) {
+		if b4, err = r2.MarshalJSON(b4); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(oResp, b4) {

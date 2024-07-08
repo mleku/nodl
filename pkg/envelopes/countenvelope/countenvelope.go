@@ -1,5 +1,6 @@
 package countenvelope
 
+import "C"
 import (
 	"bytes"
 
@@ -13,8 +14,8 @@ import (
 const L = "COUNT"
 
 type Request struct {
-	ID      subscriptionid.T
-	Filters filters.T
+	ID      *subscriptionid.T
+	Filters *filters.T
 }
 
 func (req *Request) Label() string { return L }
@@ -56,18 +57,19 @@ func UnmarshalRequest(b B) (req *Request, rem B, err error) {
 							continue
 						}
 					}
-					req.ID = text.NostrUnescape(rem[:i])
+					if req.ID, err = subscriptionid.New(text.NostrUnescape(rem[:i])); chk.E(err) {
+						return
+					}
 					// trim the rest
 					rem = rem[i:]
 				}
 			}
 		} else {
 			// second should be filters
-			var fa any
-			if fa, rem, err = filters.New().UnmarshalJSON(rem); chk.E(err) {
+			req.Filters = filters.New()
+			if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			req.Filters = fa.(filters.T)
 			// literally can't be anything more after this
 			return
 		}
@@ -76,7 +78,7 @@ func UnmarshalRequest(b B) (req *Request, rem B, err error) {
 }
 
 type Response struct {
-	ID          subscriptionid.T
+	ID          *subscriptionid.T
 	Count       int
 	Approximate bool
 }
@@ -92,7 +94,8 @@ func (res *Response) Marshal(dst B) (b B, err error) {
 				return
 			}
 			o = append(o, ',')
-			o, err = ints.T(res.Count).MarshalJSON(o)
+			c := ints.New(res.Count)
+			o, err = c.MarshalJSON(o)
 			if res.Approximate {
 				o = append(dst, ',')
 				o = append(o, "true"...)
@@ -122,7 +125,11 @@ func UnmarshalResponse(b B) (res *Response, rem B, err error) {
 							continue
 						}
 					}
-					res.ID = text.NostrUnescape(rem[:i])
+					if res.ID, err = subscriptionid.
+						New(text.NostrUnescape(rem[:i])); chk.E(err) {
+
+						return
+					}
 					// trim the rest
 					rem = rem[i:]
 				}
@@ -133,11 +140,11 @@ func UnmarshalResponse(b B) (res *Response, rem B, err error) {
 				continue
 			} else if !inCount {
 				inCount = true
-				var n any
-				if n, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+				n := ints.New(0)
+				if rem, err = n.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				res.Count = int(n.(ints.T))
+				res.Count = int(n.Uint64())
 			} else {
 				// can only be either the end or optional approx
 				if rem[0] == ']' {

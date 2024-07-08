@@ -29,7 +29,7 @@ func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (c *Challenge) UnmarshalJSON(b B) (ta any, rem B, err error) {
+func (c *Challenge) UnmarshalJSON(b B) (rem B, err error) {
 	var openQuotes bool
 	rem = b
 	for ; len(rem) > 0; rem = rem[1:] {
@@ -42,7 +42,6 @@ func (c *Challenge) UnmarshalJSON(b B) (ta any, rem B, err error) {
 					// no need to read any more, any garbage after this point is
 					// irrelevant
 					rem = rem[:0]
-					ta = c
 					return
 				}
 			}
@@ -71,17 +70,14 @@ func (r *Response) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (r *Response) UnmarshalJSON(b B) (ta any, rem B, err error) {
+func (r *Response) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
 	// literally just unmarshal the event
-	var ea any
-	if ea, rem, err = event.New().UnmarshalJSON(rem); chk.E(err) {
-		ta = r
+	r.Event = event.New()
+	if rem, err = r.Event.UnmarshalJSON(rem); chk.E(err) {
 		return
 	}
-	r.Event = ea.(*event.T)
 	// no need to read any more, any garbage after this point is irrelevant
 	rem = rem[:0]
-	ta = r
 	return
 }

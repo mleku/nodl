@@ -5,7 +5,6 @@ import (
 	"github.com/mleku/nodl/pkg/ec/schnorr"
 	k1 "github.com/mleku/nodl/pkg/ec/secp256k1"
 	"github.com/mleku/nodl/pkg/hex"
-	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
@@ -22,12 +21,12 @@ type T struct {
 	PubKey B `json:"pubkey"`
 	// CreatedAt is the UNIX timestamp of the event according to the event
 	// creator (never trust a timestamp!)
-	CreatedAt timestamp.T `json:"created_at"`
+	CreatedAt *timestamp.T `json:"created_at"`
 	// Kind is the nostr protocol code for the type of event. See kind.T
-	Kind kind.T `json:"kind"`
+	Kind *kind.T `json:"kind"`
 	// Tags are a list of tags, which are a list of strings usually structured
 	// as a 3 layer scheme indicating specific features of an event.
-	Tags tags.T `json:"tags"`
+	Tags *tags.T `json:"tags"`
 	// Content is an arbitrary string that can contain anything, but usually
 	// conforming to a specification relating to the Kind and the Tags.
 	Content B `json:"content"`
@@ -56,7 +55,7 @@ type C chan *T
 type Ascending []*T
 
 func (ev Ascending) Len() int           { return len(ev) }
-func (ev Ascending) Less(i, j int) bool { return ev[i].CreatedAt < ev[j].CreatedAt }
+func (ev Ascending) Less(i, j int) bool { return *ev[i].CreatedAt < *ev[j].CreatedAt }
 func (ev Ascending) Swap(i, j int)      { ev[i], ev[j] = ev[j], ev[i] }
 
 // Descending sorts a slice of events in reverse chronological order (newest
@@ -64,7 +63,7 @@ func (ev Ascending) Swap(i, j int)      { ev[i], ev[j] = ev[j], ev[i] }
 type Descending []*T
 
 func (e Descending) Len() int           { return len(e) }
-func (e Descending) Less(i, j int) bool { return e[i].CreatedAt > e[j].CreatedAt }
+func (e Descending) Less(i, j int) bool { return *e[i].CreatedAt > *e[j].CreatedAt }
 
 func (e Descending) Swap(i, j int) { e[i], e[j] = e[j], e[i] }
 
@@ -81,7 +80,7 @@ func (ev *T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, ',')
 	// CreatedAt
 	dst = text.JSONKey(dst, CreatedAt)
-	if dst, err = ints.T(ev.CreatedAt).MarshalJSON(dst); chk.E(err) {
+	if dst, err = ev.CreatedAt.MarshalJSON(dst); chk.E(err) {
 		return
 	}
 	dst = append(dst, ',')
@@ -122,7 +121,7 @@ const (
 	afterClose
 )
 
-func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
+func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
@@ -182,21 +181,19 @@ func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
 				if len(key) < len(Kind) {
 					goto invalid
 				}
-				var ki any
-				if ki, rem, err = kind.New().UnmarshalJSON(rem); chk.E(err) {
+				ev.Kind = kind.New(0)
+				if rem, err = ev.Kind.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				ev.Kind = ki.(kind.T)
 				state = betweenKV
 			case Tags[0]:
 				if len(key) < len(Tags) {
 					goto invalid
 				}
-				var ta any
-				if ta, rem, err = ev.Tags.UnmarshalJSON(rem); chk.E(err) {
+				ev.Tags = tags.New()
+				if rem, err = ev.Tags.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				ev.Tags = ta.(tags.T)
 				state = betweenKV
 			case Sig[0]:
 				if len(key) < len(Sig) {
@@ -227,11 +224,10 @@ func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
 					if len(key) < len(CreatedAt) {
 						goto invalid
 					}
-					var ca any
-					if ca, rem, err = timestamp.New().UnmarshalJSON(rem); chk.E(err) {
+					ev.CreatedAt = timestamp.New()
+					if rem, err = ev.CreatedAt.UnmarshalJSON(rem); chk.E(err) {
 						return
 					}
-					ev.CreatedAt = ca.(timestamp.T)
 					state = betweenKV
 				} else {
 					goto invalid
@@ -242,7 +238,6 @@ func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
 			key = key[:0]
 		case betweenKV:
 			if len(rem) == 0 {
-				ea = ev
 				return
 			}
 			if rem[0] == '}' {
@@ -258,7 +253,6 @@ func (ev *T) UnmarshalJSON(b B) (ea any, rem B, err error) {
 	if len(rem) == 0 && state != afterClose {
 		err = errorf.E("invalid event,'%s'", S(b))
 	}
-	ea = ev
 	return
 invalid:
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
@@ -271,15 +265,17 @@ func (ev *T) ToCanonical() (b B) {
 	b = hex.EncAppend(b, ev.PubKey)
 	b = append(b, "\","...)
 	var err error
-	if b, err = ints.T(ev.CreatedAt).MarshalJSON(b); chk.E(err) {
+	if b, err = ev.CreatedAt.MarshalJSON(b); chk.E(err) {
 		return
 	}
 	b = append(b, ',')
-	if b, err = ints.T(ev.Kind).MarshalJSON(b); chk.E(err) {
+	if b, err = ev.Kind.MarshalJSON(b); chk.E(err) {
 		return
 	}
 	b = append(b, ',')
-	b, _ = ev.Tags.MarshalJSON(b)
+	if b, err = ev.Tags.MarshalJSON(b); chk.E(err) {
+		panic(err)
+	}
 	b = append(b, ',')
 	b = text.AppendQuote(b, ev.Content, text.NostrEscape)
 	b = append(b, ']')

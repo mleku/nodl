@@ -32,8 +32,8 @@ func CreateUnsigned(pubkey, challenge B, relayURL string) (ev *event.T) {
 		PubKey:    pubkey,
 		CreatedAt: timestamp.Now(),
 		Kind:      kind.ClientAuthentication,
-		Tags: tags.T{tag.New("relay", relayURL),
-			tag.New("challenge", string(challenge))},
+		Tags: tags.New(tag.New("relay", relayURL),
+			tag.New("challenge", string(challenge))),
 	}
 }
 
@@ -60,7 +60,7 @@ func Validate(evt *event.T, challenge B,
 		log.D.Ln(err)
 		return
 	}
-	if evt.Tags.GetFirst(tag.T{ChallengeTag, challenge}) == nil {
+	if evt.Tags.GetFirst(tag.New(ChallengeTag, challenge)) == nil {
 		err = log.E.Err("challenge tag missing from auth response")
 		log.D.Ln(err)
 		return
@@ -72,7 +72,7 @@ func Validate(evt *event.T, challenge B,
 		return
 	}
 	r := evt.Tags.
-		GetFirst(tag.T{RelayTag, nil}).Value()
+		GetFirst(tag.New(RelayTag, nil)).Value()
 	if len(r) == 0 {
 		err = log.E.Err("relay tag missing from auth response")
 		log.D.Ln(err)

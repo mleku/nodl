@@ -12,16 +12,23 @@ var base10k []byte
 
 const base = 10000
 
-type T uint64
+type T struct {
+	N uint64
+}
 
-func New() T { return 0 }
+func New[V int | uint64 | uint32 | uint16 | uint8 | int64 | int32 | int16 | int8](n V) *T {
+	return &T{uint64(n)}
+}
 
-var powers = []T{
-	1,
-	1_0000,
-	1_0000_0000,
-	1_0000_0000_0000,
-	1_0000_0000_0000_0000,
+func (n *T) Uint64() uint64 { return n.N }
+func (n *T) Uint16() uint16 { return uint16(n.N) }
+
+var powers = []*T{
+	{1},
+	{1_0000},
+	{1_0000_0000},
+	{1_0000_0000_0000},
+	{1_0000_0000_0000_0000},
 }
 
 const zero = '0'
@@ -29,9 +36,10 @@ const nine = '9'
 
 // MarshalJSON encodes an uint64 into ASCII decimal format in a
 // []byte.
-func (n T) MarshalJSON(dst B) (b B, err error) {
+func (n *T) MarshalJSON(dst B) (b B, err error) {
+	nn := n.N
 	b = dst
-	if n == 0 {
+	if n.N == 0 {
 		b = append(b, '0')
 		return
 	}
@@ -40,7 +48,7 @@ func (n T) MarshalJSON(dst B) (b B, err error) {
 	k := len(powers)
 	for k > 0 {
 		k--
-		q := n / powers[k]
+		q := n.N / powers[k].N
 		if !trimmed && q == 0 {
 			continue
 		}
@@ -56,14 +64,15 @@ func (n T) MarshalJSON(dst B) (b B, err error) {
 			}
 		}
 		b = append(b, bb...)
-		n = n - q*powers[k]
+		n.N = n.N - q*powers[k].N
 	}
+	n.N = nn
 	return
 }
 
 // UnmarshalJSON reads a string, which must be a positive integer no larger than
 // math.MaxUint64, skipping any non-numeric content before it.
-func (n T) UnmarshalJSON(b B) (a any, rem B, err error) {
+func (n *T) UnmarshalJSON(b B) (rem B, err error) {
 	var sLen int
 	// count the digits
 	for ; sLen < len(b) && b[sLen] >= zero && b[sLen] <= nine && b[sLen] != ','; sLen++ {
@@ -81,8 +90,7 @@ func (n T) UnmarshalJSON(b B) (a any, rem B, err error) {
 	b = b[:sLen]
 	for _, ch := range b {
 		ch -= zero
-		n = n*10 + T(ch)
+		n.N = n.N*10 + uint64(ch)
 	}
-	a = n
 	return
 }

@@ -10,14 +10,15 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var b B
 	for _ = range 1000 {
 		n := frand.Intn(64) + 2
-		tg := make(T, 0, n)
+		tg := NewWithCap(n)
 		for _ = range n {
 			b1 := make(B, frand.Intn(128)+2)
 			_, _ = frand.Read(b1)
-			tg = append(tg, b1)
+			tg.T = append(tg.T, b1)
 		}
 		b, _ = tg.MarshalJSON(b)
-		tg2, rem, err := T{}.UnmarshalJSON(b)
+		tg2 := NewWithCap(n)
+		rem, err := tg2.UnmarshalJSON(b)
 		if chk.E(err) {
 			t.Fatal(err)
 		}
@@ -33,19 +34,19 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 
 func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 	b := make(B, 0, 40000000)
-	tg := make(T, 0, 2048)
 	n := 4096
+	tg := NewWithCap(n)
 	for _ = range n {
 		b1 := make(B, 128)
 		_, _ = frand.Read(b1)
-		tg = append(tg, b1)
+		tg.T = append(tg.T, b1)
 	}
 	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		for i := 0; i < bb.N; i++ {
 			b, _ = tg.MarshalJSON(b)
 			b = b[:0]
-			tg = tg[:0]
+			tg.Clear()
 		}
 	})
 	bb.Run("tag.MarshalJSONUnmarshalJSON", func(bb *testing.B) {
@@ -53,9 +54,9 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 		var tg2 T
 		for i := 0; i < bb.N; i++ {
 			b, _ = tg.MarshalJSON(b)
-			_, _, _ = tg2.UnmarshalJSON(b)
+			_, _ = tg2.UnmarshalJSON(b)
 			b = b[:0]
-			tg = tg[:0]
+			tg.Clear()
 		}
 	})
 }

@@ -16,17 +16,28 @@ import (
 
 // T is the primary query form for requesting events from a nostr relay.
 type T struct {
-	IDs     tag.T       `json:"ids,omitempty"`
-	Kinds   kinds.T     `json:"kinds,omitempty"`
-	Authors tag.T       `json:"authors,omitempty"`
-	Tags    tags.T      `json:"-,omitempty"`
-	Since   timestamp.T `json:"since,omitempty"`
-	Until   timestamp.T `json:"until,omitempty"`
-	Limit   int         `json:"limit,omitempty"`
-	Search  B           `json:"search,omitempty"`
+	IDs     *tag.T       `json:"ids,omitempty"`
+	Kinds   *kinds.T     `json:"kinds,omitempty"`
+	Authors *tag.T       `json:"authors,omitempty"`
+	Tags    *tags.T      `json:"-,omitempty"`
+	Since   *timestamp.T `json:"since,omitempty"`
+	Until   *timestamp.T `json:"until,omitempty"`
+	Limit   int          `json:"limit,omitempty"`
+	Search  B            `json:"search,omitempty"`
 }
 
-func New() (f *T) { return &T{} }
+func New() (f *T) {
+	return &T{
+		IDs:     tag.NewWithCap(100),
+		Kinds:   kinds.NewWithCap(10),
+		Authors: tag.NewWithCap(100),
+		Tags:    tags.New(),
+		Since:   timestamp.New(),
+		Until:   timestamp.New(),
+		Limit:   0,
+		Search:  nil,
+	}
+}
 
 var (
 	IDs     = B("ids")
@@ -42,12 +53,12 @@ var (
 func (f *T) MarshalJSON(dst B) (b B, err error) {
 	// open parentheses
 	dst = append(dst, '{')
-	if len(f.IDs) > 0 {
+	if f.IDs != nil && len(f.IDs.T) > 0 {
 		dst = text.JSONKey(dst, IDs)
-		dst = text.MarshalHexArray(dst, f.IDs)
+		dst = text.MarshalHexArray(dst, f.IDs.T)
 		dst = append(dst, ',')
 	}
-	if len(f.Kinds) > 0 {
+	if f.Kinds != nil && len(f.Kinds.K) > 0 {
 		dst = text.JSONKey(dst, Kinds)
 		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
 			return
@@ -57,33 +68,33 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		}
 		dst = append(dst, ',')
 	}
-	if len(f.Authors) > 0 {
+	if f.Authors != nil && len(f.Authors.T) > 0 {
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, f.Authors)
+		dst = text.MarshalHexArray(dst, f.Authors.T)
 		dst = append(dst, ',')
 	}
-	if len(f.Tags) > 0 {
+	if f.Tags != nil && len(f.Tags.T) > 0 {
 		dst = text.JSONKey(dst, Tags)
 		dst, _ = f.Tags.MarshalJSON(dst)
 		dst = append(dst, ',')
 	}
-	if f.Since > 0 {
+	if f.Since != nil && f.Until.U64() > 0 {
 		dst = text.JSONKey(dst, Since)
-		if dst, err = ints.T(f.Since).MarshalJSON(dst); chk.E(err) {
+		if dst, err = f.Since.MarshalJSON(dst); chk.E(err) {
 			return
 		}
 		dst = append(dst, ',')
 	}
-	if f.Until > 0 {
+	if f.Until != nil && f.Until.U64() > 0 {
 		dst = text.JSONKey(dst, Until)
-		if dst, err = ints.T(f.Until).MarshalJSON(dst); chk.E(err) {
+		if dst, err = f.Until.MarshalJSON(dst); chk.E(err) {
 			return
 		}
 		dst = append(dst, ',')
 	}
 	if f.Limit > 0 {
 		dst = text.JSONKey(dst, Limit)
-		if dst, err = ints.T(f.Limit).MarshalJSON(dst); chk.E(err) {
+		if dst, err = ints.New(f.Limit).MarshalJSON(dst); chk.E(err) {
 			return
 		}
 		dst = append(dst, ',')
@@ -109,7 +120,7 @@ const (
 	afterClose
 )
 
-func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
+func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
@@ -139,7 +150,8 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 				if len(key) < len(IDs) {
 					goto invalid
 				}
-				if f.IDs, rem, err = text.UnmarshalHexArray(rem,
+				f.IDs = tag.New("")
+				if f.IDs.T, rem, err = text.UnmarshalHexArray(rem,
 					sha256.Size); chk.E(err) {
 					return
 				}
@@ -148,17 +160,17 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 				if len(key) < len(Kinds) {
 					goto invalid
 				}
-				var k any
-				if k, rem, err = f.Kinds.UnmarshalJSON(rem); chk.E(err) {
+				f.Kinds = kinds.New(nil)
+				if rem, err = f.Kinds.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Kinds = k.(kinds.T)
 				state = betweenKV
 			case Authors[0]:
 				if len(key) < len(Authors) {
 					goto invalid
 				}
-				if f.Authors, rem, err = text.UnmarshalHexArray(rem,
+				f.Authors = tag.New("")
+				if f.Authors.T, rem, err = text.UnmarshalHexArray(rem,
 					schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
@@ -167,31 +179,30 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 				if len(key) < len(Tags) {
 					goto invalid
 				}
-				var ta any
-				if ta, rem, err = f.Tags.UnmarshalJSON(rem); chk.E(err) {
+				f.Tags = tags.New()
+				if rem, err = f.Tags.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Tags = ta.(tags.T)
 				state = betweenKV
 			case Until[0]:
 				if len(key) < len(Until) {
 					goto invalid
 				}
-				var u any
-				if u, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+				u := ints.New(0)
+				if rem, err = u.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Until = timestamp.T(u.(ints.T))
+				f.Until = timestamp.FromUnix(int64(u.N))
 				state = betweenKV
 			case Limit[0]:
 				if len(key) < len(Limit) {
 					goto invalid
 				}
-				var l any
-				if l, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+				l := ints.New(0)
+				if rem, err = l.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}
-				f.Limit = int(l.(ints.T))
+				f.Limit = int(l.N)
 				state = betweenKV
 			case Search[0]:
 				if len(key) < len(Since) {
@@ -212,11 +223,11 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 					if len(key) < len(Since) {
 						goto invalid
 					}
-					var s any
-					if s, rem, err = ints.New().UnmarshalJSON(rem); chk.E(err) {
+					s := ints.New(0)
+					if rem, err = s.UnmarshalJSON(rem); chk.E(err) {
 						return
 					}
-					f.Until = timestamp.T(s.(ints.T))
+					f.Until = timestamp.FromUnix(int64(s.N))
 					state = betweenKV
 				}
 			default:
@@ -225,7 +236,6 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 			key = key[:0]
 		case betweenKV:
 			if len(rem) == 0 {
-				fa = f
 				return
 			}
 			if rem[0] == '}' {
@@ -238,7 +248,6 @@ func (f *T) UnmarshalJSON(b B) (fa any, rem B, err error) {
 			}
 		}
 	}
-	fa = f
 invalid:
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
 		S(rem))
@@ -250,34 +259,36 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("nil event")
 		return false
 	}
-	if len(f.IDs) > 0 && !f.IDs.Contains(ev.ID) {
+	if f.IDs != nil && len(f.IDs.T) > 0 && !f.IDs.Contains(ev.ID) {
 		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if len(f.Kinds) > 0 && !f.Kinds.Contains(ev.Kind) {
+	if f.Kinds != nil && len(f.Kinds.K) > 0 && !f.Kinds.Contains(ev.Kind) {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if len(f.Authors) > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors != nil && len(f.Authors.T) > 0 && !f.Authors.Contains(ev.PubKey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	for i, v := range f.Tags {
-		// remove the hash prefix (idk why this thing even exists tbh)
-		if bytes.HasPrefix(v[0], B("#")) {
-			f.Tags[i][0] = f.Tags[i][0][1:]
+	if f.Tags != nil {
+		for i, v := range f.Tags.T {
+			// remove the hash prefix (idk why this thing even exists tbh)
+			if bytes.HasPrefix(v.T[0], B("#")) {
+				f.Tags.T[i].T[0] = f.Tags.T[i].T[0][1:]
+			}
+			if len(v.T) > 0 && !ev.Tags.ContainsAny(v.T[0], v.T...) {
+				// log.T.F("no matching tags in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
+				return false
+			}
+			// special case for p tags
 		}
-		if len(v) > 0 && !ev.Tags.ContainsAny(v[0], v...) {
-			// log.T.F("no matching tags in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
-			return false
-		}
-		// special case for p tags
 	}
-	if f.Since != 0 && ev.CreatedAt < f.Since {
+	if f.Since != nil && f.Since.Int() != 0 && ev.CreatedAt != nil && ev.CreatedAt.I64() < f.Since.I64() {
 		// log.T.F("event is older than since\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Until != 0 && ev.CreatedAt > f.Until {
+	if f.Until != nil && f.Until.Int() != 0 && ev.CreatedAt.I64() > f.Until.I64() {
 		// log.T.F("event is newer than until\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
