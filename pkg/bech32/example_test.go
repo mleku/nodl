@@ -12,12 +12,12 @@ import (
 // This example demonstrates how to decode a bech32 encoded string.
 func ExampleDecode() {
 	encoded := "bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx"
-	hrp, decoded, err := Decode(encoded)
+	hrp, decoded, err := Decode(B(encoded))
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
 	// Show the decoded data.
-	fmt.Println("Decoded human-readable part:", hrp)
+	fmt.Printf("Decoded human-readable part: %s\n", hrp)
 	fmt.Println("Decoded Data:", hex.EncodeToString(decoded))
 	// Output:
 	// Decoded human-readable part: bc
@@ -32,12 +32,12 @@ func ExampleEncode() {
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
-	encoded, err := Encode("customHrp!11111q", conv)
+	encoded, err := Encode(B("customHrp!11111q"), conv)
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
 	// Show the encoded data.
-	fmt.Println("Encoded Data:", encoded)
+	fmt.Printf("Encoded Data: %s", encoded)
 	// Output:
 	// Encoded Data: customhrp!11111q123jhxapqv3shgcgkxpuhe
 }
