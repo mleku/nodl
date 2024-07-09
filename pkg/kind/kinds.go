@@ -13,7 +13,7 @@ type T struct {
 	k uint16
 }
 
-func New[V uint16 | int](k V) (ki *T) { return &T{uint16(k)} }
+func New[V uint16 | uint32 | int](k V) (ki *T) { return &T{uint16(k)} }
 
 func (k *T) ToInt() int       { return int(k.k) }
 func (k *T) ToUint16() uint16 { return k.k }

@@ -1,8 +1,10 @@
 package subscriptionid
 
 import (
+	"crypto/rand"
 	"errors"
 
+	"github.com/mleku/nodl/pkg/bech32"
 	"github.com/mleku/nodl/pkg/text"
 )
 
@@ -26,6 +28,31 @@ func New[V S | B](s V) (*T, error) {
 		return si, errors.New(
 			"invalid subscription ID - either < 0 or > 64 char length")
 	}
+}
+
+const StdLen = 14
+const StdHRP = "su"
+
+func NewStd() (t *T, err error) {
+	var n int
+	src := make(B, StdLen)
+	if n, err = rand.Read(src); chk.E(err) {
+		return
+	}
+	if n != StdLen {
+		err = errorf.E("only read %d of %d bytes from crypto/rand", n, StdLen)
+		return
+	}
+	var bits5 B
+	if bits5, err = bech32.ConvertBits(src, 8, 5, true); chk.D(err) {
+		return nil, err
+	}
+	var dst B
+	if dst, err = bech32.Encode(B(StdHRP), bits5); chk.E(err) {
+		return
+	}
+	t = &T{T: dst}
+	return
 }
 
 func (si *T) Marshal(dst B) (b B, err error) {

@@ -79,6 +79,6 @@ func TestAuth(t *testing.T) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oResp, b4)
 		}
 		b1, b2, b3, b4 = b1[:0], b2[:0], b3[:0], b4[:0]
-		oChal, oResp = oChal[:0], oChal[:0]
+		oChal, oResp = oChal[:0], oResp[:0]
 	}
 }

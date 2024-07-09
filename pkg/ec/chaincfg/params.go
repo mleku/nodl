@@ -210,7 +210,7 @@ type Params struct {
 
 	// Human-readable part for Bech32 encoded segwit addresses, as defined
 	// in BIP 173.
-	Bech32HRPSegwit string
+	Bech32HRPSegwit B
 
 	// Address encoding magics
 	PubKeyHashAddrID        byte // First byte of a P2PKH address
@@ -390,7 +390,7 @@ var MainNetParams = Params{
 
 	// Human-readable part for Bech32 encoded segwit addresses, as defined in
 	// BIP 173.
-	Bech32HRPSegwit: "bc", // always bc for main net
+	Bech32HRPSegwit: B("bc"), // always bc for main net
 
 	// Address encoding magics
 	PubKeyHashAddrID:        0x00, // starts with 1

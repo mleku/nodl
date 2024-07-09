@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strings"
 
 	bech322 "github.com/mleku/nodl/pkg/bech32"
 	"github.com/mleku/nodl/pkg/ec/chaincfg"
@@ -12,9 +11,9 @@ import (
 
 // AddressSegWit is the base address type for all SegWit addresses.
 type AddressSegWit struct {
-	hrp            string
+	hrp            B
 	witnessVersion byte
-	witnessProgram []byte
+	witnessProgram B
 }
 
 // AddressTaproot is an Address for a pay-to-taproot (P2TR) output. See BIP 341
@@ -24,7 +23,7 @@ type AddressTaproot struct {
 }
 
 // NewAddressTaproot returns a new AddressTaproot.
-func NewAddressTaproot(witnessProg []byte,
+func NewAddressTaproot(witnessProg B,
 	net *chaincfg.Params) (*AddressTaproot, error) {
 
 	return newAddressTaproot(net.Bech32HRPSegwit, witnessProg)
@@ -33,8 +32,7 @@ func NewAddressTaproot(witnessProg []byte,
 // newAddressWitnessScriptHash is an internal helper function to create an
 // AddressWitnessScriptHash with a known human-readable part, rather than
 // looking it up through its parameters.
-func newAddressTaproot(hrp string,
-	witnessProg []byte) (*AddressTaproot, error) {
+func newAddressTaproot(hrp B, witnessProg B) (*AddressTaproot, error) {
 	// Check for valid program length for witness version 1, which is 32
 	// for P2TR.
 	if len(witnessProg) != 32 {
@@ -43,7 +41,7 @@ func newAddressTaproot(hrp string,
 	}
 	addr := &AddressTaproot{
 		AddressSegWit{
-			hrp:            strings.ToLower(hrp),
+			hrp:            bytes.ToLower(hrp),
 			witnessVersion: 0x01,
 			witnessProgram: witnessProg,
 		},
@@ -53,7 +51,7 @@ func newAddressTaproot(hrp string,
 
 // decodeSegWitAddress parses a bech32 encoded segwit address string and
 // returns the witness version and witness program byte representation.
-func decodeSegWitAddress(address string) (byte, []byte, error) {
+func decodeSegWitAddress(address B) (byte, []byte, error) {
 	// Decode the bech32 encoded address.
 	_, data, bech32version, err := bech322.DecodeGeneric(address)
 	if err != nil {
@@ -100,20 +98,20 @@ func decodeSegWitAddress(address string) (byte, []byte, error) {
 
 // encodeSegWitAddress creates a bech32 (or bech32m for SegWit v1) encoded
 // address string representation from witness version and witness program.
-func encodeSegWitAddress(hrp string, witnessVersion byte,
-	witnessProgram []byte) (string, error) {
+func encodeSegWitAddress(hrp B, witnessVersion byte,
+	witnessProgram B) (B, error) {
 	// Group the address bytes into 5 bit groups, as this is what is used to
 	// encode each character in the address string.
 	converted, err := bech322.ConvertBits(witnessProgram, 8, 5, true)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// Concatenate the witness version and program, and encode the resulting
 	// bytes using bech32 encoding.
 	combined := make([]byte, len(converted)+1)
 	combined[0] = witnessVersion
 	copy(combined[1:], converted)
-	var bech string
+	var bech B
 	switch witnessVersion {
 	case 0:
 		bech, err = bech322.Encode(hrp, combined)
@@ -122,19 +120,19 @@ func encodeSegWitAddress(hrp string, witnessVersion byte,
 		bech, err = bech322.EncodeM(hrp, combined)
 
 	default:
-		return "", fmt.Errorf("unsupported witness version %d",
+		return nil, fmt.Errorf("unsupported witness version %d",
 			witnessVersion)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// Check validity by decoding the created address.
 	version, program, err := decodeSegWitAddress(bech)
 	if err != nil {
-		return "", fmt.Errorf("invalid segwit address: %v", err)
+		return nil, fmt.Errorf("invalid segwit address: %v", err)
 	}
 	if version != witnessVersion || !bytes.Equal(program, witnessProgram) {
-		return "", fmt.Errorf("invalid segwit address")
+		return nil, fmt.Errorf("invalid segwit address")
 	}
 	return bech, nil
 }
@@ -143,12 +141,12 @@ func encodeSegWitAddress(hrp string, witnessVersion byte,
 // of an AddressSegWit.
 //
 // NOTE: This method is part of the Address interface.
-func (a *AddressSegWit) EncodeAddress() string {
+func (a *AddressSegWit) EncodeAddress() B {
 	str, err := encodeSegWitAddress(
 		a.hrp, a.witnessVersion, a.witnessProgram[:],
 	)
 	if err != nil {
-		return ""
+		return nil
 	}
 	return str
 }

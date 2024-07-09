@@ -36,3 +36,12 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestNewStd(t *testing.T) {
+	for _ = range 100 {
+		_, err := NewStd()
+		if chk.E(err) {
+			t.Fatal(err)
+		}
+	}
+}

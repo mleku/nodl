@@ -18,6 +18,10 @@ type Request struct {
 	Filters *filters.T
 }
 
+func NewRequest(id *subscriptionid.T, filters *filters.T) *Request {
+	return &Request{ID: id, Filters: filters}
+}
+
 func (req *Request) Label() string { return L }
 
 func (req *Request) MarshalJSON(dst B) (b B, err error) {
@@ -37,9 +41,8 @@ func (req *Request) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func UnmarshalRequest(b B) (req *Request, rem B, err error) {
+func (req *Request) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
-	req = &Request{}
 	var inID bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		// first we should be finding a subscription ID
@@ -105,9 +108,8 @@ func (res *Response) Marshal(dst B) (b B, err error) {
 	return
 }
 
-func UnmarshalResponse(b B) (res *Response, rem B, err error) {
+func (res *Response) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
-	res = &Response{}
 	var inID, inCount bool
 	for ; len(rem) > 0; rem = rem[1:] {
 		// first we should be finding a subscription ID
