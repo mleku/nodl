@@ -261,7 +261,7 @@ func Sign(secNonce [SecNonceSize]byte, privKey *ec.SecretKey,
 	}
 
 	// Check that our signing key belongs to the secNonce
-	if !bytes.Equal(secNonce[ec.SecKeyBytesLen*2:],
+	if !equals(secNonce[ec.SecKeyBytesLen*2:],
 		privKey.PubKey().SerializeCompressed()) {
 
 		return nil, ErrSecNoncePubkey

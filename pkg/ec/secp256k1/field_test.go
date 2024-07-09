@@ -7,7 +7,6 @@
 package secp256k1
 
 import (
-	"bytes"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -332,7 +331,7 @@ func TestFieldBytes(t *testing.T) {
 		expected := hexToBytes(test.expected)
 		// Ensure getting the bytes works as expected.
 		gotBytes := f.Bytes()
-		if !bytes.Equal(gotBytes[:], expected) {
+		if !equals(gotBytes[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				*gotBytes, expected)
 			continue
@@ -340,7 +339,7 @@ func TestFieldBytes(t *testing.T) {
 		// Ensure getting the bytes directly into an array works as expected.
 		var b32 [32]byte
 		f.PutBytes(&b32)
-		if !bytes.Equal(b32[:], expected) {
+		if !equals(b32[:], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				b32, expected)
 			continue
@@ -348,7 +347,7 @@ func TestFieldBytes(t *testing.T) {
 		// Ensure getting the bytes directly into a slice works as expected.
 		var buffer [64]byte
 		f.PutBytesUnchecked(buffer[:])
-		if !bytes.Equal(buffer[:32], expected) {
+		if !equals(buffer[:32], expected) {
 			t.Errorf("%s: unexpected result\ngot: %x\nwant: %x", test.name,
 				buffer[:32], expected)
 			continue

@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
@@ -61,7 +60,7 @@ func TestT_MarshalUnmarshal(t *testing.T) {
 			t.Fatalf("unmarshal error: %v\n%s\n%s", err, dst, rem)
 		}
 		dst2, _ := f2.MarshalJSON(nil)
-		if bytes.Equal(dst, dst2) {
+		if equals(dst, dst2) {
 			t.Fatalf("marshal error: %v\n%s\n%s", err, dst, dst2)
 		}
 	}

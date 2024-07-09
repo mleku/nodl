@@ -31,7 +31,7 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 		if out, err = ea.MarshalJSON(out); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(out, c) {
+		if !equals(out, c) {
 			t.Fatalf("mismatched output\n%s\n\n%s\n", c, out)
 		}
 		out = out[:0]

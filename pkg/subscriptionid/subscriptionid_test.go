@@ -1,7 +1,6 @@
 package subscriptionid
 
 import (
-	"bytes"
 	"testing"
 
 	"lukechampine.com/frand"
@@ -31,7 +30,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		if len(rem) > 0 {
 			t.Errorf("len(rem): %d, '%s'", len(rem), rem)
 		}
-		if !bytes.Equal(ui.T, bc) {
+		if !equals(ui.T, bc) {
 			t.Fatalf("bc: %0x, uu: %0x", bc, ui)
 		}
 	}

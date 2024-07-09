@@ -5,7 +5,6 @@
 package ec
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -238,7 +237,7 @@ func TestPubKeys(t *testing.T) {
 		case pubkeyHybrid:
 			pkStr = test.key
 		}
-		if !bytes.Equal(test.key, pkStr) {
+		if !equals(test.key, pkStr) {
 			t.Errorf("%s pubkey: serialized keys do not match.",
 				test.name)
 			spew.Dump(test.key)

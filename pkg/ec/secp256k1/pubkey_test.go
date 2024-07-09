@@ -6,7 +6,6 @@
 package secp256k1
 
 import (
-	"bytes"
 	"errors"
 	"testing"
 )
@@ -323,7 +322,7 @@ func TestPubKeySerialize(t *testing.T) {
 			serialized = pubKey.SerializeUncompressed()
 		}
 		expected := hexToBytes(test.expected)
-		if !bytes.Equal(serialized, expected) {
+		if !equals(serialized, expected) {
 			t.Errorf("%s: mismatched serialized public key -- got %x, want %x",
 				test.name, serialized, expected)
 			continue

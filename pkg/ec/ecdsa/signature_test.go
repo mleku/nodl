@@ -9,7 +9,6 @@
 package ecdsa
 
 import (
-	"bytes"
 	"errors"
 	"math/rand"
 	"testing"
@@ -264,7 +263,7 @@ func TestSignatureSerialize(t *testing.T) {
 	}}
 	for i, test := range tests {
 		result := test.ecsig.Serialize()
-		if !bytes.Equal(result, test.expected) {
+		if !equals(result, test.expected) {
 			t.Errorf("Serialize #%d (%s) unexpected result:\n"+
 				"got:  %x\nwant: %x", i, test.name, result,
 				test.expected)
@@ -489,7 +488,7 @@ type signTest struct {
 // 		hash := hexToBytes(test.hash)
 //
 // 		calcHash := blake256.Sum256(msg)
-// 		if !bytes.Equal(calcHash[:], hash) {
+// 		if !equals(calcHash[:], hash) {
 // 			t.Errorf("%s: mismatched test hash -- expected: %x, given: %x",
 // 				test.name, calcHash[:], hash)
 // 			continue
@@ -499,7 +498,7 @@ type signTest struct {
 // 			nonceBytes := hexToBytes(test.nonce)
 // 			calcNonce := secp256k1.NonceRFC6979(secKeyBytes, hash, nil, nil, 0)
 // 			calcNonceBytes := calcNonce.Bytes()
-// 			if !bytes.Equal(calcNonceBytes[:], nonceBytes) {
+// 			if !equals(calcNonceBytes[:], nonceBytes) {
 // 				t.Errorf("%s: mismatched test nonce -- expected: %x, given: %x",
 // 					test.name, calcNonceBytes, nonceBytes)
 // 				continue
@@ -535,7 +534,7 @@ type signTest struct {
 //
 // 		// Ensure the generated signature is the expected value.
 // 		gotSigBytes := gotSig.Serialize()
-// 		if !bytes.Equal(gotSigBytes, wantSig) {
+// 		if !equals(gotSigBytes, wantSig) {
 // 			t.Errorf("%s: unexpected signature -- got %x, want %x", test.name,
 // 				gotSigBytes, wantSig)
 // 			continue
@@ -560,7 +559,7 @@ type signTest struct {
 // 		if test.rfc6979 {
 // 			gotSig = Sign(secKey, hash)
 // 			gotSigBytes := gotSig.Serialize()
-// 			if !bytes.Equal(gotSigBytes, wantSig) {
+// 			if !equals(gotSigBytes, wantSig) {
 // 				t.Errorf("%s: unexpected signature -- got %x, want %x",
 // 					test.name, gotSigBytes, wantSig)
 // 				continue
@@ -789,7 +788,7 @@ func TestSignatureIsEqual(t *testing.T) {
 // 			// ensure the generated signature is the expected value per the
 // 			// specified compressed flag.
 // 			gotSig := SignCompact(secKey, hash, compressed)
-// 			if !bytes.Equal(gotSig, wantSig) {
+// 			if !equals(gotSig, wantSig) {
 // 				t.Errorf("%s: unexpected signature -- got %x, want %x",
 // 					test.name, gotSig, wantSig)
 // 				continue

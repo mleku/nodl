@@ -107,11 +107,11 @@ func (t *T) ContainsAny(tagName B, values ...B) bool {
 		if v.Len() < 2 {
 			continue
 		}
-		if !bytes.Equal(v.Key(), tagName) {
+		if !equals(v.Key(), tagName) {
 			continue
 		}
 		for _, candidate := range values {
-			if bytes.Equal(v.Value(), candidate) {
+			if equals(v.Value(), candidate) {
 				return true
 			}
 		}

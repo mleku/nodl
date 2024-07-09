@@ -10,14 +10,14 @@ import (
 // nostr protocol, the use of the capital T signifying type, consistent with Go
 // idiom, the Go standard library, and much, conformant, existing code.
 type T struct {
-	k uint16
+	K uint16
 }
 
 func New[V uint16 | uint32 | int](k V) (ki *T) { return &T{uint16(k)} }
 
-func (k *T) ToInt() int       { return int(k.k) }
-func (k *T) ToUint16() uint16 { return k.k }
-func (k *T) ToUint64() uint64 { return uint64(k.k) }
+func (k *T) ToInt() int       { return int(k.K) }
+func (k *T) ToUint16() uint16 { return k.K }
+func (k *T) ToUint64() uint64 { return uint64(k.K) }
 func (k *T) Name() string     { return GetString(k) }
 
 func (k *T) MarshalJSON(dst B) (b B, err error) {
@@ -29,7 +29,7 @@ func (k *T) UnmarshalJSON(b B) (rem B, err error) {
 	if rem, err = n.UnmarshalJSON(b); chk.E(err) {
 		return
 	}
-	k.k = n.Uint16()
+	k.K = n.Uint16()
 	return
 }
 
@@ -43,22 +43,22 @@ func GetString(t *T) string {
 // IsEphemeral returns true if the event kind is an ephemeral event. (not to be
 // stored)
 func (k *T) IsEphemeral() bool {
-	return k.k >= EphemeralStart.k && k.k < EphemeralEnd.k
+	return k.K >= EphemeralStart.K && k.K < EphemeralEnd.K
 }
 
 // IsReplaceable returns true if the event kind is a replaceable kind - that is,
 // if the newest version is the one that is in force (eg follow lists, relay
 // lists, etc.
 func (k *T) IsReplaceable() bool {
-	return k.k == ProfileMetadata.k || k.k == FollowList.k ||
-		(k.k >= ReplaceableStart.k && k.k < ReplaceableEnd.k)
+	return k.K == ProfileMetadata.K || k.K == FollowList.K ||
+		(k.K >= ReplaceableStart.K && k.K < ReplaceableEnd.K)
 }
 
 // IsParameterizedReplaceable is a kind of event that is one of a group of
 // events that replaces based on matching criteria.
 func (k *T) IsParameterizedReplaceable() bool {
-	return k.k >= ParameterizedReplaceableStart.k &&
-		k.k < ParameterizedReplaceableEnd.k
+	return k.K >= ParameterizedReplaceableStart.K &&
+		k.K < ParameterizedReplaceableEnd.K
 }
 
 var (

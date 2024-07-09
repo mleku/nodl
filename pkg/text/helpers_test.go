@@ -1,7 +1,6 @@
 package text
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/minio/sha256-simd"
@@ -41,7 +40,7 @@ func TestUnmarshalHexArray(t *testing.T) {
 		t.Fatalf("failed to unmarshal, remnant afterwards '%s'", rem)
 	}
 	for i := range ha2 {
-		if !bytes.Equal(ha[i], ha2[i]) {
+		if !equals(ha[i], ha2[i]) {
 			t.Fatalf("failed to unmarshal at element %d; got %x, expected %x",
 				i, ha[i], ha2[i])
 		}

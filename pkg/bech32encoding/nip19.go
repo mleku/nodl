@@ -50,9 +50,9 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			err.Error())
 	}
 	switch {
-	case bytes.Equal(prefix, NpubHRP) ||
-		bytes.Equal(prefix, NsecHRP) ||
-		bytes.Equal(prefix, NoteHRP):
+	case equals(prefix, NpubHRP) ||
+		equals(prefix, NsecHRP) ||
+		equals(prefix, NoteHRP):
 		if len(data) < 32 {
 			return prefix, nil, fmt.Errorf("data is less than 32 bytes (%d)",
 				len(data))
@@ -60,7 +60,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 		b := make(B, schnorr.PubKeyBytesLen*2)
 		hex.EncBytes(b, data[:32])
 		return prefix, b, nil
-	case bytes.Equal(prefix, NprofileHRP):
+	case equals(prefix, NprofileHRP):
 		var result pointers.Profile
 		curr := 0
 		for {
@@ -87,7 +87,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			}
 			curr = curr + 2 + len(v)
 		}
-	case bytes.Equal(prefix, NeventHRP):
+	case equals(prefix, NeventHRP):
 		var result pointers.Event
 		curr := 0
 		for {
@@ -122,7 +122,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			}
 			curr = curr + 2 + len(v)
 		}
-	case bytes.Equal(prefix, NentityHRP):
+	case equals(prefix, NentityHRP):
 		var result pointers.Entity
 		curr := 0
 		for {

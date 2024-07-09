@@ -5,7 +5,6 @@
 package chainhash
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -43,7 +42,7 @@ func TestHash(t *testing.T) {
 			len(hash), HashSize)
 	}
 	// Ensure contents match.
-	if !bytes.Equal(hash[:], buf) {
+	if !equals(hash[:], buf) {
 		t.Errorf("NewHash: hash contents mismatch - got: %v, want: %v",
 			hash[:], buf)
 	}

@@ -132,13 +132,13 @@ func TestSecKeys(t *testing.T) {
 		pub := sec.PubKey()
 
 		serializedPubKey := pub.SerializeCompressed()
-		if !bytes.Equal(serializedPubKey, wantPubKeyBytes) {
+		if !equals(serializedPubKey, wantPubKeyBytes) {
 			t.Errorf("%s unexpected serialized public key - got: %x, want: %x",
 				test.name, serializedPubKey, wantPubKeyBytes)
 		}
 
 		serializedSecKey := sec.Serialize()
-		if !bytes.Equal(serializedSecKey, secKeyBytes) {
+		if !equals(serializedSecKey, secKeyBytes) {
 			t.Errorf("%s unexpected serialized secret key - got: %x, want: %x",
 				test.name, serializedSecKey, secKeyBytes)
 		}

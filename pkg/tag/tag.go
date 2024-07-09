@@ -57,7 +57,7 @@ func (t *T) StartsWith(prefix *T) bool {
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if !bytes.Equal(prefix.T[i], t.T[i]) {
+		if !equals(prefix.T[i], t.T[i]) {
 			return false
 		}
 	}
@@ -85,8 +85,8 @@ var etag, ptag = B("e"), B("p")
 
 // Relay returns the third element of the tag.
 func (t *T) Relay() (s B) {
-	if (bytes.Equal(t.Key(), etag) ||
-		bytes.Equal(t.Key(), ptag)) &&
+	if (equals(t.Key(), etag) ||
+		equals(t.Key(), ptag)) &&
 		len(t.T) >= Relay {
 
 		return normalize.URL(t.T[Relay])
@@ -152,7 +152,7 @@ func (t *T) Clone() (c *T) {
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s B) bool {
 	for i := range t.T {
-		if bytes.Equal(t.T[i], s) {
+		if equals(t.T[i], s) {
 			return true
 		}
 	}
@@ -166,7 +166,7 @@ func (t *T) Equal(ta any) bool {
 			return false
 		}
 		for i := range t.T {
-			if !bytes.Equal(t.T[i], t1.T[i]) {
+			if !equals(t.T[i], t1.T[i]) {
 				return false
 			}
 		}

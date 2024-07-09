@@ -6,7 +6,6 @@
 package secp256k1
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/minio/sha256-simd"
@@ -152,7 +151,7 @@ func TestNonceRFC6979(t *testing.T) {
 		gotNonce := NonceRFC6979(secKey, hash[:], extraData, version,
 			test.iterations)
 		gotNonceBytes := gotNonce.Bytes()
-		if !bytes.Equal(gotNonceBytes[:], wantNonce) {
+		if !equals(gotNonceBytes[:], wantNonce) {
 			t.Errorf("%s: unexpected nonce -- got %x, want %x", test.name,
 				gotNonceBytes, wantNonce)
 			continue
@@ -205,7 +204,7 @@ func TestRFC6979Compat(t *testing.T) {
 		gotNonce := NonceRFC6979(secKey, hash[:], nil, nil, 0)
 		wantNonce := hexToBytes(test.nonce)
 		gotNonceBytes := gotNonce.Bytes()
-		if !bytes.Equal(gotNonceBytes[:], wantNonce) {
+		if !equals(gotNonceBytes[:], wantNonce) {
 			t.Errorf("NonceRFC6979 #%d (%s): Nonce is incorrect: "+
 				"%x (expected %x)", i, test.msg, gotNonce,
 				wantNonce)

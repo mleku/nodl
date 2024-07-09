@@ -5,7 +5,6 @@
 package ec
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -22,7 +21,7 @@ func TestGenerateSharedSecret(t *testing.T) {
 	}
 	secret1 := GenerateSharedSecret(privKey1, privKey2.PubKey())
 	secret2 := GenerateSharedSecret(privKey2, privKey1.PubKey())
-	if !bytes.Equal(secret1, secret2) {
+	if !equals(secret1, secret2) {
 		t.Errorf("ECDH failed, secrets mismatch - first: %x, second: %x",
 			secret1, secret2)
 	}

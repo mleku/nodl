@@ -1,8 +1,6 @@
 package bech32encoding
 
 import (
-	"bytes"
-
 	"github.com/mleku/nodl/pkg/bech32"
 	"github.com/mleku/nodl/pkg/ec"
 	"github.com/mleku/nodl/pkg/ec/schnorr"
@@ -61,7 +59,7 @@ func NsecToSecretKey(encoded B) (sk *secp256k1.SecretKey, err error) {
 	if hrp, b5, err = bech32.Decode(encoded); chk.E(err) {
 		return
 	}
-	if !bytes.Equal(hrp, SecHRP) {
+	if !equals(hrp, SecHRP) {
 		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
 			hrp, SecHRP)
 		return
@@ -81,7 +79,7 @@ func NpubToPublicKey(encoded B) (pk *secp256k1.PublicKey, err error) {
 		err = log.E.Err("ERROR: '%s'", err)
 		return
 	}
-	if !bytes.Equal(hrp, PubHRP) {
+	if !equals(hrp, PubHRP) {
 		err = log.E.Err("wrong human readable part, got '%s' want '%s'",
 			hrp, PubHRP)
 		return

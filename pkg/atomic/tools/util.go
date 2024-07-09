@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"bytes"
 	"os"
 
 	"github.com/mleku/nodl/pkg/lol"
@@ -13,4 +14,5 @@ type (
 
 var (
 	log, chk, errorf = lol.New(os.Stderr)
+	equals           = bytes.Equal
 )

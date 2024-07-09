@@ -1,7 +1,6 @@
 package authenvelope
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/mleku/nodl/pkg/auth"
@@ -43,14 +42,14 @@ func TestAuth(t *testing.T) {
 		if len(rem) != 0 {
 			t.Fatal("remainder should be empty")
 		}
-		if !bytes.Equal(chal.Challenge, c2.Challenge) {
+		if !equals(chal.Challenge, c2.Challenge) {
 			t.Fatalf("challenge mismatch\n%s\n%s",
 				chal.Challenge, c2.Challenge)
 		}
 		if b2, err = c2.MarshalJSON(b2); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(oChal, b2) {
+		if !equals(oChal, b2) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oChal, b2)
 		}
 		resp := Response{Event: auth.CreateUnsigned(pk, ch, relayURL)}
@@ -75,7 +74,7 @@ func TestAuth(t *testing.T) {
 		if b4, err = r2.MarshalJSON(b4); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(oResp, b4) {
+		if !equals(oResp, b4) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oResp, b4)
 		}
 		b1, b2, b3, b4 = b1[:0], b2[:0], b3[:0], b4[:0]

@@ -1,7 +1,6 @@
 package bech32encoding
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
@@ -65,7 +64,7 @@ func TestSecretKeyToNsec(t *testing.T) {
 			t.Fatalf("error recovered secret key from converted to nsec: %s",
 				err)
 		}
-		if !bytes.Equal(reNsec, nsec) {
+		if !equals(reNsec, nsec) {
 			t.Fatalf("recovered secret key did not regenerate nsec of original: %s mangled: %s",
 				reNsec, nsec)
 		}
@@ -107,7 +106,7 @@ func TestPublicKeyToNpub(t *testing.T) {
 			t.Fatalf("error recovered secret key from converted to nsec: %s",
 				err)
 		}
-		if !bytes.Equal(reNpub, npub) {
+		if !equals(reNpub, npub) {
 			t.Fatalf("recovered public key did not regenerate npub of original: %s mangled: %s",
 				reNpub, npub)
 		}
