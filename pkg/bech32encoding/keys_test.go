@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/mleku/nodl/pkg/ec/schnorr"
-	"github.com/mleku/nodl/pkg/ec/secp256k1"
+	"github.com/mleku/btcec/schnorr"
+	"github.com/mleku/btcec/secp256k1"
 )
 
 func TestConvertBits(t *testing.T) {

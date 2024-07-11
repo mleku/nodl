@@ -18,6 +18,10 @@ type Request struct {
 	Filters *filters.T
 }
 
+func New() *Request {
+	return &Request{ID: subscriptionid.NewStd(), Filters: filters.New()}
+}
+
 func NewRequest(id *subscriptionid.T, filters *filters.T) *Request {
 	return &Request{ID: id, Filters: filters}
 }
@@ -29,10 +33,10 @@ func (req *Request) MarshalJSON(dst B) (b B, err error) {
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = req.ID.Marshal(o); chk.E(err) {
+			if o, err = req.ID.MarshalJSON(o); chk.E(err) {
 				return
 			}
-			dst = append(dst, ',')
+			o = append(o, ',')
 			if o, err = req.Filters.MarshalJSON(o); chk.E(err) {
 				return
 			}
@@ -93,7 +97,7 @@ func (res *Response) Marshal(dst B) (b B, err error) {
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = res.ID.Marshal(o); chk.E(err) {
+			if o, err = res.ID.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')

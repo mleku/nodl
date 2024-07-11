@@ -6,7 +6,7 @@ import (
 	_ "embed"
 	"testing"
 
-	k1 "github.com/mleku/nodl/pkg/ec/secp256k1"
+	k1 "github.com/mleku/btcec/secp256k1"
 )
 
 //go:embed tenthousand.jsonl

@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg/ec/schnorr"
+	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/nodl/pkg/event"
 	"github.com/mleku/nodl/pkg/ints"
 	"github.com/mleku/nodl/pkg/kinds"
@@ -160,7 +160,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				if len(key) < len(Kinds) {
 					goto invalid
 				}
-				f.Kinds = kinds.New(nil)
+				f.Kinds = kinds.NewWithCap(0)
 				if rem, err = f.Kinds.UnmarshalJSON(rem); chk.E(err) {
 					return
 				}

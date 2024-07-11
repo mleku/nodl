@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg/ec/schnorr"
-	"github.com/mleku/nodl/pkg/ec/secp256k1"
+	"github.com/mleku/btcec/schnorr"
+	"github.com/mleku/btcec/secp256k1"
 	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tag"

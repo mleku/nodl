@@ -8,8 +8,8 @@ import (
 
 	"github.com/minio/sha256-simd"
 
-	"github.com/mleku/nodl/pkg/bech32"
-	"github.com/mleku/nodl/pkg/ec/schnorr"
+	"github.com/mleku/btcec/bech32"
+	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/nodl/pkg/eventid"
 	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"

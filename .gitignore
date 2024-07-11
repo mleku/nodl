@@ -31,8 +31,5 @@
 !*.bin
 # ...even if they are in subdirectories
 !*/
-
-
-
-
-
+/.idea/
+!*.tmpl

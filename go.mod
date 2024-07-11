@@ -1,11 +1,12 @@
 module github.com/mleku/nodl
 
-go 1.22.4
+go 1.22.5
 
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/minio/sha256-simd v1.0.1
+	github.com/mleku/btcec v1.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616

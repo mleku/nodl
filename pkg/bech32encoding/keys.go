@@ -1,10 +1,10 @@
 package bech32encoding
 
 import (
-	"github.com/mleku/nodl/pkg/bech32"
-	"github.com/mleku/nodl/pkg/ec"
-	"github.com/mleku/nodl/pkg/ec/schnorr"
-	"github.com/mleku/nodl/pkg/ec/secp256k1"
+	ec "github.com/mleku/btcec"
+	"github.com/mleku/btcec/bech32"
+	"github.com/mleku/btcec/schnorr"
+	"github.com/mleku/btcec/secp256k1"
 	"github.com/mleku/nodl/pkg/hex"
 )
 

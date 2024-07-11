@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 
-	"github.com/mleku/nodl/pkg/bech32"
+	"github.com/mleku/btcec/bech32"
 	"github.com/mleku/nodl/pkg/text"
 )
 
@@ -33,8 +33,9 @@ func New[V S | B](s V) (*T, error) {
 const StdLen = 14
 const StdHRP = "su"
 
-func NewStd() (t *T, err error) {
+func NewStd() (t *T) {
 	var n int
+	var err error
 	src := make(B, StdLen)
 	if n, err = rand.Read(src); chk.E(err) {
 		return
@@ -45,21 +46,13 @@ func NewStd() (t *T, err error) {
 	}
 	var bits5 B
 	if bits5, err = bech32.ConvertBits(src, 8, 5, true); chk.D(err) {
-		return nil, err
+		return nil
 	}
 	var dst B
 	if dst, err = bech32.Encode(B(StdHRP), bits5); chk.E(err) {
 		return
 	}
 	t = &T{T: dst}
-	return
-}
-
-func (si *T) Marshal(dst B) (b B, err error) {
-	b = dst
-	b = append(b, '"')
-	b = text.NostrEscape(b, si.T)
-	b = append(b, '"')
 	return
 }
 

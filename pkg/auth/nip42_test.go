@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/ec/schnorr"
-	k1 "github.com/mleku/nodl/pkg/ec/secp256k1"
+	"github.com/mleku/btcec/schnorr"
+	k1 "github.com/mleku/btcec/secp256k1"
 )
 
 func TestCreateUnsigned(t *testing.T) {

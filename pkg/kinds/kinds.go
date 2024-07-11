@@ -9,7 +9,9 @@ type T struct {
 	K []*kind.T
 }
 
-func New(k ...*kind.T) *T { return &T{k} }
+func New(k ...*kind.T) *T {
+	return &T{k}
+}
 
 func NewWithCap(c int) *T { return &T{make([]*kind.T, 0, c)} }
 
@@ -69,7 +71,9 @@ func (k *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')
 	for i := range k.K {
-		b, _ = k.K[i].MarshalJSON(b)
+		if b, err = k.K[i].MarshalJSON(b); chk.E(err) {
+			return
+		}
 		if i != len(k.K)-1 {
 			b = append(b, ',')
 		}
