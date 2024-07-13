@@ -31,7 +31,8 @@ func (ev *T) CheckSignature() (valid bool, err error) {
 	// parse signature bytes.
 	var sig *sch.Signature
 	if sig, err = sch.ParseSignature(ev.Sig); chk.D(err) {
-		err = errorf.E("failed to parse signature: %v", err)
+		err = errorf.E("failed to parse signature:\n%d %s\n%v", len(ev.Sig),
+			ev.Sig, err)
 		return
 	}
 	// check signature.

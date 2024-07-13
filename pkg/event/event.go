@@ -44,17 +44,6 @@ func (ev *T) Serialize() (b B) {
 	return
 }
 
-// states of the unmarshaler
-const (
-	beforeOpen = iota
-	openParen
-	inKey
-	inKV
-	inVal
-	betweenKV
-	afterClose
-)
-
 func (ev *T) ToCanonical() (b B) {
 	b = append(b, "[0,\""...)
 	b = hex.EncAppend(b, ev.PubKey)

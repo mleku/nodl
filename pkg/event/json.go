@@ -58,11 +58,34 @@ func (ev *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
+// states of the unmarshaler
+const (
+	beforeOpen = iota
+	openParen
+	inKey
+	inKV
+	inVal
+	betweenKV
+	afterClose
+)
+
+var (
+	states = []string{
+		beforeOpen: "beforeOpen",
+		openParen:  "openParen",
+		inKey:      "inKey",
+		inKV:       "inKV",
+		inVal:      "inVal",
+		betweenKV:  "betweenKV",
+		afterClose: "afterClose",
+	}
+)
+
 func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
-	for ; len(rem) >= 0; rem = rem[1:] {
+	for ; len(rem) > 0; rem = rem[1:] {
 		switch state {
 		case beforeOpen:
 			if rem[0] == '{' {
@@ -187,11 +210,22 @@ func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
 			}
 		}
 	}
-	if len(rem) == 0 && state != afterClose {
-		err = errorf.E("invalid event,'%s'", S(b))
+	if len(rem) != 0 && state != afterClose {
+		log.I.Ln("state", states[state])
+		log.I.F("position\n%d %s\n\n%d %s", len(b)-len(rem),
+			b[:len(b)-len(rem)],
+			len(rem), rem)
+		err = errorf.E("invalid event")
+	}
+	if len(ev.Sig) < schnorr.SignatureSize {
+		log.I.F("position\n%d %s\n\n%d %s",
+			len(b)-len(rem), b[:len(b)-len(rem)], len(rem), rem)
+		err = errorf.E("invalid signature length, require %d got %d '%s'",
+			len(ev.Sig), schnorr.SignatureSize)
 	}
 	return
 invalid:
+	log.I.Ln("state", states[state])
 	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
 		S(rem))
 	return

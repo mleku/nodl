@@ -93,6 +93,8 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 	bb.Run("UnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
+		buf := make(B, 1_000_000)
+		scanner.Buffer(buf, len(buf))
 		for i = 0; i < bb.N; i++ {
 			if !scanner.Scan() {
 				scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))
