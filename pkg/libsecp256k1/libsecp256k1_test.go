@@ -9,7 +9,6 @@ import (
 
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/schnorr"
-	k1 "github.com/mleku/btcec/secp256k1"
 	"github.com/mleku/nodl/pkg/event"
 	"github.com/mleku/nodl/pkg/event/examples"
 )
@@ -37,7 +36,7 @@ func TestVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
+		if err = VerifyFromBytes(id, ev.Sig, ev.PubKey); chk.E(err) {
 			t.Error(err)
 			continue
 		}
@@ -51,12 +50,14 @@ func TestSign(t *testing.T) {
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-	var sec *k1.SecretKey
-	if sec, err = k1.GenerateSecretKey(); chk.E(err) {
+	var sec1 *Sec
+	if sec1, err = GenSec(); chk.E(err) {
 		t.Fatal(err)
 	}
-	sk := sec.Serialize()
-	pk := sec.PubKey()
+	var pub1 *Pub
+	if pub1, err = sec1.Pub(); chk.E(err) {
+		t.Fatal(err)
+	}
 	for scanner.Scan() {
 		b := scanner.Bytes()
 		ev := event.New()
@@ -66,15 +67,26 @@ func TestSign(t *testing.T) {
 		evs = append(evs, ev)
 	}
 	sig := make(B, schnorr.SignatureSize)
+	var pb B
+	if pb, err = pub1.ToBytes(); chk.E(err) {
+		t.Fatal(err)
+	}
 	for _, ev := range evs {
-		ev.PubKey = schnorr.SerializePubKey(pk)
-		id := ev.GetIDBytes()
-		if sig, err = Sign(id, sk); chk.E(err) {
-			t.Error(err)
+		ev.PubKey = pb
+		var uid *Uchar
+		if uid, err = Id(ev.GetIDBytes()); chk.E(err) {
+			t.Fatal(err)
+		}
+		if sig, err = Sign(uid, sec1.Sec()); chk.E(err) {
+			t.Fatal(err)
 		}
 		ev.Sig = sig
-		if err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
-			t.Error(err)
+		var usig *Uchar
+		if usig, err = Sig(sig); chk.E(err) {
+			t.Fatal(err)
+		}
+		if !Verify(uid, usig, pub1.Pub()) {
+			t.Errorf("invalid signature")
 		}
 	}
 }
