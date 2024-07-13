@@ -37,13 +37,14 @@ func TestVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if valid, err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
+		if err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
 			t.Error(err)
 			continue
 		}
 		evs = append(evs, ev)
 	}
 }
+
 func TestSign(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
@@ -65,7 +66,6 @@ func TestSign(t *testing.T) {
 		evs = append(evs, ev)
 	}
 	sig := make(B, schnorr.SignatureSize)
-	var valid bool
 	for _, ev := range evs {
 		ev.PubKey = schnorr.SerializePubKey(pk)
 		id := ev.GetIDBytes()
@@ -73,11 +73,8 @@ func TestSign(t *testing.T) {
 			t.Error(err)
 		}
 		ev.Sig = sig
-		if valid, err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
+		if err = Verify(id, ev.Sig, ev.PubKey); chk.E(err) {
 			t.Error(err)
-		}
-		if !valid {
-			t.Error("invalid signature")
 		}
 	}
 }
