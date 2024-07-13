@@ -7,13 +7,11 @@ import (
 	"testing"
 
 	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg/event/examples"
 )
 
-//go:embed tenthousand.jsonl
-var eventCache []byte
-
 func TestTMarshal_Unmarshal(t *testing.T) {
-	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	var rem, out B
 	var err error
 	for scanner.Scan() {
@@ -39,7 +37,7 @@ func TestTMarshal_Unmarshal(t *testing.T) {
 }
 
 func TestT_CheckSignature(t *testing.T) {
-	scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	var rem, out B
 	var err error
 	for scanner.Scan() {
@@ -94,10 +92,10 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 	evts := make([]*T, 0, 10000)
 	bb.Run("UnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
-		scanner := bufio.NewScanner(bytes.NewBuffer(eventCache))
+		scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 		for i = 0; i < bb.N; i++ {
 			if !scanner.Scan() {
-				scanner = bufio.NewScanner(bytes.NewBuffer(eventCache))
+				scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 				scanner.Scan()
 			}
 			b := scanner.Bytes()

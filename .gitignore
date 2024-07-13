@@ -29,7 +29,7 @@
 !*.txt
 !*.jsonl
 !*.bin
+/.idea/
 # ...even if they are in subdirectories
 !*/
-/.idea/
 !*.tmpl
