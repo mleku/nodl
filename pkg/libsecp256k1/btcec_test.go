@@ -11,13 +11,13 @@ import (
 	"github.com/mleku/nodl/pkg/event/examples"
 )
 
-func TestSignerVerify(t *testing.T) {
+func TestBTCECSignerVerify(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-	signer := &Signer{}
+	signer := &BTCECSigner{}
 	for scanner.Scan() {
 		var valid bool
 		b := scanner.Bytes()
@@ -49,14 +49,14 @@ func TestSignerVerify(t *testing.T) {
 	}
 }
 
-func TestSignerSign(t *testing.T) {
+func TestBTCECSignerSign(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
 
-	signer := &Signer{}
+	signer := &BTCECSigner{}
 	var skb B
 	if skb, err = GenSecBytes(); chk.E(err) {
 		t.Fatal(err)
@@ -64,7 +64,7 @@ func TestSignerSign(t *testing.T) {
 	if err = signer.InitSec(skb); chk.E(err) {
 		t.Fatal(err)
 	}
-	verifier := &Signer{}
+	verifier := &BTCECSigner{}
 	pkb := signer.PubB()
 	if err = verifier.InitPub(pkb); chk.E(err) {
 		t.Fatal(err)

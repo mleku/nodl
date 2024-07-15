@@ -115,6 +115,12 @@ func PubFromBytes(pk B) (pub *Pub, err error) {
 	return
 }
 
+func (p *Pub) PubB() (b B) {
+	b = make(B, schnorr.PubKeyBytesLen)
+	C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(b), &p.Key)
+	return
+}
+
 func (p *Pub) Pub() *PubKey { return &p.Key }
 
 func (p *Pub) ToBytes() (b B, err error) {

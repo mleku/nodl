@@ -2,6 +2,8 @@
 
 package libsecp256k1
 
+import "github.com/mleku/nodl/pkg"
+
 // Signer implements the pkg.Signer interface.
 //
 // Either the Sec or Pub must be populated, the former is for generating
@@ -12,7 +14,10 @@ package libsecp256k1
 type Signer struct {
 	Sec *SecKey
 	Pub *PubKey
+	b   B
 }
+
+var _ pkg.Signer = &Signer{}
 
 func (s *Signer) InitSec(sec B) (err error) {
 	var us *Sec
@@ -25,6 +30,7 @@ func (s *Signer) InitSec(sec B) (err error) {
 		return
 	}
 	s.Pub = &up.Key
+	s.b = up.PubB()
 	return
 }
 
@@ -34,7 +40,12 @@ func (s *Signer) InitPub(pub B) (err error) {
 		return
 	}
 	s.Pub = &up.Key
+	s.b = up.PubB()
 	return
+}
+
+func (s *Signer) PubB() (b B) {
+	return s.b
 }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
@@ -43,7 +54,10 @@ func (s *Signer) Sign(msg B) (sig B, err error) {
 		return
 	}
 	u := ToUchar(msg)
-	return Sign(u, s.Sec)
+	if sig, err = Sign(u, s.Sec); chk.E(err) {
+		return
+	}
+	return
 }
 
 func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
