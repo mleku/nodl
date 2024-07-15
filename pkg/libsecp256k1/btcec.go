@@ -1,8 +1,6 @@
 package libsecp256k1
 
 import (
-	"fmt"
-
 	"github.com/mleku/btcec"
 	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/btcec/secp256k1"
@@ -19,7 +17,8 @@ var _ pkg.Signer = &Signer{}
 
 func (bs *BTCECSigner) InitSec(sec B) (err error) {
 	if len(sec) != secp256k1.SecKeyBytesLen {
-		return fmt.Errorf("sec key must be %d bytes", secp256k1.SecKeyBytesLen)
+		err = errorf.E("sec key must be %d bytes", secp256k1.SecKeyBytesLen)
+		return
 	}
 	bs.Sec = secp256k1.SecKeyFromBytes(sec)
 	bs.Pub = bs.Sec.PubKey()
@@ -50,6 +49,10 @@ func (bs *BTCECSigner) Sign(msg B) (sig B, err error) {
 }
 
 func (bs *BTCECSigner) Verify(msg, sig B) (valid bool, err error) {
+	if bs.Pub == nil {
+		err = errorf.E("btcec: PubKey not initialized")
+		return
+	}
 	var s *schnorr.Signature
 	if s, err = schnorr.ParseSignature(sig); chk.D(err) {
 		err = errorf.E("failed to parse signature:\n%d %s\n%v", len(sig),

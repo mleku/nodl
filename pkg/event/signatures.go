@@ -3,6 +3,8 @@ package event
 import (
 	sch "github.com/mleku/btcec/schnorr"
 	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg"
+	"github.com/mleku/nodl/pkg/libsecp256k1"
 )
 
 // SignWithSecKey signs an event with a given *secp256xk1.SecretKey.
@@ -18,6 +20,39 @@ func (ev *T) SignWithSecKey(sk *k1.SecretKey,
 	// we know secret key is good so we can generate the public key.
 	ev.PubKey = sch.SerializePubKey(sk.PubKey())
 	ev.Sig = sig.Serialize()
+	return
+}
+
+// Sign the event using the pkg.Signer.
+func (ev *T) Sign(keys pkg.Signer) (err error) {
+	ev.ID = ev.GetIDBytes()
+	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
+		return
+	}
+	ev.PubKey = keys.PubB()
+	return
+}
+
+// Verify an event is signed by the pubkey it contains.
+func (ev *T) Verify() (valid bool, err error) {
+	keys := libsecp256k1.Signer{}
+	if err = keys.InitPub(ev.PubKey); chk.E(err) {
+		return
+	}
+	if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
+		// check that this isn't because of a bogus ID
+		id := ev.GetIDBytes()
+		if !equals(id, ev.ID) {
+			log.E.Ln("event ID incorrect")
+			ev.ID = id
+			err = nil
+			if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
+				return
+			}
+			err = errorf.W("event ID incorrect but signature is valid on correct ID")
+		}
+		return
+	}
 	return
 }
 

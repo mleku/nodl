@@ -61,6 +61,10 @@ func (s *Signer) Sign(msg B) (sig B, err error) {
 }
 
 func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
+	if s.Pub == nil {
+		err = errorf.E("libsecp256k1: PubKey not initialized")
+		return
+	}
 	var uMsg, uSig *Uchar
 	if uMsg, err = Msg(msg); chk.E(err) {
 		return
