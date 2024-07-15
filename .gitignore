@@ -6,6 +6,7 @@
 
 # Ignore everything
 *
+/.idea/
 # But not these files...
 !/.gitignore
 !*.go
@@ -29,7 +30,7 @@
 !*.txt
 !*.jsonl
 !*.bin
-/.idea/
+!*.tmpl
+!.gitmodules
 # ...even if they are in subdirectories
 !*/
-!*.tmpl

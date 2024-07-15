@@ -1,6 +1,15 @@
-//go:build libsecp256k1
+//go:build !btcec
 
 package libsecp256k1
+
+import "C"
+import (
+	"crypto/rand"
+	"unsafe"
+
+	"github.com/minio/sha256-simd"
+	"github.com/mleku/btcec/schnorr"
+)
 
 /*
 #cgo LDFLAGS: -lsecp256k1
@@ -9,15 +18,6 @@ package libsecp256k1
 #include <secp256k1_extrakeys.h>
 */
 import "C"
-
-import (
-	"crypto/rand"
-	"unsafe"
-
-	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec"
-	"github.com/mleku/btcec/schnorr"
-)
 
 type (
 	Context = C.secp256k1_context
@@ -72,13 +72,11 @@ type Sec struct {
 }
 
 func GenSec() (sec *Sec, err error) {
-	// just use the btcec key gen because the performance difference will be
-	// nearly zero
-	var sk *btcec.SecretKey
-	if sk, err = btcec.NewSecretKey(); chk.E(err) {
+	var skb B
+	if skb, err = GenSecBytes(); chk.E(err) {
 		return
 	}
-	return SecFromBytes(sk.Serialize())
+	return SecFromBytes(skb)
 }
 
 func SecFromBytes(sk B) (sec *Sec, err error) {
@@ -139,19 +137,19 @@ func Sign(msg *Uchar, k *SecKey) (sig B, err error) {
 	return
 }
 
-func SignFromBytes(id, sk B) (sig B, err error) {
-	var uid *Uchar
-	if uid, err = Id(id); chk.E(err) {
+func SignFromBytes(msg, sk B) (sig B, err error) {
+	var umsg *Uchar
+	if umsg, err = Msg(msg); chk.E(err) {
 		return
 	}
 	var sec *Sec
 	if sec, err = SecFromBytes(sk); chk.E(err) {
 		return
 	}
-	return Sign(uid, sec.Sec())
+	return Sign(umsg, sec.Sec())
 }
 
-func Id(b B) (id *Uchar, err error) {
+func Msg(b B) (id *Uchar, err error) {
 	if err = AssertLen(b, sha256.Size, "id"); chk.E(err) {
 		return
 	}
@@ -167,13 +165,13 @@ func Sig(b B) (sig *Uchar, err error) {
 	return
 }
 
-func Verify(id, sig *Uchar, pk *PubKey) (valid bool) {
-	return C.secp256k1_schnorrsig_verify(ctx, sig, id, 32, pk) == 1
+func Verify(msg, sig *Uchar, pk *PubKey) (valid bool) {
+	return C.secp256k1_schnorrsig_verify(ctx, sig, msg, 32, pk) == 1
 }
 
-func VerifyFromBytes(id, sig, pk B) (err error) {
-	var uid, usig *Uchar
-	if uid, err = Id(id); chk.E(err) {
+func VerifyFromBytes(msg, sig, pk B) (err error) {
+	var umsg, usig *Uchar
+	if umsg, err = Msg(msg); chk.E(err) {
 		return
 	}
 	if usig, err = Sig(sig); chk.E(err) {
@@ -183,9 +181,16 @@ func VerifyFromBytes(id, sig, pk B) (err error) {
 	if pub, err = PubFromBytes(pk); chk.E(err) {
 		return
 	}
-	valid := Verify(uid, usig, pub.Pub())
+	valid := Verify(umsg, usig, pub.Pub())
 	if !valid {
 		err = errorf.E("failed to verify signature")
 	}
 	return
+}
+
+func Zero(s *SecKey) {
+	b := (*[96]byte)(unsafe.Pointer(s))[:96]
+	for i := range b {
+		b[i] = 0
+	}
 }

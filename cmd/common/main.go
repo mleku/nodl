@@ -21,7 +21,7 @@ func main() {
 			log.I.Ln(filepath.Base(path))
 			b := common
 			if filepath.Base(path) == "cmd" ||
-				filepath.Base(path) == "pkg" ||
+				// filepath.Base(path) == "pkg" ||
 				filepath.Base(path) == "internal" ||
 				strings.HasPrefix(filepath.Base(path), "gen") ||
 				filepath.Base(path) == "common" ||
