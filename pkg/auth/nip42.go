@@ -111,9 +111,5 @@ func Validate(evt *event.T, challenge B,
 		return
 	}
 	// save for last, as it is most expensive operation
-	if ok, err = evt.CheckSignature(); !ok {
-		log.D.Ln(err)
-		return
-	}
-	return
+	return evt.Verify()
 }

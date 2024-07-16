@@ -2,8 +2,7 @@ package event
 
 import (
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/schnorr"
-	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg"
 	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
@@ -74,17 +73,17 @@ func Hash(in []byte) (out []byte) {
 // GetIDBytes returns the raw SHA256 hash of the canonical form of an T.
 func (ev *T) GetIDBytes() []byte { return Hash(ev.ToCanonical()) }
 
-func GenerateRandomTextNoteEvent(sec *k1.SecretKey, maxSize int) (ev *T,
+func GenerateRandomTextNoteEvent(signer pkg.Signer, maxSize int) (ev *T,
 	err error) {
 
 	l := frand.Intn(maxSize * 6 / 8) // account for base64 expansion
 	ev = &T{
-		PubKey:    schnorr.SerializePubKey(sec.PubKey()),
+		PubKey:    signer.Pub(),
 		Kind:      kind.TextNote,
 		CreatedAt: timestamp.Now(),
 		Content:   text.NostrEscape(nil, frand.Bytes(l)),
 	}
-	if err = ev.SignWithSecKey(sec); chk.E(err) {
+	if err = ev.Sign(signer); chk.E(err) {
 		return
 	}
 	return

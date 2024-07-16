@@ -3,23 +3,22 @@ package auth
 import (
 	"testing"
 
-	"github.com/mleku/btcec/schnorr"
-	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg"
+	"github.com/mleku/nodl/pkg/p256k1"
 )
 
 func TestCreateUnsigned(t *testing.T) {
 	var err error
-	var sec *k1.SecretKey
-	if sec, err = k1.GenerateSecretKey(); chk.E(err) {
+	var signer pkg.Signer
+	if signer, err = p256k1.NewSigner(&p256k1.Signer{}); chk.E(err) {
 		t.Fatal(err)
 	}
 	var ok bool
-	pk := schnorr.SerializePubKey(sec.PubKey())
 	const relayURL = "wss://example.com"
 	for _ = range 100 {
 		challenge := GenerateChallenge()
-		ev := CreateUnsigned(pk, challenge, relayURL)
-		if err = ev.SignWithSecKey(sec); chk.E(err) {
+		ev := CreateUnsigned(signer.Pub(), challenge, relayURL)
+		if err = ev.Sign(signer); chk.E(err) {
 			t.Fatal(err)
 		}
 		if ok, err = Validate(ev, challenge, relayURL); chk.E(err) {

@@ -1,4 +1,4 @@
-package libsecp256k1
+package p256k1
 
 import (
 	"bufio"
@@ -11,13 +11,13 @@ import (
 	"github.com/mleku/nodl/pkg/event/examples"
 )
 
-func TestBTCECSignerVerify(t *testing.T) {
+func TestSignerVerify(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-	signer := &BTCECSigner{}
+	signer := &Signer{}
 	for scanner.Scan() {
 		var valid bool
 		b := scanner.Bytes()
@@ -25,7 +25,7 @@ func TestBTCECSignerVerify(t *testing.T) {
 		if _, err = ev.UnmarshalJSON(b); chk.E(err) {
 			t.Errorf("failed to marshal\n%s", b)
 		} else {
-			if valid, err = ev.CheckSignature(); chk.E(err) || !valid {
+			if valid, err = ev.Verify(); chk.E(err) || !valid {
 				t.Errorf("invalid signature\n%s", b)
 				continue
 			}
@@ -49,14 +49,13 @@ func TestBTCECSignerVerify(t *testing.T) {
 	}
 }
 
-func TestBTCECSignerSign(t *testing.T) {
+func TestSignerSign(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-
-	signer := &BTCECSigner{}
+	signer := &Signer{}
 	var skb B
 	if skb, err = GenSecBytes(); chk.E(err) {
 		t.Fatal(err)
@@ -64,8 +63,8 @@ func TestBTCECSignerSign(t *testing.T) {
 	if err = signer.InitSec(skb); chk.E(err) {
 		t.Fatal(err)
 	}
-	verifier := &BTCECSigner{}
-	pkb := signer.PubB()
+	verifier := &Signer{}
+	pkb := signer.Pub()
 	if err = verifier.InitPub(pkb); chk.E(err) {
 		t.Fatal(err)
 	}

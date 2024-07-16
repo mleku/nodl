@@ -1,4 +1,4 @@
-package libsecp256k1
+package p256k1
 
 import (
 	"bytes"

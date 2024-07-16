@@ -3,21 +3,20 @@ package authenvelope
 import (
 	"testing"
 
-	"github.com/mleku/btcec/schnorr"
-	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg"
 	"github.com/mleku/nodl/pkg/auth"
 	"github.com/mleku/nodl/pkg/envelopes"
+	"github.com/mleku/nodl/pkg/p256k1"
 )
 
 const relayURL = "wss://example.com"
 
 func TestAuth(t *testing.T) {
 	var err error
-	var sec *k1.SecretKey
-	if sec, err = k1.GenerateSecretKey(); chk.E(err) {
+	var signer pkg.Signer
+	if signer, err = p256k1.NewSigner(&p256k1.Signer{}); chk.E(err) {
 		t.Fatal(err)
 	}
-	pk := schnorr.SerializePubKey(sec.PubKey())
 	var b1, b2, b3, b4 B
 	for _ = range 1000 {
 		ch := auth.GenerateChallenge()
@@ -52,8 +51,9 @@ func TestAuth(t *testing.T) {
 		if !equals(oChal, b2) {
 			t.Fatalf("challenge mismatch\n%s\n%s", oChal, b2)
 		}
-		resp := Response{Event: auth.CreateUnsigned(pk, ch, relayURL)}
-		if err = resp.Event.SignWithSecKey(sec); chk.E(err) {
+		resp := Response{Event: auth.CreateUnsigned(signer.Pub(), ch,
+			relayURL)}
+		if err = resp.Event.Sign(signer); chk.E(err) {
 			t.Fatal(err)
 		}
 		if b3, err = resp.MarshalJSON(b3); chk.E(err) {

@@ -1,6 +1,6 @@
 //go:build !btcec
 
-package libsecp256k1
+package p256k1
 
 import "C"
 import (

@@ -6,8 +6,8 @@ type Signer interface {
 	InitSec(sec B) (err error)
 	// InitPub initializes the public (verification) key from raw bytes.
 	InitPub(pub B) (err error)
-	// PubB returns the public key bytes
-	PubB() B
+	// Pub returns the public key bytes.
+	Pub() B
 	// Sign creates a signature using the stored secret key.
 	Sign(msg B) (sig B, err error)
 	// Verify checks a message hash and signature match the stored public key.

@@ -7,7 +7,7 @@ The directory `pkg/libsecp256k1/secp256k1` needs to be initialized and built
 and installed, like so:
 
 ```bash
-cd pkg/libsecp256k1/secp256k1
+cd pkg/p256k1/secp256k1
 git submodule init
 git submodule update
 ```

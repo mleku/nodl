@@ -6,8 +6,9 @@ import (
 	_ "embed"
 	"testing"
 
-	k1 "github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg"
 	"github.com/mleku/nodl/pkg/event/examples"
+	"github.com/mleku/nodl/pkg/p256k1"
 )
 
 func TestTMarshal_Unmarshal(t *testing.T) {
@@ -53,7 +54,7 @@ func TestT_CheckSignature(t *testing.T) {
 				rem)
 		}
 		var valid bool
-		if valid, err = ea.CheckSignature(); chk.E(err) {
+		if valid, err = ea.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !valid {
@@ -65,17 +66,17 @@ func TestT_CheckSignature(t *testing.T) {
 
 func TestT_SignWithSecKey(t *testing.T) {
 	var err error
-	var sec *k1.SecretKey
-	if sec, err = k1.GenerateSecretKey(); chk.E(err) {
+	var signer pkg.Signer
+	if signer, err = p256k1.NewSigner(&p256k1.Signer{}); chk.E(err) {
 		t.Fatal(err)
 	}
 	var ev *T
 	for _ = range 1000 {
-		if ev, err = GenerateRandomTextNoteEvent(sec, 1000); chk.E(err) {
+		if ev, err = GenerateRandomTextNoteEvent(signer, 1000); chk.E(err) {
 			t.Fatal(err)
 		}
 		var valid bool
-		if valid, err = ev.CheckSignature(); chk.E(err) {
+		if valid, err = ev.Verify(); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !valid {
