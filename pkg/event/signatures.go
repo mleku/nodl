@@ -49,8 +49,8 @@ func (ev *T) CheckSignature() (valid bool, err error) {
 	return
 }
 
-// Sign the event using the pkg.Signer. Uses p256k1 if
-// available for much faster signatures.
+// Sign the event using the pkg.Signer. Uses p256k1 if available for much faster
+// signatures.
 func (ev *T) Sign(keys pkg.Signer) (err error) {
 	ev.ID = ev.GetIDBytes()
 	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
@@ -60,8 +60,8 @@ func (ev *T) Sign(keys pkg.Signer) (err error) {
 	return
 }
 
-// Verify an event is signed by the pubkey it contains. Uses p256k1 if
-// available for faster verification.
+// Verify an event is signed by the pubkey it contains. Uses p256k1 if available
+// for faster verification.
 func (ev *T) Verify() (valid bool, err error) {
 	keys := p256k1.Signer{}
 	if err = keys.InitPub(ev.PubKey); chk.E(err) {

@@ -44,9 +44,7 @@ func (s *Signer) InitPub(pub B) (err error) {
 	return
 }
 
-func (s *Signer) Pub() (b B) {
-	return s.b
-}
+func (s *Signer) Pub() (b B) { return s.b }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {
