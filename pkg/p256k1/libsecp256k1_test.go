@@ -1,6 +1,6 @@
 //go:build !btcec
 
-package p256k1
+package p256k1_test
 
 import (
 	"bufio"
@@ -11,6 +11,7 @@ import (
 	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/nodl/pkg/event"
 	"github.com/mleku/nodl/pkg/event/examples"
+	"github.com/mleku/nodl/pkg/p256k1"
 )
 
 func TestVerify(t *testing.T) {
@@ -36,7 +37,7 @@ func TestVerify(t *testing.T) {
 			t.Errorf("id should be 32 bytes, got %d", len(id))
 			continue
 		}
-		if err = VerifyFromBytes(id, ev.Sig, ev.PubKey); chk.E(err) {
+		if err = p256k1.VerifyFromBytes(id, ev.Sig, ev.PubKey); chk.E(err) {
 			t.Error(err)
 			continue
 		}
@@ -50,11 +51,11 @@ func TestSign(t *testing.T) {
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-	var sec1 *Sec
-	if sec1, err = GenSec(); chk.E(err) {
+	var sec1 *p256k1.Sec
+	if sec1, err = p256k1.GenSec(); chk.E(err) {
 		t.Fatal(err)
 	}
-	var pub1 *Pub
+	var pub1 *p256k1.Pub
 	if pub1, err = sec1.Pub(); chk.E(err) {
 		t.Fatal(err)
 	}
@@ -73,21 +74,21 @@ func TestSign(t *testing.T) {
 	}
 	for _, ev := range evs {
 		ev.PubKey = pb
-		var uid *Uchar
-		if uid, err = Msg(ev.GetIDBytes()); chk.E(err) {
+		var uid *p256k1.Uchar
+		if uid, err = p256k1.Msg(ev.GetIDBytes()); chk.E(err) {
 			t.Fatal(err)
 		}
-		if sig, err = Sign(uid, sec1.Sec()); chk.E(err) {
+		if sig, err = p256k1.Sign(uid, sec1.Sec()); chk.E(err) {
 			t.Fatal(err)
 		}
 		ev.Sig = sig
-		var usig *Uchar
-		if usig, err = Sig(sig); chk.E(err) {
+		var usig *p256k1.Uchar
+		if usig, err = p256k1.Sig(sig); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !Verify(uid, usig, pub1.Pub()) {
+		if !p256k1.Verify(uid, usig, pub1.Pub()) {
 			t.Errorf("invalid signature")
 		}
 	}
-	Zero(&sec1.Key)
+	p256k1.Zero(&sec1.Key)
 }

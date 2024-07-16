@@ -1,4 +1,4 @@
-package p256k1
+package p256k1_test
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/nodl/pkg/event"
 	"github.com/mleku/nodl/pkg/event/examples"
+	"github.com/mleku/nodl/pkg/p256k1"
 )
 
 func TestBTCECSignerVerify(t *testing.T) {
@@ -17,7 +18,7 @@ func TestBTCECSignerVerify(t *testing.T) {
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-	signer := &BTCECSigner{}
+	signer := &p256k1.BTCECSigner{}
 	for scanner.Scan() {
 		var valid bool
 		b := scanner.Bytes()
@@ -56,15 +57,15 @@ func TestBTCECSignerSign(t *testing.T) {
 	scanner.Buffer(buf, len(buf))
 	var err error
 
-	signer := &BTCECSigner{}
+	signer := &p256k1.BTCECSigner{}
 	var skb B
-	if skb, err = GenSecBytes(); chk.E(err) {
+	if skb, err = p256k1.GenSecBytes(); chk.E(err) {
 		t.Fatal(err)
 	}
 	if err = signer.InitSec(skb); chk.E(err) {
 		t.Fatal(err)
 	}
-	verifier := &BTCECSigner{}
+	verifier := &p256k1.BTCECSigner{}
 	pkb := signer.Pub()
 	if err = verifier.InitPub(pkb); chk.E(err) {
 		t.Fatal(err)
