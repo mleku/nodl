@@ -9,12 +9,14 @@ func TestT_MarshalUnmarshal(t *testing.T) {
 	dst := make([]byte, 0, 4000000)
 	dst1 := make(B, 0, len(dst))
 	dst2 := make(B, 0, len(dst))
-	for _ = range 5 {
+	for _ = range 1000 {
 		var f *T
 		if f, err = GenFilter(); chk.E(err) {
 			t.Fatal(err)
 		}
-		dst, _ = f.MarshalJSON(dst)
+		if dst, err = f.MarshalJSON(dst); chk.E(err) {
+			t.Fatal(err)
+		}
 		dst1 = append(dst1, dst...)
 		// now unmarshal
 		var rem B

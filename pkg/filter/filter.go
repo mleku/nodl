@@ -68,9 +68,6 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
 			return
 		}
-		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
-			return
-		}
 		dst = append(dst, ',')
 	}
 	if f.Authors != nil && len(f.Authors.T) > 0 {
@@ -83,7 +80,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		dst, _ = f.Tags.MarshalJSON(dst)
 		dst = append(dst, ',')
 	}
-	if f.Since != nil && f.Until.U64() > 0 {
+	if f.Since != nil && f.Since.U64() > 0 {
 		dst = text.JSONKey(dst, Since)
 		if dst, err = f.Since.MarshalJSON(dst); chk.E(err) {
 			return
@@ -130,18 +127,22 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 	var key B
 	var state int
 	for ; len(rem) >= 0; rem = rem[1:] {
+		// log.I.F("%c", rem[0])
 		switch state {
 		case beforeOpen:
 			if rem[0] == '{' {
 				state = openParen
+				// log.I.Ln("openParen")
 			}
 		case openParen:
 			if rem[0] == '"' {
 				state = inKey
+				// log.I.Ln("inKey")
 			}
 		case inKey:
 			if rem[0] == '"' {
 				state = inKV
+				// log.I.Ln("inKV")
 			} else {
 				key = append(key, rem[0])
 			}
@@ -161,6 +162,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
+				// // log.I.Ln("betweenKV")
 			case Kinds[0]:
 				if len(key) < len(Kinds) {
 					goto invalid
@@ -170,6 +172,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
+				// log.I.Ln("betweenKV")
 			case Authors[0]:
 				if len(key) < len(Authors) {
 					goto invalid
@@ -180,6 +183,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
+				// log.I.Ln("betweenKV")
 			case Tags[0]:
 				if len(key) < len(Tags) {
 					goto invalid
@@ -189,6 +193,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
+				// log.I.Ln("betweenKV")
 			case Until[0]:
 				if len(key) < len(Until) {
 					goto invalid
@@ -199,6 +204,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				}
 				f.Until = timestamp.FromUnix(int64(u.N))
 				state = betweenKV
+				// log.I.Ln("betweenKV")
 			case Limit[0]:
 				if len(key) < len(Limit) {
 					goto invalid
@@ -209,6 +215,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				}
 				f.Limit = int(l.N)
 				state = betweenKV
+				// log.I.Ln("betweenKV")
 			case Search[0]:
 				if len(key) < len(Since) {
 					goto invalid
@@ -223,7 +230,9 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 						return
 					}
 					f.Search = txt
+					// log.I.F("\n%s\n%s", txt, rem)
 					state = betweenKV
+					// log.I.Ln("betweenKV")
 				case Since[1]:
 					if len(key) < len(Since) {
 						goto invalid
@@ -232,8 +241,9 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					if rem, err = s.UnmarshalJSON(rem); chk.E(err) {
 						return
 					}
-					f.Until = timestamp.FromUnix(int64(s.N))
+					f.Since = timestamp.FromUnix(int64(s.N))
 					state = betweenKV
+					// log.I.Ln("betweenKV")
 				}
 			default:
 				goto invalid
@@ -245,12 +255,19 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 			}
 			if rem[0] == '}' {
 				state = afterClose
-				rem = rem[1:]
+				// log.I.Ln("afterClose")
+				// rem = rem[1:]
 			} else if rem[0] == ',' {
 				state = openParen
+				// log.I.Ln("openParen")
 			} else if rem[0] == '"' {
 				state = inKey
+				// log.I.Ln("inKey")
 			}
+		}
+		if rem[0] == '}' {
+			rem = rem[1:]
+			return
 		}
 	}
 invalid:
@@ -302,15 +319,18 @@ func (f *T) Matches(ev *event.T) bool {
 
 func GenFilter() (f *T, err error) {
 	f = New()
-	for _ = range 5 {
+	n := frand.Intn(16)
+	for _ = range n {
 		id := make(B, sha256.Size)
 		frand.Read(id)
 		f.IDs.T = append(f.IDs.T, id)
 	}
-	for _ = range 5 {
+	n = frand.Intn(16)
+	for _ = range n {
 		f.Kinds.K = append(f.Kinds.K, kind.New(frand.Intn(65535)))
 	}
-	for _ = range 5 {
+	n = frand.Intn(16)
+	for _ = range n {
 		var sk *secp256k1.SecretKey
 		if sk, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			return
@@ -318,7 +338,11 @@ func GenFilter() (f *T, err error) {
 		pk := sk.PubKey()
 		f.Authors.T = append(f.Authors.T, schnorr.SerializePubKey(pk))
 	}
-	for i := range 5 {
+	a := frand.Intn(16)
+	if a < n {
+		n = a
+	}
+	for i := range n {
 		p := make(B, 0, schnorr.PubKeyBytesLen*2)
 		p = hex.EncAppend(p, f.Authors.T[i])
 		f.Tags.T = append(f.Tags.T, tag.New(B("p"), p))
@@ -331,8 +355,10 @@ func GenFilter() (f *T, err error) {
 			tag.New(B("a"),
 				B(fmt.Sprintf("%d:%s:", frand.Intn(65535), id))))
 	}
-	tn := *timestamp.Now() - 100
-	f.Since = &tn
+	tn := int(timestamp.Now().I64())
+	before := timestamp.T(tn - frand.Intn(10000))
+	f.Since = &before
+	f.Until = timestamp.Now()
 	f.Search = B("token search text")
 	return
 }

@@ -7,23 +7,31 @@ import (
 func TestT_MarshalUnmarshal(t *testing.T) {
 	var err error
 	dst := make([]byte, 0, 4000000)
+	dst1 := make(B, 0, len(dst))
+	dst2 := make(B, 0, len(dst))
 	for _ = range 1000 {
-		var ff *T
-		ff, err = GenFilters(5)
-		// now unmarshal
-		if dst, err = ff.MarshalJSON(dst); chk.E(err) {
+		var f1 *T
+		if f1, err = GenFilters(5); chk.E(err) {
 			t.Fatal(err)
 		}
-		fa := New()
+		// log.I.Ln(f1.Len())
+		// now unmarshal
+		if dst, err = f1.MarshalJSON(dst); chk.E(err) {
+			t.Fatal(err)
+		}
+		// log.I.F("%s", dst)
+		dst1 = append(dst1, dst...)
+		// now unmarshal
 		var rem B
-		if rem, err = fa.UnmarshalJSON(dst); chk.E(err) {
+		f2 := New()
+		if rem, err = f2.UnmarshalJSON(dst); chk.E(err) {
 			t.Fatalf("unmarshal error: %v\n%s\n%s", err, dst, rem)
 		}
-		f2 := New()
-		dst2, _ := f2.MarshalJSON(nil)
-		if equals(dst, dst2) {
-			t.Fatalf("marshal error: %v\n%s\n%s", err, dst, dst2)
+		// log.I.Ln(f2.Len())
+		dst2, _ = f2.MarshalJSON(dst2)
+		if !equals(dst1, dst2) {
+			t.Fatalf("marshal error: %v\n%s\n%s", err, dst1, dst2)
 		}
-		dst = dst[:0]
+		dst, dst1, dst2 = dst[:0], dst1[:0], dst2[:0]
 	}
 }
