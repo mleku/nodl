@@ -2,16 +2,21 @@ package filter
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/schnorr"
+	"github.com/mleku/btcec/secp256k1"
 	"github.com/mleku/nodl/pkg/event"
+	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/ints"
+	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/kinds"
 	"github.com/mleku/nodl/pkg/tag"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
+	"lukechampine.com/frand"
 )
 
 // T is the primary query form for requesting events from a nostr relay.
@@ -293,4 +298,41 @@ func (f *T) Matches(ev *event.T) bool {
 		return false
 	}
 	return true
+}
+
+func GenFilter() (f *T, err error) {
+	f = New()
+	for _ = range 5 {
+		id := make(B, sha256.Size)
+		frand.Read(id)
+		f.IDs.T = append(f.IDs.T, id)
+	}
+	for _ = range 5 {
+		f.Kinds.K = append(f.Kinds.K, kind.New(frand.Intn(65535)))
+	}
+	for _ = range 5 {
+		var sk *secp256k1.SecretKey
+		if sk, err = secp256k1.GenerateSecretKey(); chk.E(err) {
+			return
+		}
+		pk := sk.PubKey()
+		f.Authors.T = append(f.Authors.T, schnorr.SerializePubKey(pk))
+	}
+	for i := range 5 {
+		p := make(B, 0, schnorr.PubKeyBytesLen*2)
+		p = hex.EncAppend(p, f.Authors.T[i])
+		f.Tags.T = append(f.Tags.T, tag.New(B("p"), p))
+		idb := make(B, sha256.Size)
+		frand.Read(idb)
+		id := make(B, 0, sha256.Size*2)
+		id = hex.EncAppend(id, idb)
+		f.Tags.T = append(f.Tags.T, tag.New(B("e"), id))
+		f.Tags.T = append(f.Tags.T,
+			tag.New(B("a"),
+				B(fmt.Sprintf("%d:%s:", frand.Intn(65535), id))))
+	}
+	tn := *timestamp.Now() - 100
+	f.Since = &tn
+	f.Search = B("token search text")
+	return
 }

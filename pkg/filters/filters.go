@@ -55,13 +55,11 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				rem = rem[1:]
 				return
 			}
-			log.I.Ln("first filter")
 			ffa := filter.New()
 			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
 			f.F = append(f.F, ffa)
-			log.I.F("%s", rem)
 			// continue
 		case ',':
 			rem = rem[1:]
