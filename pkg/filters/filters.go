@@ -48,12 +48,10 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				return
 			}
 			rem = rem[1:]
-			// log.I.F("first filter %s", rem)
 			ffa := filter.New()
 			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			// log.I.F("first filter %s", rem)
 			f.F = append(f.F, ffa)
 			// continue
 		case ',':
@@ -62,12 +60,10 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 				rem = rem[1:]
 				return
 			}
-			// log.I.Ln("nth filter %s", rem)
 			ffa := filter.New()
 			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			// log.I.F("nth filter %s", rem)
 			f.F = append(f.F, ffa)
 		// next
 		case ']':

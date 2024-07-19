@@ -47,40 +47,19 @@ func (req *Request) MarshalJSON(dst B) (b B, err error) {
 
 func (req *Request) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
-	var inID bool
-	for ; len(rem) > 0; rem = rem[1:] {
-		// first we should be finding a subscription ID
-		if !inID && rem[0] == '"' {
-			rem = rem[1:]
-			// so we don't do this twice
-			inID = true
-			for i := range rem {
-				if rem[i] == '\\' {
-					continue
-				} else if rem[i] == '"' {
-					// skip escaped quotes
-					if i > 0 {
-						if rem[i-1] != '\\' {
-							continue
-						}
-					}
-					if req.ID, err = subscriptionid.New(text.NostrUnescape(rem[:i])); chk.E(err) {
-						return
-					}
-					// trim the rest
-					rem = rem[i:]
-				}
-			}
-		} else {
-			// second should be filters
-			req.Filters = filters.New()
-			if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
-				return
-			}
-			// literally can't be anything more after this
-			return
-		}
+	if req.ID, err = subscriptionid.New(B{0}); chk.E(err) {
+		return
 	}
+	if rem, err = req.ID.UnmarshalJSON(rem); chk.E(err) {
+		return
+	}
+	req.Filters = filters.New()
+	if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
+		return
+	}
+	// expect close brackets here but actually doesn't matter if neither
+	// previous blocks failed
+	rem = rem[:0]
 	return
 }
 

@@ -14,12 +14,10 @@ func TestT_MarshalUnmarshal(t *testing.T) {
 		if f1, err = GenFilters(5); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.Ln(f1.Len())
 		// now unmarshal
 		if dst, err = f1.MarshalJSON(dst); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.F("%s", dst)
 		dst1 = append(dst1, dst...)
 		// now unmarshal
 		var rem B
@@ -27,7 +25,6 @@ func TestT_MarshalUnmarshal(t *testing.T) {
 		if rem, err = f2.UnmarshalJSON(dst); chk.E(err) {
 			t.Fatalf("unmarshal error: %v\n%s\n%s", err, dst, rem)
 		}
-		// log.I.Ln(f2.Len())
 		dst2, _ = f2.MarshalJSON(dst2)
 		if !equals(dst1, dst2) {
 			t.Fatalf("marshal error: %v\n%s\n%s", err, dst1, dst2)
