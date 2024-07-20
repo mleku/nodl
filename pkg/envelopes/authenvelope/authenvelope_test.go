@@ -39,7 +39,7 @@ func TestAuth(t *testing.T) {
 			t.Fatal(err)
 		}
 		if len(rem) != 0 {
-			t.Fatal("remainder should be empty")
+			t.Fatalf("remainder should be empty\n%s", rem)
 		}
 		if !equals(chal.Challenge, c2.Challenge) {
 			t.Fatalf("challenge mismatch\n%s\n%s",

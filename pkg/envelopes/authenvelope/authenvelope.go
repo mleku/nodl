@@ -30,21 +30,15 @@ func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 }
 
 func (c *Challenge) UnmarshalJSON(b B) (rem B, err error) {
-	var openQuotes bool
+	// var openQuotes bool
 	rem = b
-	for ; len(rem) > 0; rem = rem[1:] {
-		if !openQuotes && rem[0] == '"' {
-			openQuotes = true
-		} else if openQuotes {
-			for i := range rem {
-				if rem[i] == '"' {
-					*c = Challenge{Challenge: text.NostrUnescape(rem[:i])}
-					// no need to read any more, any garbage after this point is
-					// irrelevant
-					rem = rem[:0]
-					return
-				}
-			}
+	if c.Challenge, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+		return
+	}
+	for ; len(rem) >= 0; rem = rem[1:] {
+		if rem[0] == ']' {
+			rem = rem[:0]
+			return
 		}
 	}
 	return
