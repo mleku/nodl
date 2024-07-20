@@ -34,12 +34,10 @@ func UnmarshalHex(b B) (h B, rem B, err error) {
 				inQuote = true
 				start = i + 1
 			}
-		} else {
-			if b[i] == '"' {
-				h = b[start:i]
-				rem = b[i+1:]
-				break
-			}
+		} else if b[i] == '"' {
+			h = b[start:i]
+			rem = b[i+1:]
+			break
 		}
 	}
 	if !inQuote {
@@ -193,5 +191,58 @@ func UnmarshalKindsArray(b B) (k *kinds.T, rem B, err error) {
 		return nil, nil, errorf.E("kinds: failed to unmarshal\n%s\n%s\n%s", k,
 			b, rem)
 	}
+	return
+}
+
+func True() B  { return B("true") }
+func False() B { return B("false") }
+
+func MarshalBool(src B, truth bool) B {
+	if truth {
+		return append(src, True()...)
+	}
+	return append(src, False()...)
+}
+
+func UnmarshalBool(src B) (rem B, truth bool, err error) {
+	rem = src
+	t, f := True(), False()
+	for i := range rem {
+		if rem[i] == t[0] {
+			if len(rem) < i+len(t) {
+				err = io.EOF
+				return
+			}
+			if equals(t, rem[i:i+len(t)]) {
+				truth = true
+				rem = rem[i+len(t):]
+				return
+			}
+		}
+		if rem[i] == f[0] {
+			if len(rem) < i+len(f) {
+				err = io.EOF
+				return
+			}
+			if equals(f, rem[i:i+len(f)]) {
+				rem = rem[i+len(f):]
+				return
+			}
+		}
+	}
+	// if a truth value is not found in the string it will run to the end
+	err = io.EOF
+	return
+}
+
+func Comma(b B) (rem B, err error) {
+	rem = b
+	for i := range rem {
+		if rem[i] == ',' {
+			rem = rem[i:]
+			return
+		}
+	}
+	err = io.EOF
 	return
 }

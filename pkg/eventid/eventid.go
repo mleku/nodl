@@ -7,6 +7,7 @@ import (
 
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/nodl/pkg/hex"
+	"lukechampine.com/frand"
 )
 
 // T is the SHA256 hash in hexadecimal of the canonical form of an event as
@@ -42,15 +43,15 @@ func (ei *T) String() string {
 	return hex.Enc(ei.b)
 }
 
-func (ei *T) ByteString() (b B) {
-	b = make(B, sha256.Size*2)
-	hex.EncBytes(b, ei.b)
-	return
-}
+func (ei *T) ByteString(src B) (b B) { return hex.EncAppend(src, ei.b) }
 
 func (ei *T) Bytes() (b []byte) { return ei.b }
 
 func (ei *T) Len() int {
+	if ei == nil {
+		log.W.Ln("nil event id")
+		return 0
+	}
 	if ei.b == nil {
 		return 0
 	}
@@ -98,3 +99,6 @@ func NewFromString(s string) (ei *T, err error) {
 	ei.b, err = hex.DecAppend(ei.b, []byte(s))
 	return
 }
+
+// Gen creates a fake pseudorandom generated event ID for tests.
+func Gen() (ei *T) { return &T{frand.Bytes(sha256.Size)} }

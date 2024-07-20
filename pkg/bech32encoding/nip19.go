@@ -197,7 +197,7 @@ func EncodeProfile(publicKeyHex B, relays []B) (s B, err error) {
 func EncodeEvent(eventIDHex *eventid.T, relays []B, author B) (s B, err error) {
 	buf := &bytes.Buffer{}
 	id := make(B, sha256.Size)
-	if _, err = hex.DecBytes(id, eventIDHex.ByteString()); chk.D(err) ||
+	if _, err = hex.DecBytes(id, eventIDHex.ByteString(nil)); chk.D(err) ||
 		len(id) != 32 {
 
 		return nil, fmt.Errorf("invalid id %d '%s': %v", len(id), eventIDHex,

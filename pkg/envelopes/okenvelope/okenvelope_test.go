@@ -1,17 +1,19 @@
-package noticeenvelope
+package okenvelope
 
 import (
 	"testing"
 
 	"github.com/mleku/nodl/pkg/envelopes"
 	"github.com/mleku/nodl/pkg/envelopes/messages"
+	"github.com/mleku/nodl/pkg/eventid"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 	var err error
 	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
-	for _ = range 1000 {
-		req := NewFrom(messages.RandomMessage())
+	for i := range 1000 {
+		randMsg := messages.RandomMessage()
+		req := NewFrom(eventid.Gen(), i%2 == 1, randMsg)
 		if rb, err = req.MarshalJSON(rb); chk.E(err) {
 			t.Fatal(err)
 		}
@@ -29,7 +31,6 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		if rem, err = req2.UnmarshalJSON(rb); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.Ln(req2.ID)
 		if len(rem) > 0 {
 			t.Fatalf("unmarshal failed, remainder\n%d %s",
 				len(rem), rem)
@@ -44,8 +45,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 			}
 			for i := range rb1 {
 				if rb1[i] != rb2[i] {
-					t.Fatalf("unmarshal failed, difference at position %d\n" +
-						"%d %s\n%s\n%d %s\n%s\n",
+					t.Fatalf("unmarshal failed, difference at position %d\n%d %s\n%s\n%d %s\n%s\n",
 						i, len(rb1), rb1[:i], rb1[i:], len(rb2), rb2[:i],
 						rb2[i:])
 				}
