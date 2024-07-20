@@ -1,4 +1,4 @@
-package closedenvelope
+package noticeenvelope
 
 import (
 	"bytes"

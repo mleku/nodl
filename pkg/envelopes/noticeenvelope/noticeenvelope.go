@@ -1,11 +1,11 @@
-package closedenvelope
+package noticeenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/envelopes"
 	"github.com/mleku/nodl/pkg/text"
 )
 
-const L = "CLOSED"
+const L = "NOTICE"
 
 type T struct {
 	Message B
