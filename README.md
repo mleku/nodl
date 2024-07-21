@@ -9,7 +9,7 @@ performance
 
 ## building
 
-see [p256k1 docs](./pkg/p256k1/README.md) for building with the 
+see [p256k1 docs](pkg/crypto/p256k/README.md) for building with the 
 `bitcoin-core/secp256k1` library interfaced with CGO (it is about 2x faster 
 at verification and 4x faster at signing) but if you don't want to use CGO 
 or can't, set the build tag `btcec` to disable the `secp256k1` CGO binding 
