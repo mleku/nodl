@@ -9,16 +9,18 @@ import (
 const L = "CLOSED"
 
 type T struct {
-	ID      *subscriptionid.T
-	Message B
+	Subscription *subscriptionid.T
+	Message      B
 }
 
+var _ envelopes.I = (*T)(nil)
+
 func New() *T {
-	return &T{ID: subscriptionid.NewStd()}
+	return &T{Subscription: subscriptionid.NewStd()}
 }
 
 func NewFrom(id *subscriptionid.T, msg B) *T {
-	return &T{ID: id, Message: msg}
+	return &T{Subscription: id, Message: msg}
 }
 
 func (ce *T) Label() string { return L }
@@ -28,7 +30,7 @@ func (ce *T) MarshalJSON(dst B) (b B, err error) {
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = ce.ID.MarshalJSON(o); chk.E(err) {
+			if o, err = ce.Subscription.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')
@@ -42,20 +44,17 @@ func (ce *T) MarshalJSON(dst B) (b B, err error) {
 
 func (ce *T) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
-	if ce.ID, err = subscriptionid.New(B{0}); chk.E(err) {
+	if ce.Subscription, err = subscriptionid.New(B{0}); chk.E(err) {
 		return
 	}
-	if rem, err = ce.ID.UnmarshalJSON(rem); chk.E(err) {
+	if rem, err = ce.Subscription.UnmarshalJSON(rem); chk.E(err) {
 		return
 	}
 	if ce.Message, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
 		return
 	}
-	for ; len(rem) >= 0; rem = rem[1:] {
-		if rem[0] == ']' {
-			rem = rem[:0]
-			return
-		}
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
 	}
 	return
 }

@@ -10,6 +10,7 @@ const L = "EOSE"
 type T struct {
 	ID *subscriptionid.T
 }
+var _ envelopes.I = (*T)(nil)
 
 func New() *T {
 	return &T{ID: subscriptionid.NewStd()}
@@ -42,6 +43,8 @@ func (req *T) UnmarshalJSON(b B) (rem B, err error) {
 	if rem, err = req.ID.UnmarshalJSON(rem); chk.E(err) {
 		return
 	}
-	rem = rem[:0]
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
+	}
 	return
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/mleku/nodl/pkg/subscriptionid"
 )
 
-func TestMarshalJSONUnmarshalJSON(t *testing.T) {
+func TestRequest(t *testing.T) {
 	var err error
 	rb, rb1, rb2 := make(B, 0, 65535), make(B, 0, 65535), make(B, 0, 65535)
 	for _ = range 1000 {
@@ -35,6 +35,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		if l != L {
 			t.Fatalf("invalid sentinel %s, expect %s", l, L)
 		}
+		log.I.F("%s", rb)
 		req2 := New()
 		if rem, err = req2.UnmarshalJSON(rb); chk.E(err) {
 			t.Fatal(err)
@@ -64,4 +65,8 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		}
 		rb, rb1, rb2 = rb[:0], rb1[:0], rb2[:0]
 	}
+}
+
+func TestResponse(t *testing.T) {
+
 }

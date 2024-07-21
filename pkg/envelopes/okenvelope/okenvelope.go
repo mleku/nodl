@@ -16,12 +16,14 @@ type T struct {
 	Message B
 }
 
+var _ envelopes.I = (*T)(nil)
+
 func New() *T {
 	return &T{}
 }
 
 func NewFrom(eid *eventid.T, ok bool, msg B) *T {
-	return &T{EventID:eid,OK:ok,Message: msg}
+	return &T{EventID: eid, OK: ok, Message: msg}
 }
 
 func (oe *T) Label() string { return L }
@@ -57,7 +59,7 @@ func (oe *T) UnmarshalJSON(b B) (rem B, err error) {
 	if rem, err = text.Comma(rem); chk.E(err) {
 		return
 	}
-	if rem, oe.OK, err = text.UnmarshalBool(rem);chk.E(err) {
+	if rem, oe.OK, err = text.UnmarshalBool(rem); chk.E(err) {
 		return
 	}
 	if rem, err = text.Comma(rem); chk.E(err) {
@@ -66,11 +68,8 @@ func (oe *T) UnmarshalJSON(b B) (rem B, err error) {
 	if oe.Message, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
 		return
 	}
-	for ; len(rem) >= 0; rem = rem[1:] {
-		if rem[0] == ']' {
-			rem = rem[:0]
-			return
-		}
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
 	}
 	return
 }

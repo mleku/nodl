@@ -3,60 +3,11 @@ package event
 import (
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/nodl/pkg/hex"
 	"github.com/mleku/nodl/pkg/kind"
 	"github.com/mleku/nodl/pkg/tags"
 	"github.com/mleku/nodl/pkg/text"
 	"github.com/mleku/nodl/pkg/timestamp"
 )
-
-var (
-	Id        = B("id")
-	Pubkey    = B("pubkey")
-	CreatedAt = B("created_at")
-	Kind      = B("kind")
-	Tags      = B("tags")
-	Content   = B("content")
-	Sig       = B("sig")
-)
-
-func (ev *T) MarshalJSON(dst B) (b B, err error) {
-	// open parentheses
-	dst = append(dst, '{')
-	// ID
-	dst = text.JSONKey(dst, Id)
-	dst = text.AppendQuote(dst, ev.ID, hex.EncAppend)
-	dst = append(dst, ',')
-	// PubKey
-	dst = text.JSONKey(dst, Pubkey)
-	dst = text.AppendQuote(dst, ev.PubKey, hex.EncAppend)
-	dst = append(dst, ',')
-	// CreatedAt
-	dst = text.JSONKey(dst, CreatedAt)
-	if dst, err = ev.CreatedAt.MarshalJSON(dst); chk.E(err) {
-		return
-	}
-	dst = append(dst, ',')
-	// Kind
-	dst = text.JSONKey(dst, Kind)
-	dst, _ = ev.Kind.MarshalJSON(dst)
-	dst = append(dst, ',')
-	// Tags
-	dst = text.JSONKey(dst, Tags)
-	dst, _ = ev.Tags.MarshalJSON(dst)
-	dst = append(dst, ',')
-	// Content
-	dst = text.JSONKey(dst, Content)
-	dst = text.AppendQuote(dst, ev.Content, text.NostrEscape)
-	dst = append(dst, ',')
-	// Sig
-	dst = text.JSONKey(dst, Sig)
-	dst = text.AppendQuote(dst, ev.Sig, hex.EncAppend)
-	// close parentheses
-	dst = append(dst, '}')
-	b = dst
-	return
-}
 
 // states of the unmarshaler
 const (
@@ -81,11 +32,12 @@ var (
 	}
 )
 
-func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
+func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 	rem = b[:]
 	var key B
 	var state int
 	for ; len(rem) > 0; rem = rem[1:] {
+		log.I.F("%s %s", rem, states[state])
 		switch state {
 		case beforeOpen:
 			if rem[0] == '{' {
@@ -216,12 +168,6 @@ func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
 			b[:len(b)-len(rem)],
 			len(rem), rem)
 		err = errorf.E("invalid event")
-	}
-	if len(ev.Sig) < schnorr.SignatureSize {
-		log.I.F("position\n%d %s\n\n%d %s",
-			len(b)-len(rem), b[:len(b)-len(rem)], len(rem), rem)
-		err = errorf.E("invalid signature length, require %d got %d '%s'",
-			len(ev.Sig), schnorr.SignatureSize)
 	}
 	return
 invalid:

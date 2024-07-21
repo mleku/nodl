@@ -7,6 +7,41 @@ import (
 	"github.com/mleku/nodl/pkg/p256k1"
 )
 
+// Sign the event using the pkg.Signer. Uses p256k1 if available for much faster
+// signatures.
+func (ev *T) Sign(keys pkg.Signer) (err error) {
+	ev.ID = ev.GetIDBytes()
+	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
+		return
+	}
+	ev.PubKey = keys.Pub()
+	return
+}
+
+// Verify an event is signed by the pubkey it contains. Uses p256k1 if available
+// for faster verification.
+func (ev *T) Verify() (valid bool, err error) {
+	keys := p256k1.Signer{}
+	if err = keys.InitPub(ev.PubKey); chk.E(err) {
+		return
+	}
+	if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
+		// check that this isn't because of a bogus ID
+		id := ev.GetIDBytes()
+		if !equals(id, ev.ID) {
+			log.E.Ln("event ID incorrect")
+			ev.ID = id
+			err = nil
+			if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
+				return
+			}
+			err = errorf.W("event ID incorrect but signature is valid on correct ID")
+		}
+		return
+	}
+	return
+}
+
 // SignWithSecKey signs an event with a given *secp256xk1.SecretKey.
 //
 // Deprecated: use Sign and pkg.Signer and p256k1.Signer / p256k1.BTCECSigner
@@ -46,40 +81,5 @@ func (ev *T) CheckSignature() (valid bool, err error) {
 	}
 	// check signature.
 	valid = sig.Verify(ev.GetIDBytes(), pk)
-	return
-}
-
-// Sign the event using the pkg.Signer. Uses p256k1 if available for much faster
-// signatures.
-func (ev *T) Sign(keys pkg.Signer) (err error) {
-	ev.ID = ev.GetIDBytes()
-	if ev.Sig, err = keys.Sign(ev.ID); chk.E(err) {
-		return
-	}
-	ev.PubKey = keys.Pub()
-	return
-}
-
-// Verify an event is signed by the pubkey it contains. Uses p256k1 if available
-// for faster verification.
-func (ev *T) Verify() (valid bool, err error) {
-	keys := p256k1.Signer{}
-	if err = keys.InitPub(ev.PubKey); chk.E(err) {
-		return
-	}
-	if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
-		// check that this isn't because of a bogus ID
-		id := ev.GetIDBytes()
-		if !equals(id, ev.ID) {
-			log.E.Ln("event ID incorrect")
-			ev.ID = id
-			err = nil
-			if valid, err = keys.Verify(ev.ID, ev.Sig); chk.E(err) {
-				return
-			}
-			err = errorf.W("event ID incorrect but signature is valid on correct ID")
-		}
-		return
-	}
 	return
 }

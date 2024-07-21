@@ -14,7 +14,7 @@ type Challenge struct {
 
 func NewChallenge() *Challenge { return &Challenge{} }
 
-func (c *Challenge) Label() string { return "AUTH" }
+func (c *Challenge) Label() string { return L }
 
 func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 	b = dst
@@ -68,10 +68,13 @@ func (r *Response) UnmarshalJSON(b B) (rem B, err error) {
 	rem = b
 	// literally just unmarshal the event
 	r.Event = event.New()
+	log.I.F("%s", rem)
 	if rem, err = r.Event.UnmarshalJSON(rem); chk.E(err) {
 		return
 	}
-	// no need to read any more, any garbage after this point is irrelevant
-	rem = rem[:0]
+	log.I.F("%s", rem)
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
+	}
 	return
 }

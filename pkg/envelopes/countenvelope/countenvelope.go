@@ -18,6 +18,8 @@ type Request struct {
 	Filters *filters.T
 }
 
+var _ envelopes.I = (*Request)(nil)
+
 func New() *Request {
 	return &Request{ID: subscriptionid.NewStd(), Filters: filters.New()}
 }
@@ -57,9 +59,9 @@ func (req *Request) UnmarshalJSON(b B) (rem B, err error) {
 	if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
 		return
 	}
-	// expect close brackets here but actually doesn't matter if neither
-	// previous blocks failed
-	rem = rem[:0]
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
+	}
 	return
 }
 
@@ -69,9 +71,11 @@ type Response struct {
 	Approximate bool
 }
 
+var _ envelopes.I = (*Response)(nil)
+
 func (res *Response) Label() string { return L }
 
-func (res *Response) Marshal(dst B) (b B, err error) {
+func (res *Response) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {

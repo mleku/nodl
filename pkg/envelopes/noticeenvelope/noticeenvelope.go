@@ -11,6 +11,8 @@ type T struct {
 	Message B
 }
 
+var _ envelopes.I = (*T)(nil)
+
 func New() *T {
 	return &T{}
 }
@@ -39,11 +41,8 @@ func (ce *T) UnmarshalJSON(b B) (rem B, err error) {
 	if ce.Message, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
 		return
 	}
-	for ; len(rem) >= 0; rem = rem[1:] {
-		if rem[0] == ']' {
-			rem = rem[:0]
-			return
-		}
+	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+		return
 	}
 	return
 }
