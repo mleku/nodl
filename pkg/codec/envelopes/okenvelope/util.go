@@ -1,4 +1,4 @@
-package pkg
+package okenvelope
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package pkg
+package eoseenvelope
 
 import (
 	"bytes"

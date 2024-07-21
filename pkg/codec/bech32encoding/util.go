@@ -1,4 +1,4 @@
-package pkg
+package bech32encoding
 
 import (
 	"bytes"

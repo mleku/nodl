@@ -1,5 +1,5 @@
 
-![nostr canary](./icon.png)
+![nostr canary](assets/icon.png)
 
 # nodl
 

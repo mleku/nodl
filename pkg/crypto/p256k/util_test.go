@@ -1,4 +1,4 @@
-package pkg
+package p256k_test
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package pkg
+package normalize
 
 import (
 	"bytes"
