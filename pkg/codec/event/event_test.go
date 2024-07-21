@@ -90,12 +90,13 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 	var i int
 	var out B
 	var err error
-	evts := make([]*T, 0, 10000)
+	evts := make([]*T, 9999)
 	bb.Run("UnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 		buf := make(B, 1_000_000)
 		scanner.Buffer(buf, len(buf))
+		var counter I
 		for i = 0; i < bb.N; i++ {
 			if !scanner.Scan() {
 				scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))
@@ -106,13 +107,17 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 			if b, err = ea.UnmarshalJSON(b); chk.E(err) {
 				bb.Fatal(err)
 			}
-			evts = append(evts, ea)
-			b=b[:0]
+			evts[counter] = ea
+			b = b[:0]
+			if counter > 9999 {
+				counter = 0
+			}
 		}
 	})
 	bb.Run("MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		var counter int
+		out = out[:0]
 		for i = 0; i < bb.N; i++ {
 			out, _ = evts[counter].MarshalJSON(out)
 			out = out[:0]
@@ -122,4 +127,77 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 			}
 		}
 	})
+	bins := make([]B, len(evts))
+	bb.Run("MarshalBinary", func(bb *testing.B) {
+		bb.ReportAllocs()
+		var counter int
+		for i = 0; i < bb.N; i++ {
+			var b B
+			b, _ = evts[counter].MarshalBinary(b)
+			bins[counter] = b
+			counter++
+			if counter != len(evts) {
+				counter = 0
+			}
+		}
+	})
+	bb.Run("UnmarshalBinary", func(bb *testing.B) {
+		bb.ReportAllocs()
+		var counter int
+		ev := New()
+		out = out[:0]
+		for i = 0; i < bb.N; i++ {
+			out = append(out, bins[counter]...)
+			out, _ = ev.UnmarshalBinary(out)
+			out = out[:0]
+			counter++
+			if counter != len(evts) {
+				counter = 0
+			}
+		}
+	})
+
+}
+
+func TestBinaryEvents(t *testing.T) {
+	var err error
+	var ev, ev2 *T
+	var orig B
+	b2, b3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
+	j2, j3 := make(B, 0, 1_000_000), make(B, 0, 1_000_000)
+	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
+	buf := make(B, 1_000_000)
+	scanner.Buffer(buf, len(buf))
+	ev, ev2 = New(), New()
+	for !scanner.Scan() {
+		orig = scanner.Bytes()
+		if orig, err = ev.UnmarshalJSON(orig); chk.E(err) {
+			t.Fatal(err)
+		}
+		if len(orig) > 0 {
+			t.Fatalf("remainder after end of event: %s", orig)
+		}
+		if b2, err = ev.MarshalBinary(b2); chk.E(err) {
+			t.Fatal(err)
+		}
+		// copy for verification
+		b3 = append(b3, b2...)
+		if b2, err = ev2.UnmarshalBinary(b2); chk.E(err) {
+			t.Fatal(err)
+		}
+		if len(b2) > 0 {
+			t.Fatalf("remainder after end of event: %s", orig)
+		}
+		// bytes should be identical to b3
+		if b2, err = ev2.MarshalBinary(b2); chk.E(err) {
+			t.Fatal(err)
+		}
+		if equals(b2, b3) {
+			log.E.S(ev, ev2)
+			t.Fatalf("failed to remarshal\n%0x\n%0x",
+				b3, b2)
+		}
+		j2, j3 = j2[:0], j3[:0]
+		b2, b3 = b2[:0], b3[:0]
+	}
 }

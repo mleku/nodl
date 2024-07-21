@@ -10,6 +10,8 @@ import (
 type (
 	B = []byte
 	S = string
+	I = int
+	E = error
 )
 
 var (

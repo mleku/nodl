@@ -25,7 +25,7 @@ func FromIntSlice(is []int) (k *T) {
 
 func (k *T) ToUint16() (o []uint16) {
 	for i := range k.K {
-		o = append(o, k.K[i].ToUint16())
+		o = append(o, k.K[i].ToU16())
 	}
 	return
 }

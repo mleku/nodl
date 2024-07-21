@@ -1,4 +1,4 @@
-package subscriptionid
+package crypto
 
 import (
 	"bytes"

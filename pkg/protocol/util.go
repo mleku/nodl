@@ -1,4 +1,4 @@
-package subscriptionid
+package protocol
 
 import (
 	"bytes"

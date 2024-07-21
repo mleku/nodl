@@ -1,11 +1,11 @@
 package event
 
 var (
-	Id        = B("id")
-	Pubkey    = B("pubkey")
-	CreatedAt = B("created_at")
-	Kind      = B("kind")
-	Tags      = B("tags")
-	Content   = B("content")
-	Sig       = B("sig")
+	jId        = B("id")
+	jPubkey    = B("pubkey")
+	jCreatedAt = B("created_at")
+	jKind      = B("kind")
+	jTags      = B("tags")
+	jContent   = B("content")
+	jSig       = B("sig")
 )

@@ -15,16 +15,16 @@ type T struct {
 
 func New[V uint16 | uint32 | int](k V) (ki *T) { return &T{uint16(k)} }
 
-func (k *T) ToInt() int       { return int(k.K) }
-func (k *T) ToUint16() uint16 { return k.K }
-func (k *T) ToUint64() uint64 { return uint64(k.K) }
+func (k *T) ToInt() int    { return int(k.K) }
+func (k *T) ToU16() uint16 { return k.K }
+func (k *T) ToU64() uint64 { return uint64(k.K) }
 func (k *T) Name() string     { return GetString(k) }
 
-func (k *T) MarshalJSON(dst B) (b B, err error) {
-	return ints.New(k.ToUint64()).MarshalJSON(dst)
+func (k *T) MarshalJSON(dst B) (b B, err E) {
+	return ints.New(k.ToU64()).MarshalJSON(dst)
 }
 
-func (k *T) UnmarshalJSON(b B) (r B, err error) {
+func (k *T) UnmarshalJSON(b B) (r B, err E) {
 	n := ints.New(0)
 	if r, err = n.UnmarshalJSON(b); chk.E(err) {
 		return

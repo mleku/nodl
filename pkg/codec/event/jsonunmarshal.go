@@ -48,8 +48,8 @@ InKV:
 	goto eof
 InVal:
 	switch key[0] {
-	case Id[0]:
-		if !equals(Id, key) {
+	case jId[0]:
+		if !equals(jId, key) {
 			goto invalid
 		}
 		var id B
@@ -63,8 +63,8 @@ InVal:
 		}
 		ev.ID = id
 		goto BetweenKV
-	case Pubkey[0]:
-		if !equals(Pubkey, key) {
+	case jPubkey[0]:
+		if !equals(jPubkey, key) {
 			goto invalid
 		}
 		var pk B
@@ -78,8 +78,8 @@ InVal:
 		}
 		ev.PubKey = pk
 		goto BetweenKV
-	case Kind[0]:
-		if !equals(Kind, key) {
+	case jKind[0]:
+		if !equals(jKind, key) {
 			goto invalid
 		}
 		ev.Kind = kind.New(0)
@@ -87,8 +87,8 @@ InVal:
 			return
 		}
 		goto BetweenKV
-	case Tags[0]:
-		if !equals(Tags, key) {
+	case jTags[0]:
+		if !equals(jTags, key) {
 			goto invalid
 		}
 		ev.Tags = tags.New()
@@ -96,8 +96,8 @@ InVal:
 			return
 		}
 		goto BetweenKV
-	case Sig[0]:
-		if !equals(Sig, key) {
+	case jSig[0]:
+		if !equals(jSig, key) {
 			goto invalid
 		}
 		var sig B
@@ -111,17 +111,17 @@ InVal:
 		}
 		ev.Sig = sig
 		goto BetweenKV
-	case Content[0]:
-		if key[1] == Content[1] {
-			if !equals(Content, key) {
+	case jContent[0]:
+		if key[1] == jContent[1] {
+			if !equals(jContent, key) {
 				goto invalid
 			}
 			if ev.Content, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 				return
 			}
 			goto BetweenKV
-		} else if key[1] == CreatedAt[1] {
-			if !equals(CreatedAt, key) {
+		} else if key[1] == jCreatedAt[1] {
+			if !equals(jCreatedAt, key) {
 				goto invalid
 			}
 			ev.CreatedAt = timestamp.New()

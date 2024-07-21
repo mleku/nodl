@@ -59,8 +59,8 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 			}
 		case inVal:
 			switch key[0] {
-			case Id[0]:
-				if len(key) < len(Id) {
+			case jId[0]:
+				if len(key) < len(jId) {
 					goto invalid
 				}
 				var id B
@@ -74,8 +74,8 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 				}
 				ev.ID = id
 				state = betweenKV
-			case Pubkey[0]:
-				if len(key) < len(Pubkey) {
+			case jPubkey[0]:
+				if len(key) < len(jPubkey) {
 					goto invalid
 				}
 				var pk B
@@ -89,8 +89,8 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 				}
 				ev.PubKey = pk
 				state = betweenKV
-			case Kind[0]:
-				if len(key) < len(Kind) {
+			case jKind[0]:
+				if len(key) < len(jKind) {
 					goto invalid
 				}
 				ev.Kind = kind.New(0)
@@ -98,8 +98,8 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
-			case Tags[0]:
-				if len(key) < len(Tags) {
+			case jTags[0]:
+				if len(key) < len(jTags) {
 					goto invalid
 				}
 				ev.Tags = tags.New()
@@ -107,8 +107,8 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 					return
 				}
 				state = betweenKV
-			case Sig[0]:
-				if len(key) < len(Sig) {
+			case jSig[0]:
+				if len(key) < len(jSig) {
 					goto invalid
 				}
 				var sig B
@@ -122,18 +122,18 @@ func (ev *T) UnmarshalJSONold(b B) (rem B, err error) {
 				}
 				ev.Sig = sig
 				state = betweenKV
-			case Content[0]:
+			case jContent[0]:
 				// this can be one of two, but minimum of the shortest
-				if len(key) < len(Content) {
+				if len(key) < len(jContent) {
 					goto invalid
 				}
-				if key[1] == Content[1] {
+				if key[1] == jContent[1] {
 					if ev.Content, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
 						return
 					}
 					state = betweenKV
-				} else if key[1] == CreatedAt[1] {
-					if len(key) < len(CreatedAt) {
+				} else if key[1] == jCreatedAt[1] {
+					if len(key) < len(jCreatedAt) {
 						goto invalid
 					}
 					ev.CreatedAt = timestamp.New()

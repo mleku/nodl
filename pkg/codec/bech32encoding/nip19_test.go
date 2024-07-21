@@ -160,7 +160,7 @@ func TestEncodeDecodeNaddr(t *testing.T) {
 		B("3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d")) {
 		t.Error("returned wrong pubkey")
 	}
-	if ep.Kind.ToUint16() != kind.Article.ToUint16() {
+	if ep.Kind.ToU16() != kind.Article.ToU16() {
 		t.Error("returned wrong kind")
 	}
 	if !equals(ep.Identifier, B("banana")) {
@@ -186,7 +186,7 @@ func TestDecodeNaddrWithoutRelays(t *testing.T) {
 		B("7fa56f5d6962ab1e3cd424e758c3002b8665f7b0d8dcee9fe9e288d7751ac194")) {
 		t.Error("returned wrong pubkey")
 	}
-	if ep.Kind.ToUint16() != kind.Article.ToUint16() {
+	if ep.Kind.ToU16() != kind.Article.ToU16() {
 		t.Error("returned wrong kind")
 	}
 	if !equals(ep.Identifier, B("references")) {

@@ -128,7 +128,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			t, v := readTLVEntry(data[curr:])
 			if v == nil {
 				// end here
-				if result.Kind.ToUint16() == 0 ||
+				if result.Kind.ToU16() == 0 ||
 					len(result.Identifier) < 1 ||
 					len(result.PublicKey) < 1 {
 
@@ -231,7 +231,7 @@ func EncodeEntity(pk B, k *kind.T, id B, relays []B) (s B, err error) {
 	}
 	writeTLVEntry(buf, TLVAuthor, pb)
 	kindBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(kindBytes, uint32(k.ToUint16()))
+	binary.BigEndian.PutUint32(kindBytes, uint32(k.ToU16()))
 	writeTLVEntry(buf, TLVKind, kindBytes)
 	var bits5 []byte
 	if bits5, err = bech32.ConvertBits(buf.Bytes(), 8, 5, true); chk.D(err) {
