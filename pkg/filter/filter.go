@@ -122,32 +122,32 @@ const (
 	afterClose
 )
 
-func (f *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b[:]
+func (f *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b[:]
 	var key B
 	var state int
-	for ; len(rem) >= 0; rem = rem[1:] {
+	for ; len(r) >= 0; r = r[1:] {
 		// log.I.F("%c", rem[0])
 		switch state {
 		case beforeOpen:
-			if rem[0] == '{' {
+			if r[0] == '{' {
 				state = openParen
 				// log.I.Ln("openParen")
 			}
 		case openParen:
-			if rem[0] == '"' {
+			if r[0] == '"' {
 				state = inKey
 				// log.I.Ln("inKey")
 			}
 		case inKey:
-			if rem[0] == '"' {
+			if r[0] == '"' {
 				state = inKV
 				// log.I.Ln("inKV")
 			} else {
-				key = append(key, rem[0])
+				key = append(key, r[0])
 			}
 		case inKV:
-			if rem[0] == ':' {
+			if r[0] == ':' {
 				state = inVal
 			}
 		case inVal:
@@ -157,7 +157,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				f.IDs = tag.New("")
-				if f.IDs.T, rem, err = text.UnmarshalHexArray(rem,
+				if f.IDs.T, r, err = text.UnmarshalHexArray(r,
 					sha256.Size); chk.E(err) {
 					return
 				}
@@ -168,7 +168,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				f.Kinds = kinds.NewWithCap(0)
-				if rem, err = f.Kinds.UnmarshalJSON(rem); chk.E(err) {
+				if r, err = f.Kinds.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -178,7 +178,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				f.Authors = tag.New("")
-				if f.Authors.T, rem, err = text.UnmarshalHexArray(rem,
+				if f.Authors.T, r, err = text.UnmarshalHexArray(r,
 					schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
@@ -189,7 +189,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				f.Tags = tags.New()
-				if rem, err = f.Tags.UnmarshalJSON(rem); chk.E(err) {
+				if r, err = f.Tags.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
 				state = betweenKV
@@ -199,7 +199,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				u := ints.New(0)
-				if rem, err = u.UnmarshalJSON(rem); chk.E(err) {
+				if r, err = u.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
 				f.Until = timestamp.FromUnix(int64(u.N))
@@ -210,7 +210,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 					goto invalid
 				}
 				l := ints.New(0)
-				if rem, err = l.UnmarshalJSON(rem); chk.E(err) {
+				if r, err = l.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
 				f.Limit = int(l.N)
@@ -226,7 +226,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 						goto invalid
 					}
 					var txt B
-					if txt, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+					if txt, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 						return
 					}
 					f.Search = txt
@@ -238,7 +238,7 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 						goto invalid
 					}
 					s := ints.New(0)
-					if rem, err = s.UnmarshalJSON(rem); chk.E(err) {
+					if r, err = s.UnmarshalJSON(r); chk.E(err) {
 						return
 					}
 					f.Since = timestamp.FromUnix(int64(s.N))
@@ -250,29 +250,29 @@ func (f *T) UnmarshalJSON(b B) (rem B, err error) {
 			}
 			key = key[:0]
 		case betweenKV:
-			if len(rem) == 0 {
+			if len(r) == 0 {
 				return
 			}
-			if rem[0] == '}' {
+			if r[0] == '}' {
 				state = afterClose
 				// log.I.Ln("afterClose")
 				// rem = rem[1:]
-			} else if rem[0] == ',' {
+			} else if r[0] == ',' {
 				state = openParen
 				// log.I.Ln("openParen")
-			} else if rem[0] == '"' {
+			} else if r[0] == '"' {
 				state = inKey
 				// log.I.Ln("inKey")
 			}
 		}
-		if rem[0] == '}' {
-			rem = rem[1:]
+		if r[0] == '}' {
+			r = r[1:]
 			return
 		}
 	}
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
-		S(rem))
+	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(r)]),
+		S(r))
 	return
 }
 

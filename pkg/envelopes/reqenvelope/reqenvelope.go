@@ -43,22 +43,22 @@ func (req *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (req *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (req *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	if req.Subscription, err = subscriptionid.New(B{0}); chk.E(err) {
 		return
 	}
-	if rem, err = req.Subscription.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = req.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if rem, err = text.Comma(rem); chk.E(err) {
+	if r, err = text.Comma(r); chk.E(err) {
 		return
 	}
 	req.Filters = filters.New()
-	if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = req.Filters.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

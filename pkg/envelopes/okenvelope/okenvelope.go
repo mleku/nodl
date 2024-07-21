@@ -47,28 +47,28 @@ func (oe *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (oe *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (oe *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	var idHex B
-	if idHex, rem, err = text.UnmarshalHex(rem); chk.E(err) {
+	if idHex, r, err = text.UnmarshalHex(r); chk.E(err) {
 		return
 	}
 	if oe.EventID, err = eventid.NewFromBytes(idHex); chk.E(err) {
 		return
 	}
-	if rem, err = text.Comma(rem); chk.E(err) {
+	if r, err = text.Comma(r); chk.E(err) {
 		return
 	}
-	if rem, oe.OK, err = text.UnmarshalBool(rem); chk.E(err) {
+	if r, oe.OK, err = text.UnmarshalBool(r); chk.E(err) {
 		return
 	}
-	if rem, err = text.Comma(rem); chk.E(err) {
+	if r, err = text.Comma(r); chk.E(err) {
 		return
 	}
-	if oe.Message, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+	if oe.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

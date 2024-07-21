@@ -32,13 +32,13 @@ func (sub *Submission) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (sub *Submission) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (sub *Submission) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	sub.Event = event.New()
-	if rem, err = sub.Event.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = sub.Event.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return
@@ -75,19 +75,19 @@ func (res *Result) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (res *Result) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (res *Result) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	if res.Subscription, err = subscriptionid.New(B{0}); chk.E(err) {
 		return
 	}
-	if rem, err = res.Subscription.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = res.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	res.Event = event.New()
-	if rem, err = res.Event.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = res.Event.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

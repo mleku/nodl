@@ -93,9 +93,9 @@ func (t *T) MarshalJSON(dst B) (b B, err error) {
 	return tt.MarshalJSON(dst)
 }
 
-func (t *T) UnmarshalJSON(b B) (rem B, err error) {
+func (t *T) UnmarshalJSON(b B) (r B, err error) {
 	n := ints.New(0)
-	rem, err = n.UnmarshalJSON(b)
+	r, err = n.UnmarshalJSON(b)
 	*t = T(n.Uint64())
 	return
 }

@@ -36,12 +36,12 @@ func (ce *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (ce *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
-	if ce.Message, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+func (ce *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b
+	if ce.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

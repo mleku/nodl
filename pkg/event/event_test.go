@@ -103,10 +103,11 @@ func BenchmarkUnmarshalMarshal(bb *testing.B) {
 			}
 			b := scanner.Bytes()
 			ea := New()
-			if _, err = ea.UnmarshalJSON(b); chk.E(err) {
+			if b, err = ea.UnmarshalJSON(b); chk.E(err) {
 				bb.Fatal(err)
 			}
 			evts = append(evts, ea)
+			b=b[:0]
 		}
 	})
 	bb.Run("MarshalJSON", func(bb *testing.B) {

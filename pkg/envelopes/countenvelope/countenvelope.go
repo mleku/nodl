@@ -47,19 +47,19 @@ func (req *Request) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (req *Request) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (req *Request) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	if req.ID, err = subscriptionid.New(B{0}); chk.E(err) {
 		return
 	}
-	if rem, err = req.ID.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = req.ID.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	req.Filters = filters.New()
-	if rem, err = req.Filters.UnmarshalJSON(rem); chk.E(err) {
+	if r, err = req.Filters.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return
@@ -95,53 +95,53 @@ func (res *Response) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (res *Response) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (res *Response) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	var inID, inCount bool
-	for ; len(rem) > 0; rem = rem[1:] {
+	for ; len(r) > 0; r = r[1:] {
 		// first we should be finding a subscription ID
-		if !inID && rem[0] == '"' {
-			rem = rem[1:]
+		if !inID && r[0] == '"' {
+			r = r[1:]
 			// so we don't do this twice
 			inID = true
-			for i := range rem {
-				if rem[i] == '\\' {
+			for i := range r {
+				if r[i] == '\\' {
 					continue
-				} else if rem[i] == '"' {
+				} else if r[i] == '"' {
 					// skip escaped quotes
 					if i > 0 {
-						if rem[i-1] != '\\' {
+						if r[i-1] != '\\' {
 							continue
 						}
 					}
 					if res.ID, err = subscriptionid.
-						New(text.NostrUnescape(rem[:i])); chk.E(err) {
+						New(text.NostrUnescape(r[:i])); chk.E(err) {
 
 						return
 					}
 					// trim the rest
-					rem = rem[i:]
+					r = r[i:]
 				}
 			}
 		} else {
 			// pass the comma
-			if rem[0] == ',' {
+			if r[0] == ',' {
 				continue
 			} else if !inCount {
 				inCount = true
 				n := ints.New(0)
-				if rem, err = n.UnmarshalJSON(rem); chk.E(err) {
+				if r, err = n.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
 				res.Count = int(n.Uint64())
 			} else {
 				// can only be either the end or optional approx
-				if rem[0] == ']' {
+				if r[0] == ']' {
 					return
 				} else {
-					for i := range rem {
-						if rem[i] == ']' {
-							if bytes.Contains(rem[:i], B("true")) {
+					for i := range r {
+						if r[i] == ']' {
+							if bytes.Contains(r[:i], B("true")) {
 								res.Approximate = true
 							}
 							return

@@ -109,7 +109,7 @@ func (t *T) MarshalJSON(dst B) (b B, err error) {
 
 // UnmarshalJSON decodes the provided JSON tag list (array of strings), and
 // returns any remainder after the close bracket has been encountered.
-func (t *T) UnmarshalJSON(b B) (rem B, err error) {
+func (t *T) UnmarshalJSON(b B) (r B, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
 	for i := 0; i < len(b); i++ {
@@ -129,7 +129,7 @@ func (t *T) UnmarshalJSON(b B) (rem B, err error) {
 		}
 	}
 	if !openedBracket || inQuotes {
-		log.I.F("\n%v\n%s", t, rem)
+		log.I.F("\n%v\n%s", t, r)
 		return nil, errorf.E("tag: failed to parse tag")
 	}
 	return

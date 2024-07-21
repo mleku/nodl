@@ -11,38 +11,37 @@ import (
 	"github.com/mleku/nodl/pkg/timestamp"
 )
 
-func (ev *T) UnmarshalJSON(b B) (rem B, err error) {
+func (ev *T) UnmarshalJSON(b B) (r B, err error) {
 	key := make(B, 0, 9)
-	rem = b
-	for ; len(rem) > 0; rem = rem[1:] {
-		if rem[0] == '{' {
-			rem = rem[1:]
+	r = b
+	for ; len(r) > 0; r = r[1:] {
+		if r[0] == '{' {
+			r = r[1:]
 			goto BetweenKeys
 		}
 	}
 	goto eof
 BetweenKeys:
-	for ; len(rem) > 0; rem = rem[1:] {
-		if rem[0] == '"' {
-			rem = rem[1:]
+	for ; len(r) > 0; r = r[1:] {
+		if r[0] == '"' {
+			r = r[1:]
 			goto InKey
 		}
 	}
 	goto eof
 InKey:
-	for ; len(rem) > 0; rem = rem[1:] {
-		if rem[0] == '"' {
-			rem = rem[1:]
+	for ; len(r) > 0; r = r[1:] {
+		if r[0] == '"' {
+			r = r[1:]
 			goto InKV
-		} else {
-			key = append(key, rem[0])
 		}
+		key = append(key, r[0])
 	}
 	goto eof
 InKV:
-	for ; len(rem) > 0; rem = rem[1:] {
-		if rem[0] == ':' {
-			rem = rem[1:]
+	for ; len(r) > 0; r = r[1:] {
+		if r[0] == ':' {
+			r = r[1:]
 			goto InVal
 		}
 	}
@@ -54,7 +53,7 @@ InVal:
 			goto invalid
 		}
 		var id B
-		if id, rem, err = text.UnmarshalHex(rem); chk.E(err) {
+		if id, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
 		if len(id) != sha256.Size {
@@ -69,7 +68,7 @@ InVal:
 			goto invalid
 		}
 		var pk B
-		if pk, rem, err = text.UnmarshalHex(rem); chk.E(err) {
+		if pk, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
 		if len(pk) != schnorr.PubKeyBytesLen {
@@ -84,7 +83,7 @@ InVal:
 			goto invalid
 		}
 		ev.Kind = kind.New(0)
-		if rem, err = ev.Kind.UnmarshalJSON(rem); chk.E(err) {
+		if r, err = ev.Kind.UnmarshalJSON(r); chk.E(err) {
 			return
 		}
 		goto BetweenKV
@@ -93,7 +92,7 @@ InVal:
 			goto invalid
 		}
 		ev.Tags = tags.New()
-		if rem, err = ev.Tags.UnmarshalJSON(rem); chk.E(err) {
+		if r, err = ev.Tags.UnmarshalJSON(r); chk.E(err) {
 			return
 		}
 		goto BetweenKV
@@ -102,12 +101,12 @@ InVal:
 			goto invalid
 		}
 		var sig B
-		if sig, rem, err = text.UnmarshalHex(rem); chk.E(err) {
+		if sig, r, err = text.UnmarshalHex(r); chk.E(err) {
 			return
 		}
 		if len(sig) != schnorr.SignatureSize {
 			err = errorf.E("invalid sig length, require %d got %d '%s'",
-				schnorr.SignatureSize, len(sig), rem)
+				schnorr.SignatureSize, len(sig), r)
 			return
 		}
 		ev.Sig = sig
@@ -117,7 +116,7 @@ InVal:
 			if !equals(Content, key) {
 				goto invalid
 			}
-			if ev.Content, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+			if ev.Content, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 				return
 			}
 			goto BetweenKV
@@ -126,7 +125,7 @@ InVal:
 				goto invalid
 			}
 			ev.CreatedAt = timestamp.New()
-			if rem, err = ev.CreatedAt.UnmarshalJSON(rem); chk.E(err) {
+			if r, err = ev.CreatedAt.UnmarshalJSON(r); chk.E(err) {
 				return
 			}
 			goto BetweenKV
@@ -138,18 +137,18 @@ InVal:
 	}
 BetweenKV:
 	key = key[:0]
-	for ; len(rem) > 0; rem = rem[1:] {
+	for ; len(r) > 0; r = r[1:] {
 		switch {
-		case len(rem) == 0:
+		case len(r) == 0:
 			return
-		case rem[0] == '}':
-			rem = rem[1:]
+		case r[0] == '}':
+			r = r[1:]
 			goto AfterClose
-		case rem[0] == ',':
-			rem = rem[1:]
+		case r[0] == ',':
+			r = r[1:]
 			goto BetweenKeys
-		case rem[0] == '"':
-			rem = rem[1:]
+		case r[0] == '"':
+			r = r[1:]
 			goto InKey
 		}
 	}
@@ -157,8 +156,8 @@ BetweenKV:
 AfterClose:
 	return
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(rem)]),
-		S(rem))
+	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(r)]),
+		S(r))
 	return
 eof:
 	err = io.EOF

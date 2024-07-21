@@ -70,21 +70,21 @@ func (si *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (si *T) UnmarshalJSON(b B) (rem B, err error) {
+func (si *T) UnmarshalJSON(b B) (r B, err error) {
 	var openQuotes, escaping bool
 	var start int
-	rem = b
-	for i := range rem {
-		if !openQuotes && rem[i] == '"' {
+	r = b
+	for i := range r {
+		if !openQuotes && r[i] == '"' {
 			openQuotes = true
 			start = i + 1
 		} else if openQuotes {
-			if !escaping && rem[i] == '\\' {
+			if !escaping && r[i] == '\\' {
 				escaping = true
-			} else if rem[i] == '"' {
+			} else if r[i] == '"' {
 				if !escaping {
-					si.T = text.NostrUnescape(rem[start:i])
-					rem = rem[i+1:]
+					si.T = text.NostrUnescape(r[start:i])
+					r = r[i+1:]
 					return
 				} else {
 					escaping = false

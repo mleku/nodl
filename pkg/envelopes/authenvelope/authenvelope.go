@@ -29,15 +29,15 @@ func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (c *Challenge) UnmarshalJSON(b B) (rem B, err error) {
+func (c *Challenge) UnmarshalJSON(b B) (r B, err error) {
 	// var openQuotes bool
-	rem = b
-	if c.Challenge, rem, err = text.UnmarshalQuoted(rem); chk.E(err) {
+	r = b
+	if c.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
-	for ; len(rem) >= 0; rem = rem[1:] {
-		if rem[0] == ']' {
-			rem = rem[:0]
+	for ; len(r) >= 0; r = r[1:] {
+		if r[0] == ']' {
+			r = r[:0]
 			return
 		}
 	}
@@ -64,16 +64,16 @@ func (r *Response) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (r *Response) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (r *Response) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	// literally just unmarshal the event
 	r.Event = event.New()
-	log.I.F("%s", rem)
-	if rem, err = r.Event.UnmarshalJSON(rem); chk.E(err) {
+	log.I.F("%s", r)
+	if r, err = r.Event.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	log.I.F("%s", rem)
-	if rem, err = envelopes.SkipToTheEnd(rem); chk.E(err) {
+	log.I.F("%s", r)
+	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

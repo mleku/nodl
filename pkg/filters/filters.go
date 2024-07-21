@@ -38,36 +38,36 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (f *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b[:]
-	for len(rem) > 0 {
-		switch rem[0] {
+func (f *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b[:]
+	for len(r) > 0 {
+		switch r[0] {
 		case '[':
-			if len(rem) > 1 && rem[1] == ']' {
-				rem = rem[1:]
+			if len(r) > 1 && r[1] == ']' {
+				r = r[1:]
 				return
 			}
-			rem = rem[1:]
+			r = r[1:]
 			ffa := filter.New()
-			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
+			if r, err = ffa.UnmarshalJSON(r); chk.E(err) {
 				return
 			}
 			f.F = append(f.F, ffa)
 			// continue
 		case ',':
-			rem = rem[1:]
-			if len(rem) > 1 && rem[1] == ']' {
-				rem = rem[1:]
+			r = r[1:]
+			if len(r) > 1 && r[1] == ']' {
+				r = r[1:]
 				return
 			}
 			ffa := filter.New()
-			if rem, err = ffa.UnmarshalJSON(rem); chk.E(err) {
+			if r, err = ffa.UnmarshalJSON(r); chk.E(err) {
 				return
 			}
 			f.F = append(f.F, ffa)
 		// next
 		case ']':
-			rem = rem[1:]
+			r = r[1:]
 			// the end
 			return
 		}

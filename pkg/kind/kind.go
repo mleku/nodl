@@ -24,9 +24,9 @@ func (k *T) MarshalJSON(dst B) (b B, err error) {
 	return ints.New(k.ToUint64()).MarshalJSON(dst)
 }
 
-func (k *T) UnmarshalJSON(b B) (rem B, err error) {
+func (k *T) UnmarshalJSON(b B) (r B, err error) {
 	n := ints.New(0)
-	if rem, err = n.UnmarshalJSON(b); chk.E(err) {
+	if r, err = n.UnmarshalJSON(b); chk.E(err) {
 		return
 	}
 	k.K = n.Uint16()

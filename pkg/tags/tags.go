@@ -182,29 +182,29 @@ func (t *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (t *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b[:]
-	for len(rem) > 0 {
-		switch rem[0] {
+func (t *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b[:]
+	for len(r) > 0 {
+		switch r[0] {
 		case '[':
-			if rem[1] == '[' {
-				rem = rem[1:]
+			if r[1] == '[' {
+				r = r[1:]
 				continue
-			} else if rem[1] == ']' {
-				rem = rem[1:]
+			} else if r[1] == ']' {
+				r = r[1:]
 				return
 			}
 			tt := tag.NewWithCap(4) // most tags are 4 or less fields
-			if rem, err = tt.UnmarshalJSON(rem); chk.E(err) {
+			if r, err = tt.UnmarshalJSON(r); chk.E(err) {
 				return
 			}
 			t.T = append(t.T, tt)
 			// continue
 		case ',':
-			rem = rem[1:]
+			r = r[1:]
 			// next
 		case ']':
-			rem = rem[1:]
+			r = r[1:]
 			// the end
 			return
 		}

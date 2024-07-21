@@ -82,35 +82,35 @@ func (k *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (k *T) UnmarshalJSON(b B) (rem B, err error) {
-	rem = b
+func (k *T) UnmarshalJSON(b B) (r B, err error) {
+	r = b
 	var openedBracket bool
-	for ; len(rem) > 0; rem = rem[1:] {
-		if !openedBracket && rem[0] == '[' {
+	for ; len(r) > 0; r = r[1:] {
+		if !openedBracket && r[0] == '[' {
 			openedBracket = true
 			continue
 		} else if openedBracket {
-			if rem[0] == ']' {
+			if r[0] == ']' {
 				// done
 				return
-			} else if rem[0] == ',' {
+			} else if r[0] == ',' {
 				continue
 			}
 			kk := ints.New(0)
-			if rem, err = kk.UnmarshalJSON(rem); chk.E(err) {
+			if r, err = kk.UnmarshalJSON(r); chk.E(err) {
 				return
 			}
 			k.K = append(k.K, kind.New(kk.Uint16()))
-			if rem[0] == ']' {
-				rem = rem[1:]
+			if r[0] == ']' {
+				r = r[1:]
 				return
 			}
 		}
 	}
 	if !openedBracket {
-		log.I.F("\n%v\n%s", k, rem)
+		log.I.F("\n%v\n%s", k, r)
 		return nil, errorf.E("kinds: failed to unmarshal\n%s\n%s\n%s", k,
-			b, rem)
+			b, r)
 	}
 	return
 }

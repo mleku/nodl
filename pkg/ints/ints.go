@@ -72,7 +72,7 @@ func (n *T) MarshalJSON(dst B) (b B, err error) {
 
 // UnmarshalJSON reads a string, which must be a positive integer no larger than
 // math.MaxUint64, skipping any non-numeric content before it.
-func (n *T) UnmarshalJSON(b B) (rem B, err error) {
+func (n *T) UnmarshalJSON(b B) (r B, err error) {
 	var sLen int
 	// count the digits
 	for ; sLen < len(b) && b[sLen] >= zero && b[sLen] <= nine && b[sLen] != ','; sLen++ {
@@ -86,7 +86,7 @@ func (n *T) UnmarshalJSON(b B) (rem B, err error) {
 		return
 	}
 	// the length of the string found
-	rem = b[sLen:]
+	r = b[sLen:]
 	b = b[:sLen]
 	for _, ch := range b {
 		ch -= zero

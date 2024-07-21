@@ -4,11 +4,11 @@ package codec
 
 type JSON interface {
 	// MarshalJSON converts the data of the type into JSON, appending it to the
-	// provided slice.
+	// provided slice and returning the extended slice.
 	MarshalJSON(dst B) (b B, err error)
 	// UnmarshalJSON decodes a JSON form of a type back into the runtime form,
 	// and returns whatever remains after the type has been decoded out.
-	UnmarshalJSON(b B) (rem B, err error)
+	UnmarshalJSON(b B) (r B, err error)
 }
 
 type Binary interface {
@@ -17,5 +17,5 @@ type Binary interface {
 	MarshalBinary(dst B) (b B)
 	// UnmarshalBinary decodes a binary form of a type back into the runtime
 	// form, and returns whatever remains after the type has been decoded out.
-	UnmarshalBinary(b B) (rem B, err error)
+	UnmarshalBinary(b B) (r B, err error)
 }
