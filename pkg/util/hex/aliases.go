@@ -27,7 +27,10 @@ func EncAppend(dst, src B) (b B) {
 
 func DecAppend(dst, src B) (b B, err error) {
 	l := len(dst)
-	dst = append(dst, make(B, len(src)/2)...)
-	err = xhex.Decode(dst[l:], src)
+	b = dst
+	b = append(b, make(B, len(src)/2)...)
+	if err = xhex.Decode(b[l:], src); chk.E(err) {
+		return
+	}
 	return
 }

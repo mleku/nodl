@@ -3,6 +3,7 @@ package event
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/v2/schnorr"
@@ -123,6 +124,11 @@ func (w *Writer) WriteCreatedAt(t *timestamp.T) (err E) {
 	return
 }
 
+// WriteTags encodes tags into binary form, including special handling for
+// protocol defined a, e and p tags.
+//
+// todo: currently logging of incorrect a tag second section hex encoding as an
+//    event ID is disabled because of a wrong a tag in the test events cache.
 func (w *Writer) WriteTags(t *tags.T) (err E) {
 	// first a byte for the number of tags
 	w.Buf = appendUvarint(w.Buf, uint64(len(t.T)))
@@ -152,8 +158,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 				switch {
 				case secondIsHex:
 					w.Buf = appendUvarint(w.Buf, uint64(32))
-					if w.Buf, err = hex.DecAppend(w.Buf,
-						[]byte(ts)); chk.E(err) {
+					if w.Buf, err = hex.DecAppend(w.Buf, ts); chk.E(err) {
 						// the value MUST be hex by the spec
 						log.W.Ln(t.T[i])
 						return
@@ -170,7 +175,8 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					}
 					// second is a 32 byte value encoded in hex
 					if len(split[1]) != 64 {
-						err = log.E.Err("invalid length pubkey in a tag: %d")
+						err = fmt.Errorf("invalid length event ID in `a` tag: %d",
+							len(split[1]))
 						return
 					}
 					// prepend with the appropriate length prefix (we don't need
@@ -223,7 +229,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	if err = w.WriteKind(ev.Kind); chk.E(err) {
 		return
 	}
-	if err = w.WriteTags(ev.Tags); chk.E(err) {
+	if err = w.WriteTags(ev.Tags); err != nil {
 		return
 	}
 	if err = w.WriteContent(ev.Content); chk.E(err) {
@@ -237,7 +243,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 
 func (ev *T) MarshalBinary(dst B) (b B, err E) {
 	w := NewBufForEvent(dst, ev)
-	if err = w.WriteEvent(ev); chk.E(err) {
+	if err = w.WriteEvent(ev); err!=nil {
 		return
 	}
 	b = w.Bytes()

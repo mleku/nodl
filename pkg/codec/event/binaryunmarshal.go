@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/v2/schnorr"
 	"github.com/mleku/nodl/pkg/codec/kind"
 	"github.com/mleku/nodl/pkg/codec/tag"
@@ -142,7 +143,8 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			case j == 1:
 				switch {
 				case secondIsHex:
-					hex.EncAppend(t.T[i].T[j], r.Buf[r.Pos:end])
+					t.T[i].T = append(t.T[i].T, make(B, 0, sha256.Size*2))
+					t.T[i].T[j] = hex.EncAppend(t.T[i].T[j], r.Buf[r.Pos:end])
 					r.Pos = end
 					continue reading
 				case secondIsDecimalHex:
