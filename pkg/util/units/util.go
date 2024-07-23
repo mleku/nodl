@@ -1,4 +1,4 @@
-package scripts
+package units
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 type (
 	B = []byte
 	S = string
-	I = int
 	E = error
 )
 
