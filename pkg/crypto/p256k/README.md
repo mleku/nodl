@@ -9,12 +9,16 @@ build tag, which will set an override to use the code from the
 the decred is actually where the schnorr signatures are (ikr?) - this repo 
 uses my fork of this mess of shitcoinery and bad, slow Go code is cleaned up 
 and unified in [github.com/mleku/btcec](https://github.com/mleku/btcec) and 
-includes the bech32 and base58check libraries. 
+includes the bech32 and base58check libraries. And the messy precomputed 
+values are upgraded to use the modern "embed" enabling a faster app startup 
+for initialising this array (at the cost of a little more binary size).
 
 The directory `pkg/libsecp256k1/secp256k1` needs to be initialized and built
 and installed, like so:
 
 ```bash
+cd pkg/p256k
+git clone https://github.com/bitcoin-core/secp256k1.git
 cd pkg/p256k/secp256k1
 git submodule init
 git submodule update
