@@ -57,12 +57,12 @@ func EstimateSize(ev *T) (size I) {
 	// next a byte for the length of each tag list
 	for i := range ev.Tags.T {
 		size++
-		for j := range ev.Tags.T[i].T {
+		for j := range ev.Tags.T[i].Field {
 			// plus a varint16 for each tag length prefix (very often will be 1
 			// byte, occasionally 2, but no more than this
 			size += binary.MaxVarintLen16
 			// and the length of the actual tag
-			size += len(ev.Tags.T[i].T[j])
+			size += len(ev.Tags.T[i].Field[j])
 		}
 	}
 	// length prefix of the content field
@@ -135,12 +135,12 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 	for i := range t.T {
 		var secondIsHex, secondIsDecimalHex bool
 		// first the length of the tag
-		w.Buf = appendUvarint(w.Buf, uint64(len(t.T[i].T)))
+		w.Buf = appendUvarint(w.Buf, uint64(len(t.T[i].Field)))
 	scanning:
-		for j := range t.T[i].T {
+		for j := range t.T[i].Field {
 			// we know from this first tag certain conditions that allow
 			// data optimizations
-			ts := t.T[i].T[j]
+			ts := t.T[i].Field[j]
 			switch {
 			case j == 0 && len(ts) == 1:
 				for k := range HexInSecond {
@@ -165,7 +165,7 @@ func (w *Writer) WriteTags(t *tags.T) (err E) {
 					}
 					continue scanning
 				case secondIsDecimalHex:
-					split := bytes.Split(t.T[i].T[j], B(":"))
+					split := bytes.Split(t.T[i].Field[j], B(":"))
 					// append the lengths accordingly
 					// first is 2 bytes size
 					var n int

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
 	"github.com/mleku/nodl/pkg/codec/ints"
 )
 
@@ -93,10 +94,9 @@ func URL(u B) (b B) {
 // Reason takes a string message that is to be sent in an `OK` or `CLOSED`
 // command and prefixes it with "<prefix>: " if it doesn't already have an
 // acceptable prefix.
-func Reason(reason string, prefix string) string {
-	if idx := strings.Index(reason,
-		": "); idx == -1 || strings.IndexByte(reason[0:idx], ' ') != -1 {
-		return prefix + ": " + reason
+func Reason[V S | B | okenvelope.Reason](prefix, reason V) B {
+	if idx := strings.Index(S(reason), ": "); idx == -1 || strings.IndexByte(S(reason)[0:idx], ' ') != -1 {
+		return append(append(B(prefix), ": "...), reason...)
 	}
-	return reason
+	return B(reason)
 }

@@ -10,10 +10,23 @@ const (
 	L = "OK"
 )
 
+type Reason string
+
+func (r Reason) S() string { return string(r) }
+
+const (
+	PoW         Reason = "pow"
+	Duplicate   Reason = "duplicate"
+	Blocked     Reason = "blocked"
+	RateLimited Reason = "rate-limited"
+	Invalid     Reason = "invalid"
+	Error       Reason = "error"
+)
+
 type T struct {
 	EventID *eventid.T
 	OK      bool
-	Message B
+	Reason  B
 }
 
 var _ envelopes.I = (*T)(nil)
@@ -23,7 +36,7 @@ func New() *T {
 }
 
 func NewFrom(eid *eventid.T, ok bool, msg B) *T {
-	return &T{EventID: eid, OK: ok, Message: msg}
+	return &T{EventID: eid, OK: ok, Reason: msg}
 }
 
 func (oe *T) Label() string { return L }
@@ -40,7 +53,7 @@ func (oe *T) MarshalJSON(dst B) (b B, err error) {
 			o = text.MarshalBool(o, oe.OK)
 			o = append(o, ',')
 			o = append(o, '"')
-			o = text.NostrEscape(o, oe.Message)
+			o = text.NostrEscape(o, oe.Reason)
 			o = append(o, '"')
 			return
 		})
@@ -65,7 +78,7 @@ func (oe *T) UnmarshalJSON(b B) (r B, err error) {
 	if r, err = text.Comma(r); chk.E(err) {
 		return
 	}
-	if oe.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
+	if oe.Reason, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {

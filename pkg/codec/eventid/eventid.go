@@ -18,6 +18,8 @@ type T struct {
 
 func New() (ei *T) { return &T{} }
 
+func NewWith[V S | B](s V) (ei *T) { return &T{b: B(s)} }
+
 func (ei *T) Set(b []byte) (err error) {
 	if len(b) != sha256.Size {
 		err = fmt.Errorf("ID bytes incorrect size, got %d require %d",

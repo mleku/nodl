@@ -58,9 +58,9 @@ var (
 func (f *T) MarshalJSON(dst B) (b B, err error) {
 	// open parentheses
 	dst = append(dst, '{')
-	if f.IDs != nil && len(f.IDs.T) > 0 {
+	if f.IDs != nil && len(f.IDs.Field) > 0 {
 		dst = text.JSONKey(dst, IDs)
-		dst = text.MarshalHexArray(dst, f.IDs.T)
+		dst = text.MarshalHexArray(dst, f.IDs.Field)
 		dst = append(dst, ',')
 	}
 	if f.Kinds != nil && len(f.Kinds.K) > 0 {
@@ -70,9 +70,9 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		}
 		dst = append(dst, ',')
 	}
-	if f.Authors != nil && len(f.Authors.T) > 0 {
+	if f.Authors != nil && len(f.Authors.Field) > 0 {
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, f.Authors.T)
+		dst = text.MarshalHexArray(dst, f.Authors.Field)
 		dst = append(dst, ',')
 	}
 	if f.Tags != nil && len(f.Tags.T) > 0 {
@@ -157,7 +157,7 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 					goto invalid
 				}
 				f.IDs = tag.New("")
-				if f.IDs.T, r, err = text.UnmarshalHexArray(r,
+				if f.IDs.Field, r, err = text.UnmarshalHexArray(r,
 					sha256.Size); chk.E(err) {
 					return
 				}
@@ -178,7 +178,7 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 					goto invalid
 				}
 				f.Authors = tag.New("")
-				if f.Authors.T, r, err = text.UnmarshalHexArray(r,
+				if f.Authors.Field, r, err = text.UnmarshalHexArray(r,
 					schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
@@ -281,7 +281,7 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("nil event")
 		return false
 	}
-	if f.IDs != nil && len(f.IDs.T) > 0 && !f.IDs.Contains(ev.ID) {
+	if f.IDs != nil && len(f.IDs.Field) > 0 && !f.IDs.Contains(ev.ID) {
 		// log.T.F("no ids in filter match event\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
@@ -289,17 +289,17 @@ func (f *T) Matches(ev *event.T) bool {
 		// log.T.F("no matching kinds in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
-	if f.Authors != nil && len(f.Authors.T) > 0 && !f.Authors.Contains(ev.PubKey) {
+	if f.Authors != nil && len(f.Authors.Field) > 0 && !f.Authors.Contains(ev.PubKey) {
 		// log.T.F("no matching authors in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 		return false
 	}
 	if f.Tags != nil {
 		for i, v := range f.Tags.T {
 			// remove the hash prefix (idk why this thing even exists tbh)
-			if bytes.HasPrefix(v.T[0], B("#")) {
-				f.Tags.T[i].T[0] = f.Tags.T[i].T[0][1:]
+			if bytes.HasPrefix(v.Field[0], B("#")) {
+				f.Tags.T[i].Field[0] = f.Tags.T[i].Field[0][1:]
 			}
-			if len(v.T) > 0 && !ev.Tags.ContainsAny(v.T[0], v.T...) {
+			if len(v.Field) > 0 && !ev.Tags.ContainsAny(v.Field[0], v.Field...) {
 				// log.T.F("no matching tags in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 				return false
 			}
@@ -317,13 +317,38 @@ func (f *T) Matches(ev *event.T) bool {
 	return true
 }
 
+func arePointerValuesEqual[V comparable](a *V, b *V) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a != nil && b != nil {
+		return *a == *b
+	}
+	return false
+}
+
+func Equal(a, b *T) bool {
+	// switch is a convenient way to bundle a long list of tests like this:
+	if !a.Kinds.Equals(b.Kinds) ||
+		!a.IDs.Equal(b.IDs) ||
+		!a.Authors.Equal(b.Authors) ||
+		len(a.Tags.T) != len(b.Tags.T) ||
+		!arePointerValuesEqual(a.Since, b.Since) ||
+		!arePointerValuesEqual(a.Until, b.Until) ||
+		!equals(a.Search, b.Search) ||
+		!a.Tags.Equal(b.Tags) {
+		return false
+	}
+	return true
+}
+
 func GenFilter() (f *T, err error) {
 	f = New()
 	n := frand.Intn(16)
 	for _ = range n {
 		id := make(B, sha256.Size)
 		frand.Read(id)
-		f.IDs.T = append(f.IDs.T, id)
+		f.IDs.Field = append(f.IDs.Field, id)
 	}
 	n = frand.Intn(16)
 	for _ = range n {
@@ -336,7 +361,7 @@ func GenFilter() (f *T, err error) {
 			return
 		}
 		pk := sk.PubKey()
-		f.Authors.T = append(f.Authors.T, schnorr.SerializePubKey(pk))
+		f.Authors.Field = append(f.Authors.Field, schnorr.SerializePubKey(pk))
 	}
 	a := frand.Intn(16)
 	if a < n {
@@ -344,7 +369,7 @@ func GenFilter() (f *T, err error) {
 	}
 	for i := range n {
 		p := make(B, 0, schnorr.PubKeyBytesLen*2)
-		p = hex.EncAppend(p, f.Authors.T[i])
+		p = hex.EncAppend(p, f.Authors.Field[i])
 		f.Tags.T = append(f.Tags.T, tag.New(B("p"), p))
 		idb := make(B, sha256.Size)
 		frand.Read(idb)

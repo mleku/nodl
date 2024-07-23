@@ -10,7 +10,7 @@ const L = "CLOSED"
 
 type T struct {
 	Subscription *subscriptionid.T
-	Message      B
+	Reason       B
 }
 
 var _ envelopes.I = (*T)(nil)
@@ -20,7 +20,7 @@ func New() *T {
 }
 
 func NewFrom(id *subscriptionid.T, msg B) *T {
-	return &T{Subscription: id, Message: msg}
+	return &T{Subscription: id, Reason: msg}
 }
 
 func (ce *T) Label() string { return L }
@@ -35,7 +35,7 @@ func (ce *T) MarshalJSON(dst B) (b B, err error) {
 			}
 			o = append(o, ',')
 			o = append(o, '"')
-			o = text.NostrEscape(o, ce.Message)
+			o = text.NostrEscape(o, ce.Reason)
 			o = append(o, '"')
 			return
 		})
@@ -50,7 +50,7 @@ func (ce *T) UnmarshalJSON(b B) (r B, err error) {
 	if r, err = ce.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if ce.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
+	if ce.Reason, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {

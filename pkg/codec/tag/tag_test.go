@@ -14,7 +14,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		for _ = range n {
 			b1 := make(B, frand.Intn(128)+2)
 			_, _ = frand.Read(b1)
-			tg.T = append(tg.T, b1)
+			tg.Field = append(tg.Field, b1)
 		}
 		b, _ = tg.MarshalJSON(b)
 		tg2 := NewWithCap(n)
@@ -39,7 +39,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 	for _ = range n {
 		b1 := make(B, 128)
 		_, _ = frand.Read(b1)
-		tg.T = append(tg.T, b1)
+		tg.Field = append(tg.Field, b1)
 	}
 	bb.Run("tag.MarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()

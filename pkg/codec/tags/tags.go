@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/mleku/nodl/pkg/codec/tag"
 )
@@ -22,6 +23,29 @@ func New(fields ...*tag.T) (t *T) {
 	}
 	return
 }
+
+// Less evaluates two tags and returns if one is less than the other. Fields are lexicographically compared, so a < b.
+//
+// If two tags are greater than or equal up to the length of the shortest.
+func (t *T) Less(i, j int) (less bool) {
+	var field int
+	for {
+		// if they are greater or equal, the longer one is greater because nil is less than anything.
+		if t.T[i].Len() <= field || t.T[j].Len() <= field {
+			return t.T[i].Len() < t.T[j].Len()
+		}
+		if bytes.Compare(t.T[i].Field[field], t.T[j].Field[field]) < 0 {
+			return true
+		}
+		field++
+	}
+}
+
+func (t *T) Swap(i, j int) {
+	t.T[i], t.T[j] = t.T[j], t.T[i]
+}
+
+func (t *T) Len() (l int) { return len(t.T) }
 
 // GetFirst gets the first tag in tags that matches the prefix, see
 // [T.StartsWith]
@@ -149,13 +173,16 @@ func (t *T) String() string {
 
 func (t *T) Slice() (slice [][]B) {
 	for i := range t.T {
-		slice = append(slice, t.T[i].T)
+		slice = append(slice, t.T[i].Field)
 	}
 	return
 }
 
 func (t *T) Equal(ta any) bool {
-	if t1, ok := ta.(*T); ok {
+	if t0, ok := ta.(*T); ok {
+		// sort them the same so if they are the same in content they compare the same.
+		t1 := t0.Clone()
+		sort.Sort(t1)
 		for i := range t.T {
 			if !t.T[i].Equal(t1.T) {
 				return false
@@ -216,8 +243,8 @@ func (t *T) Clone() (t1 *T) {
 	t1 = New()
 	for _, x := range t.T {
 		t1.T = append(t1.T, tag.NewWithCap(x.Len()))
-		for j, y := range x.T {
-			t1.T[j].T = append(t1.T[j].T, y)
+		for j, y := range x.Field {
+			t1.T[j].Field = append(t1.T[j].Field, y)
 		}
 	}
 	return

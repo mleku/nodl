@@ -26,57 +26,57 @@ const (
 //
 // Not a set, there can be repeating elements.
 type T struct {
-	T []B
+	Field []B
 }
 
 func NewWithCap(c int) *T { return &T{make([]B, 0, c)} }
 
 func New[V string | B](fields ...V) (t *T) {
-	t = &T{T: make([]B, len(fields))}
+	t = &T{Field: make([]B, len(fields))}
 	for i, field := range fields {
-		t.T[i] = B(field)
+		t.Field[i] = B(field)
 	}
 	return
 }
 
-func (t *T) Append(b B)              { t.T = append(t.T, b) }
-func (t *T) Len() int                { return len(t.T) }
-func (t *T) Cap() int                { return cap(t.T) }
-func (t *T) Clear()                  { t.T = t.T[:0] }
-func (t *T) Slice(start, end int) *T { return &T{t.T[start:end]} }
+func (t *T) Append(b B)              { t.Field = append(t.Field, b) }
+func (t *T) Len() int                { return len(t.Field) }
+func (t *T) Cap() int                { return cap(t.Field) }
+func (t *T) Clear()                  { t.Field = t.Field[:0] }
+func (t *T) Slice(start, end int) *T { return &T{t.Field[start:end]} }
 
 // StartsWith checks a tag has the same initial set of elements.
 //
 // The last element is treated specially in that it is considered to match if
 // the candidate has the same initial substring as its corresponding element.
 func (t *T) StartsWith(prefix *T) bool {
-	prefixLen := len(prefix.T)
+	prefixLen := len(prefix.Field)
 
-	if prefixLen > len(t.T) {
+	if prefixLen > len(t.Field) {
 		return false
 	}
 	// check initial elements for equality
 	for i := 0; i < prefixLen-1; i++ {
-		if !equals(prefix.T[i], t.T[i]) {
+		if !equals(prefix.Field[i], t.Field[i]) {
 			return false
 		}
 	}
 	// check last element just for a prefix
-	return bytes.HasPrefix(t.T[prefixLen-1], prefix.T[prefixLen-1])
+	return bytes.HasPrefix(t.Field[prefixLen-1], prefix.Field[prefixLen-1])
 }
 
 // Key returns the first element of the tags.
 func (t *T) Key() B {
-	if len(t.T) > Key {
-		return t.T[Key]
+	if len(t.Field) > Key {
+		return t.Field[Key]
 	}
 	return nil
 }
 
 // Value returns the second element of the tag.
 func (t *T) Value() B {
-	if len(t.T) > Value {
-		return t.T[Value]
+	if len(t.Field) > Value {
+		return t.Field[Value]
 	}
 	return nil
 }
@@ -87,9 +87,9 @@ var etag, ptag = B("e"), B("p")
 func (t *T) Relay() (s B) {
 	if (equals(t.Key(), etag) ||
 		equals(t.Key(), ptag)) &&
-		len(t.T) >= Relay {
+		len(t.Field) >= Relay {
 
-		return normalize.URL(t.T[Relay])
+		return normalize.URL(t.Field[Relay])
 	}
 	return
 }
@@ -97,7 +97,7 @@ func (t *T) Relay() (s B) {
 // MarshalJSON appends the JSON form to the passed bytes.
 func (t *T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, '[')
-	for i, s := range t.T {
+	for i, s := range t.Field {
 		if i > 0 {
 			dst = append(dst, ',')
 		}
@@ -125,7 +125,7 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 			i++
 		} else if b[i] == '"' {
 			inQuotes = false
-			t.T = append(t.T, text.NostrUnescape(b[quoteStart:i]))
+			t.Field = append(t.Field, text.NostrUnescape(b[quoteStart:i]))
 		}
 	}
 	if !openedBracket || inQuotes {
@@ -142,17 +142,17 @@ func (t *T) String() string {
 
 // Clone makes a new tag.T with the same members.
 func (t *T) Clone() (c *T) {
-	c = &T{T: make([]B, len(t.T))}
-	for i := range t.T {
-		c.T[i] = t.T[i]
+	c = &T{Field: make([]B, len(t.Field))}
+	for i := range t.Field {
+		c.Field[i] = t.Field[i]
 	}
 	return
 }
 
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s B) bool {
-	for i := range t.T {
-		if equals(t.T[i], s) {
+	for i := range t.Field {
+		if equals(t.Field[i], s) {
 			return true
 		}
 	}
@@ -162,11 +162,11 @@ func (t *T) Contains(s B) bool {
 // Equal checks that the provided tag list matches.
 func (t *T) Equal(ta any) bool {
 	if t1, ok := ta.(T); ok {
-		if len(t.T) != len(t1.T) {
+		if len(t.Field) != len(t1.Field) {
 			return false
 		}
-		for i := range t.T {
-			if !equals(t.T[i], t1.T[i]) {
+		for i := range t.Field {
+			if !equals(t.Field[i], t1.Field[i]) {
 				return false
 			}
 		}

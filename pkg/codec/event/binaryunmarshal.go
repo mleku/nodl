@@ -104,7 +104,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 		}
 		lenTag := int(vi)
 		r.Pos += read
-		t.T[i] = &tag.T{T: make([]B, 0, lenTag)}
+		t.T[i] = &tag.T{Field: make([]B, 0, lenTag)}
 		// extract the individual tag strings
 		var secondIsHex, secondIsDecimalHex bool
 	reading:
@@ -143,8 +143,8 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 			case j == 1:
 				switch {
 				case secondIsHex:
-					t.T[i].T = append(t.T[i].T, make(B, 0, sha256.Size*2))
-					t.T[i].T[j] = hex.EncAppend(t.T[i].T[j], r.Buf[r.Pos:end])
+					t.T[i].Field = append(t.T[i].Field, make(B, 0, sha256.Size*2))
+					t.T[i].Field[j] = hex.EncAppend(t.T[i].Field[j], r.Buf[r.Pos:end])
 					r.Pos = end
 					continue reading
 				case secondIsDecimalHex:
@@ -165,14 +165,14 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					}
 					pk = r.Buf[r.Pos:fieldEnd]
 					r.Pos = fieldEnd
-					t.T[i].T = append(t.T[i].T, B(fmt.Sprintf("%d:%0x:%s",
+					t.T[i].Field = append(t.T[i].Field, B(fmt.Sprintf("%d:%0x:%s",
 						k,
 						hex.Enc(pk),
 						string(r.Buf[r.Pos:end]))))
 					r.Pos = end
 				}
 			}
-			t.T[i].T = append(t.T[i].T, r.Buf[r.Pos:r.Pos+I(vi)])
+			t.T[i].Field = append(t.T[i].Field, r.Buf[r.Pos:r.Pos+I(vi)])
 			r.Pos = end
 		}
 	}

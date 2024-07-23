@@ -8,7 +8,7 @@ import (
 
 const L = "EVENT"
 
-// Submission is a request for a relay to store an event.
+// Submission is a request from a client for a relay to store an event.
 type Submission struct {
 	Event *event.T
 }

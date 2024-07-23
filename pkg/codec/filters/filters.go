@@ -9,6 +9,8 @@ type T struct {
 	F []*filter.T
 }
 
+func Make(l int) *T { return &T{F: make([]*filter.T, l)} }
+
 func (f *T) Len() int { return len(f.F) }
 
 func New() (f *T) { return &T{} }

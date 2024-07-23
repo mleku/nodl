@@ -19,7 +19,7 @@ func TestMarshalUnmarshal(t *testing.T) {
 			for _ = range n1 {
 				b1 := make(B, frand.Intn(40)+2)
 				_, _ = frand.Read(b1)
-				tg.T = append(tg.T, b1)
+				tg.Field = append(tg.Field, b1)
 			}
 			tgs.T = append(tgs.T, tg)
 		}
@@ -53,7 +53,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				for _ = range n1 {
 					b1 := make(B, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
-					tg.T = append(tg.T, b1)
+					tg.Field = append(tg.Field, b1)
 				}
 				tgs.T = append(tgs.T, tg)
 			}
@@ -72,7 +72,7 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 				for _ = range n1 {
 					b1 := make(B, frand.Intn(40)+2)
 					_, _ = frand.Read(b1)
-					tg.T = append(tg.T, b1)
+					tg.Field = append(tg.Field, b1)
 				}
 				tgs.T = append(tgs.T, tg)
 			}
