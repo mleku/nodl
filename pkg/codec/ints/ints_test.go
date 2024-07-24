@@ -35,8 +35,9 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 func BenchmarkByteStringToInt64(bb *testing.B) {
 	b := make([]byte, 0, 19)
 	var i int
-	testInts := make([]*T, 10000)
-	for i = range 10000 {
+	const nTests =  100000
+	testInts := make([]*T, nTests)
+	for i = range nTests {
 		testInts[i] = New(frand.Intn(math.MaxInt64))
 	}
 	bb.Run("MarshalJSON", func(bb *testing.B) {
@@ -47,6 +48,15 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 			b = b[:0]
 		}
 	})
+	bb.Run("Itoa", func(bb *testing.B) {
+		bb.ReportAllocs()
+		var s string
+		for i = 0; i < bb.N; i++ {
+			n := testInts[i%10000]
+			s = strconv.Itoa(int(n.N))
+			_ = s
+		}
+	})
 	bb.Run("MarshalJSONUnmarshalJSON", func(bb *testing.B) {
 		bb.ReportAllocs()
 		m := New(0)
@@ -55,15 +65,6 @@ func BenchmarkByteStringToInt64(bb *testing.B) {
 			b, _ = m.MarshalJSON(b)
 			_, _ = n.UnmarshalJSON(b)
 			b = b[:0]
-		}
-	})
-	bb.Run("Itoa", func(bb *testing.B) {
-		bb.ReportAllocs()
-		var s string
-		for i = 0; i < bb.N; i++ {
-			n := testInts[i%10000]
-			s = strconv.Itoa(int(n.N))
-			_ = s
 		}
 	})
 	bb.Run("ItoaAtoi", func(bb *testing.B) {
