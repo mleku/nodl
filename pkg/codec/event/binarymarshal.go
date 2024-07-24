@@ -23,7 +23,7 @@ const (
 	Signature
 )
 
-var FieldSizes = []I{
+var FieldSizes = []int{
 	ID:        sha256.Size,
 	PubKey:    schnorr.PubKeyBytesLen,
 	CreatedAt: binary.MaxVarintLen64,
@@ -42,7 +42,7 @@ type Writer struct {
 	Buf B
 }
 
-func EstimateSize(ev *T) (size I) {
+func EstimateSize(ev *T) (size int) {
 	// id
 	size += FieldSizes[ID]
 	// pubkey
@@ -87,13 +87,12 @@ func NewBufForEvent(dst B, ev *T) (buf *Writer) {
 // NewWriteBuffer allocates a slice with zero length and capacity at the given
 // length. Use with EstimateSize to get a buffer that will not require a
 // secondary allocation step.
-func NewWriteBuffer(dst B, l I) (buf *Writer) {
+func NewWriteBuffer(dst B, l int) (buf *Writer) {
 	return &Writer{Buf: append(dst, make(B, 0, l)...)}
 }
 
 func (w *Writer) Bytes() B { return w.Buf }
-
-func (w *Writer) Len() I { return len(w.Buf) }
+func (w *Writer) Len() int { return len(w.Buf) }
 
 func (w *Writer) WriteID(id B) (err E) {
 	if len(id) != sha256.Size {

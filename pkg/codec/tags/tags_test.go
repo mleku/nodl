@@ -92,3 +92,24 @@ func BenchmarkMarshalJSONUnmarshalJSON(bb *testing.B) {
 		}
 	})
 }
+func TestT_Clone_Equal(t *testing.T) {
+	for _ = range 10 {
+		n := frand.Intn(40) + 2
+		t1 := New()
+		for _ = range n {
+			n1 := frand.Intn(40) + 2
+			tg := tag.NewWithCap(n)
+			for _ = range n1 {
+				b1 := make(B, frand.Intn(40)+2)
+				_, _ = frand.Read(b1)
+				tg.Field = append(tg.Field, b1)
+			}
+			t1.T = append(t1.T, tg)
+		}
+		t2 := t1.Clone()
+		if !t1.Equal(t2) {
+			log.E.S(t1, t2)
+			t.Fatal("not equal")
+		}
+	}
+}

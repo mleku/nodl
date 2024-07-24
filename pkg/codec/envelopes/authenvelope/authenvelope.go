@@ -1,7 +1,7 @@
 package authenvelope
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes"
+	envs "github.com/mleku/nodl/pkg/codec/envelopes"
 	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/codec/text"
 )
@@ -12,13 +12,12 @@ type Challenge struct {
 	Challenge B
 }
 
-func NewChallenge() *Challenge { return &Challenge{} }
-
+func NewChallenge() *Challenge     { return &Challenge{} }
 func (c *Challenge) Label() string { return L }
 
 func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 	b = dst
-	b, err = envelopes.Marshal(b, L,
+	b, err = envs.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
 			o = append(o, '"')
@@ -30,7 +29,6 @@ func (c *Challenge) MarshalJSON(dst B) (b B, err error) {
 }
 
 func (c *Challenge) UnmarshalJSON(b B) (r B, err error) {
-	// var openQuotes bool
 	r = b
 	if c.Challenge, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
@@ -48,10 +46,9 @@ type Response struct {
 	Event *event.T
 }
 
-func NewResponse() *Response { return &Response{} }
+var _ envs.I = (*Response)(nil)
 
-var _ envelopes.I = (*Response)(nil)
-
+func NewResponse() *Response        { return &Response{} }
 func (res *Response) Label() string { return L }
 
 func (res *Response) MarshalJSON(dst B) (b B, err error) {
@@ -64,7 +61,7 @@ func (res *Response) MarshalJSON(dst B) (b B, err error) {
 		return
 	}
 	b = dst
-	b, err = envelopes.Marshal(b, L, res.Event.MarshalJSON)
+	b, err = envs.Marshal(b, L, res.Event.MarshalJSON)
 	return
 }
 
@@ -75,7 +72,7 @@ func (res *Response) UnmarshalJSON(b B) (r B, err error) {
 	if r, err = res.Event.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
+	if r, err = envs.SkipToTheEnd(r); chk.E(err) {
 		return
 	}
 	return

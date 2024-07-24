@@ -24,6 +24,28 @@ func New(fields ...*tag.T) (t *T) {
 	return
 }
 
+func (t *T) Clone() (c *T) {
+	c = &T{T: make([]*tag.T, len(t.T))}
+	for i, field := range t.T {
+		c.T[i] = field.Clone()
+	}
+	return
+}
+
+func (t *T) Equal(ta any) bool {
+	if t0, ok := ta.(*T); ok {
+		// sort them the same so if they are the same in content they compare the same.
+		t1 := t0.Clone()
+		sort.Sort(t1)
+		for i := range t.T {
+			if !t.T[i].Equal(t1.T) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // Less evaluates two tags and returns if one is less than the other. Fields are lexicographically compared, so a < b.
 //
 // If two tags are greater than or equal up to the length of the shortest.
@@ -178,20 +200,6 @@ func (t *T) Slice() (slice [][]B) {
 	return
 }
 
-func (t *T) Equal(ta any) bool {
-	if t0, ok := ta.(*T); ok {
-		// sort them the same so if they are the same in content they compare the same.
-		t1 := t0.Clone()
-		sort.Sort(t1)
-		for i := range t.T {
-			if !t.T[i].Equal(t1.T) {
-				return false
-			}
-		}
-	}
-	return true
-}
-
 func (t *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')
@@ -234,17 +242,6 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 			r = r[1:]
 			// the end
 			return
-		}
-	}
-	return
-}
-
-func (t *T) Clone() (t1 *T) {
-	t1 = New()
-	for _, x := range t.T {
-		t1.T = append(t1.T, tag.NewWithCap(x.Len()))
-		for j, y := range x.Field {
-			t1.T[j].Field = append(t1.T[j].Field, y)
 		}
 	}
 	return

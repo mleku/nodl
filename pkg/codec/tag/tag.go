@@ -39,6 +39,18 @@ func New[V string | B](fields ...V) (t *T) {
 	return
 }
 
+// Clone makes a new tag.T with the same members.
+func (t *T) Clone() (c *T) {
+	c = &T{Field: make([]B, 0, len(t.Field))}
+	for _, f := range t.Field {
+		l := len(f)
+		b := make([]byte, l)
+		copy(b, f)
+		c.Field = append(c.Field, b)
+	}
+	return
+}
+
 func (t *T) Append(b B)              { t.Field = append(t.Field, b) }
 func (t *T) Len() int                { return len(t.Field) }
 func (t *T) Cap() int                { return cap(t.Field) }
@@ -138,15 +150,6 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 func (t *T) String() string {
 	b, _ := t.MarshalJSON(nil)
 	return unsafe.String(&b[0], len(b))
-}
-
-// Clone makes a new tag.T with the same members.
-func (t *T) Clone() (c *T) {
-	c = &T{Field: make([]B, len(t.Field))}
-	for i := range t.Field {
-		c.Field[i] = t.Field[i]
-	}
-	return
 }
 
 // Contains returns true if the provided element is found in the tag slice.

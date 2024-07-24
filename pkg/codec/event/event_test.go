@@ -181,7 +181,7 @@ func BenchmarkUnmarshalJSON(bb *testing.B) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
-	var counter I
+	var counter int
 	for i = 0; i < bb.N; i++ {
 		if !scanner.Scan() {
 			scanner = bufio.NewScanner(bytes.NewBuffer(examples.Cache))

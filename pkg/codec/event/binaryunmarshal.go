@@ -29,7 +29,7 @@ import (
 // anyway, so either way this is done there is a tradeoff. This can be mitigated
 // by changing the event.T to be a []byte instead.
 type Reader struct {
-	Pos I
+	Pos int
 	Buf B
 }
 
@@ -172,7 +172,7 @@ func (r *Reader) ReadTags() (t *tags.T, err error) {
 					r.Pos = end
 				}
 			}
-			t.T[i].Field = append(t.T[i].Field, r.Buf[r.Pos:r.Pos+I(vi)])
+			t.T[i].Field = append(t.T[i].Field, r.Buf[r.Pos:r.Pos+int(vi)])
 			r.Pos = end
 		}
 	}

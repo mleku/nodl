@@ -45,16 +45,14 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 	}
 	var data []byte
 	if data, err = bech32.ConvertBits(bits5, 5, 8, false); chk.D(err) {
-		return prefix, nil, fmt.Errorf("failed translating data into 8 bits: %s",
-			err.Error())
+		return prefix, nil, fmt.Errorf("failed translating data into 8 bits: %s", err.Error())
 	}
 	switch {
 	case equals(prefix, NpubHRP) ||
 		equals(prefix, NsecHRP) ||
 		equals(prefix, NoteHRP):
 		if len(data) < 32 {
-			return prefix, nil, fmt.Errorf("data is less than 32 bytes (%d)",
-				len(data))
+			return prefix, nil, fmt.Errorf("data is less than 32 bytes (%d)", len(data))
 		}
 		b := make(B, schnorr.PubKeyBytesLen*2)
 		hex.EncBytes(b, data[:32])
@@ -74,8 +72,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			switch t {
 			case TLVDefault:
 				if len(v) < 32 {
-					return prefix, nil, fmt.Errorf("pubkey is less than 32 bytes (%d)",
-						len(v))
+					return prefix, nil, fmt.Errorf("pubkey is less than 32 bytes (%d)", len(v))
 				}
 				result.PublicKey = make(B, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.PublicKey, v)
@@ -101,16 +98,14 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 			switch t {
 			case TLVDefault:
 				if len(v) < 32 {
-					return prefix, nil, fmt.Errorf("id is less than 32 bytes (%d)",
-						len(v))
+					return prefix, nil, fmt.Errorf("id is less than 32 bytes (%d)", len(v))
 				}
 				result.ID, err = eventid.NewFromBytes(v)
 			case TLVRelay:
 				result.Relays = append(result.Relays, v)
 			case TLVAuthor:
 				if len(v) < 32 {
-					return prefix, nil, fmt.Errorf("author is less than 32 bytes (%d)",
-						len(v))
+					return prefix, nil, fmt.Errorf("author is less than 32 bytes (%d)", len(v))
 				}
 				result.Author = make(B, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.Author, v)
@@ -134,7 +129,6 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 
 					return prefix, result, fmt.Errorf("incomplete naddr")
 				}
-
 				return prefix, result, nil
 			}
 			switch t {
@@ -144,8 +138,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 				result.Relays = append(result.Relays, v)
 			case TLVAuthor:
 				if len(v) < 32 {
-					return prefix, nil, fmt.Errorf("author is less than 32 bytes (%d)",
-						len(v))
+					return prefix, nil, fmt.Errorf("author is less than 32 bytes (%d)", len(v))
 				}
 				result.PublicKey = make(B, schnorr.PubKeyBytesLen*2)
 				hex.EncBytes(result.PublicKey, v)
