@@ -27,8 +27,8 @@ func (rl *R) BroadcastEvent(ev EV) {
 						ws.RealRemote(), "not authenticated")
 					return true
 				}
-				parties := tag.T{Field: []B{ev.PubKey}}
-				pTags := ev.Tags.GetAll(B("p"))
+				parties := tag.New(ev.PubKey)
+				pTags := ev.Tags.GetAll(tag.New("p"))
 				for i := range pTags.T {
 					parties.Field = append(parties.Field, pTags.T[i].Field[1])
 				}

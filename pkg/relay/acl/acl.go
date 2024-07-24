@@ -211,7 +211,7 @@ func (ae *T) FromEvent(ev *event.T) (e *Entry, err error) {
 	}
 	// Role requires converting the string back to a number... the strings must be
 	// exactly as in the list RoleStrings. Also there must be a role.
-	pTags := ev.Tags.GetAll(B("p"))
+	pTags := ev.Tags.GetAll(tag.New("p"))
 	if pTags.Len() != 1 {
 		err = log.E.Err("other than 1 p tag found: %d %v", pTags.Len(), pTags)
 		return
@@ -232,7 +232,7 @@ func (ae *T) FromEvent(ev *event.T) (e *Entry, err error) {
 	}
 	var match bool
 	for i, v := range RoleStrings {
-		if pTag[2] == v {
+		if equals(pTag.Relay(), v) {
 			e.Role = Role(i)
 			match = true
 			break
@@ -243,49 +243,51 @@ func (ae *T) FromEvent(ev *event.T) (e *Entry, err error) {
 		return
 	}
 	// Look for the Expires tag.
-	expiryTags := ev.Tags.GetAll("expiry")
-	if len(expiryTags) != 1 {
+	expiryTags := ev.Tags.GetAll(tag.New("expiry"))
+	if expiryTags.Len() != 1 {
 		err = log.E.Err("other than 1 expiry tag found: %d %v",
-			len(expiryTags), expiryTags)
+			expiryTags.Len(), expiryTags)
 		return
 	} else {
-		expiryTag := expiryTags[0]
-		if len(expiryTag) < 2 {
+		expiryTag := expiryTags.T[0]
+		if expiryTag.Len() < 2 {
 			err = log.E.Err("expiry tag with insufficient fields found: %d %v",
-				len(expiryTag), expiryTag)
+				expiryTag.Len(), expiryTag)
 			return
 		}
-		expiry := expiryTag[1]
+		expiry := expiryTag.Field[1]
 		var exp int64
-		if exp, err = strconv.ParseInt(expiry, 10, 64); chk.E(err) {
+		if exp, err = strconv.ParseInt(S(expiry), 10, 64); chk.E(err) {
 			return
 		}
 		e.Expires = timestamp.FromUnix(exp)
 	}
 	// Look for the replaces tag.
-	replacesTags := ev.Tags.GetAll("replaces")
-	if len(replacesTags) > 1 {
+	replacesTags := ev.Tags.GetAll(tag.New("replaces"))
+	if replacesTags.Len() > 1 {
 		err = log.E.Err("other than 1 replaces tag found: %d %v",
-			len(replacesTags), replacesTags)
+			replacesTags.Len(), replacesTags)
 		return
-	} else if len(replacesTags) > 0 {
-		replacesTag := replacesTags[0]
-		if len(replacesTag) < 2 {
+	} else if replacesTags.Len() > 0 {
+		replacesTag := replacesTags.T[0]
+		if replacesTag.Len() < 2 {
 			err = log.E.Err("expiry tag with insufficient fields found: %d %v",
-				len(replacesTag), replacesTag)
+				replacesTag.Len(), replacesTag)
 			return
 		}
 		// this event ID should match the one in the current acl.T
-		replaces := replacesTag[1]
+		replaces := replacesTag.Field[1]
 		if previous != nil {
-			if replaces != previous.EventID.String() {
+			if !equals(replaces, previous.EventID.ByteString(nil)) {
 				// this shouldn't happen because that entry should be the latest
 				// and this event is relay-internal. Log this for forensics.
 				log.W.Ln("replaces field in event does not match the latest" +
 					" in the current ACL")
 			}
 		}
-		e.Replaces = eventid.T(replaces)
+		if err = e.Replaces.Set(replaces); chk.E(err) {
+			return
+		}
 	}
 	if err = ae.AddEntry(e); chk.E(err) {
 		return

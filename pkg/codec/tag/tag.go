@@ -24,6 +24,8 @@ const (
 
 type BS[Z B | S] B
 
+
+
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.
@@ -58,6 +60,13 @@ func (t *T) Len() int                { return len(t.Field) }
 func (t *T) Cap() int                { return cap(t.Field) }
 func (t *T) Clear()                  { t.Field = t.Field[:0] }
 func (t *T) Slice(start, end int) *T { return &T{t.Field[start:end]} }
+
+func (t *T) ToByteSlice() (b []B) {
+	for i := range t.Field {
+		b = append(b, t.Field[i])
+	}
+	return
+}
 
 // StartsWith checks a tag has the same initial set of elements.
 //

@@ -32,15 +32,15 @@ func (t *T) Clone() (c *T) {
 	return
 }
 
-func (t *T) Equal(ta any) bool {
-	if t0, ok := ta.(*T); ok {
-		// sort them the same so if they are the same in content they compare the same.
-		t1 := t0.Clone()
-		sort.Sort(t1)
-		for i := range t.T {
-			if !t.T[i].Equal(t1.T) {
-				return false
-			}
+func (t *T) Equal(ta *T) bool {
+	// sort them the same so if they are the same in content they compare the same.
+	t1 := t.Clone()
+	sort.Sort(t1)
+	t2 := ta.Clone()
+	sort.Sort(t2)
+	for i := range t.T {
+		if !t1.T[i].Equal(t2.T[i]) {
+			return false
 		}
 	}
 	return true
@@ -92,10 +92,10 @@ func (t *T) GetLast(tagPrefix *tag.T) *tag.T {
 }
 
 // GetAll gets all the tags that match the prefix, see [T.StartsWith]
-func (t *T) GetAll(tagPrefix ...B) *T {
+func (t *T) GetAll(tagPrefix *tag.T) *T {
 	result := &T{T: make([]*tag.T, 0, len(t.T))}
 	for _, v := range t.T {
-		if v.StartsWith(tag.New(tagPrefix...)) {
+		if v.StartsWith(tagPrefix) {
 			result.T = append(result.T, v)
 		}
 	}
@@ -191,13 +191,6 @@ func (t *T) String() string {
 	}
 	buf.WriteByte(']')
 	return buf.String()
-}
-
-func (t *T) Slice() (slice [][]B) {
-	for i := range t.T {
-		slice = append(slice, t.T[i].Field)
-	}
-	return
 }
 
 func (t *T) MarshalJSON(dst B) (b B, err error) {

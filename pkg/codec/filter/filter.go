@@ -60,7 +60,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	dst = append(dst, '{')
 	if f.IDs != nil && len(f.IDs.Field) > 0 {
 		dst = text.JSONKey(dst, IDs)
-		dst = text.MarshalHexArray(dst, f.IDs.Field)
+		dst = text.MarshalHexArray(dst, f.IDs.ToByteSlice())
 		dst = append(dst, ',')
 	}
 	if f.Kinds != nil && len(f.Kinds.K) > 0 {
@@ -72,7 +72,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	}
 	if f.Authors != nil && len(f.Authors.Field) > 0 {
 		dst = text.JSONKey(dst, Authors)
-		dst = text.MarshalHexArray(dst, f.Authors.Field)
+		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
 		dst = append(dst, ',')
 	}
 	if f.Tags != nil && len(f.Tags.T) > 0 {
@@ -156,11 +156,12 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				if len(key) < len(IDs) {
 					goto invalid
 				}
-				f.IDs = tag.New("")
-				if f.IDs.Field, r, err = text.UnmarshalHexArray(r,
+				var ff []B
+				if ff, r, err = text.UnmarshalHexArray(r,
 					sha256.Size); chk.E(err) {
 					return
 				}
+				f.IDs = tag.New(ff...)
 				state = betweenKV
 				// // log.I.Ln("betweenKV")
 			case Kinds[0]:
@@ -177,11 +178,11 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				if len(key) < len(Authors) {
 					goto invalid
 				}
-				f.Authors = tag.New("")
-				if f.Authors.Field, r, err = text.UnmarshalHexArray(r,
-					schnorr.PubKeyBytesLen); chk.E(err) {
+				var ff []B
+				if ff, r, err = text.UnmarshalHexArray(r, schnorr.PubKeyBytesLen); chk.E(err) {
 					return
 				}
+				f.Authors = tag.New(ff...)
 				state = betweenKV
 				// log.I.Ln("betweenKV")
 			case Tags[0]:
@@ -299,7 +300,7 @@ func (f *T) Matches(ev *event.T) bool {
 			if bytes.HasPrefix(v.Field[0], B("#")) {
 				f.Tags.T[i].Field[0] = f.Tags.T[i].Field[0][1:]
 			}
-			if len(v.Field) > 0 && !ev.Tags.ContainsAny(v.Field[0], v.Field...) {
+			if len(v.Field) > 0 && !ev.Tags.ContainsAny(v.Field[0], v.ToByteSlice()...) {
 				// log.T.F("no matching tags in filter\nEVENT %s\nFILTER %s", ev.ToObject().String(), f.ToObject().String())
 				return false
 			}

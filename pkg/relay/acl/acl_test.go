@@ -3,10 +3,11 @@ package acl
 import (
 	"testing"
 
-	"github.com/Hubmakerlabs/replicatr/pkg/ec/schnorr"
-	"github.com/Hubmakerlabs/replicatr/pkg/ec/secp256k1"
-	"github.com/Hubmakerlabs/replicatr/pkg/nostr/hex"
-	"github.com/Hubmakerlabs/replicatr/pkg/nostr/timestamp"
+	"github.com/mleku/btcec/schnorr"
+	"github.com/mleku/btcec/secp256k1"
+	"github.com/mleku/nodl/pkg/codec/timestamp"
+	"github.com/mleku/nodl/pkg/crypto/p256k"
+	"github.com/mleku/nodl/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 
@@ -35,16 +36,20 @@ func TestT(t *testing.T) {
 		role := (i % (len(RoleStrings) - 1)) + 1
 		en := &Entry{
 			Role:         Role(role),
-			Pubkey:       pubKeys[i],
-			Created:      timestamp.Now() - 1,
+			Pubkey:       B(pubKeys[i]),
+			Created:      timestamp.FromUnix(timestamp.Now().I64() - 1),
 			LastModified: timestamp.Now(),
-			Expires:      timestamp.Now() + 100000,
+			Expires:      timestamp.FromUnix(timestamp.Now().I64() + 100000),
 		}
 		if err = aclT.AddEntry(en); err != nil {
 			t.Fatal(err)
 		}
 		ev := en.ToEvent()
-		if err = ev.Sign(testRelaySec); err != nil {
+		signer := &p256k.Signer{}
+		if err= signer.InitPub(en.Pubkey);chk.E(err){
+			t.Fatal(err)
+		}
+		if err = ev.Sign(signer); err != nil {
 			t.Fatal(err)
 		}
 		var e *Entry
@@ -57,7 +62,7 @@ func TestT(t *testing.T) {
 		pubKeys[i], pubKeys[j] = pubKeys[j], pubKeys[i]
 	})
 	for i := range pubKeys {
-		if err = aclT.DeleteEntry(pubKeys[i]); err != nil {
+		if err = aclT.DeleteEntry(B(pubKeys[i])); err != nil {
 			t.Fatal(err)
 		}
 	}

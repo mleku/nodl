@@ -127,7 +127,7 @@ func NewRelay(c Ctx, cancel context.F, inf *relayinfo.T, conf *Config) (r *R) {
 	for _, owner := range r.Config.Owners {
 		if err = r.ACL.AddEntry(&acl.Entry{
 			Role:   acl.Owner,
-			Pubkey: owner,
+			Pubkey: acl.B(owner),
 		}); chk.E(err) {
 			continue
 		}
