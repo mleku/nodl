@@ -7,11 +7,10 @@ import (
 	oke "github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
 	eid "github.com/mleku/nodl/pkg/codec/eventid"
 	"github.com/mleku/nodl/pkg/protocol/auth"
-	rws "github.com/mleku/nodl/pkg/protocol/relayws"
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) processAuthEnvelope(msg B, env *ae.Response, ws *rws.WS, serviceURL S) (err E) {
+func (rl *R) processAuthEnvelope(msg B, env *ae.Response, ws WS, serviceURL S) (err E) {
 	log.T.Ln("received auth response")
 	wsBaseUrl := strings.Replace(serviceURL, "http", "ws", 1)
 	var ok bool

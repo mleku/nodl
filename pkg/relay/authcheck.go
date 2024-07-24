@@ -43,8 +43,8 @@ func RequestAuth(c Ctx, envType S) {
 	chk.E(ws.WriteEnvelope(&authEnv.Challenge{Challenge: ws.Challenge()}))
 }
 
-func GetConnection(c Ctx) *WS {
-	v, ok := c.Value(wsKey).(*WS)
+func GetConnection(c Ctx) WS {
+	v, ok := c.Value(wsKey).(WS)
 	if !ok {
 		return nil
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/mleku/nodl/pkg/util/hex"
 )
 
-func GetAddrTagElements(tagValue string) (k uint16, pkb []byte, d string) {
+func GetAddrTagElements(tagValue S) (k uint16, pkb B, d S) {
 	split := strings.Split(tagValue, ":")
 	if len(split) == 3 {
 		if pkb, _ = hex.Dec(split[1]); len(pkb) == 32 {

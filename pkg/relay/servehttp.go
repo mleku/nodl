@@ -1,8 +1,6 @@
 package relay
 
 import (
-	"net/http"
-
 	"github.com/rs/cors"
 )
 
@@ -10,7 +8,7 @@ import (
 //
 // This is the main starting function of the relay. This launches
 // HandleWebsocket which runs the message handling main loop.
-func (rl *R) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rl *R) ServeHTTP(w Responder, r Req) {
 	log.T.C(SprintHeader(r.Header))
 	select {
 	case <-rl.Ctx.Done():
@@ -21,9 +19,8 @@ func (rl *R) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Upgrade") == "websocket" {
 		rl.HandleWebsocket(getServiceBaseURL(r))(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
-		cors.AllowAll().Handler(http.HandlerFunc(rl.HandleNIP11)).
-			ServeHTTP(w, r)
+		cors.AllowAll().Handler(Handler(rl.HandleNIP11)).ServeHTTP(w, r)
 	} else {
-		rl.serveMux.ServeHTTP(w, r)
+		rl.Router.ServeHTTP(w, r)
 	}
 }

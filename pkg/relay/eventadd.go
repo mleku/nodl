@@ -3,14 +3,13 @@ package relay
 import (
 	"errors"
 
-	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/relay/eventstore"
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
 // AddEvent sends an event through then normal add pipeline, as if it was
 // received from a websocket.
-func (rl *R) AddEvent(c Ctx, ev *event.T) (err error) {
+func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 	if !rl.IsAuthed(c, "add event") {
 		return
 	}

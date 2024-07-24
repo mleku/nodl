@@ -4,7 +4,6 @@ import (
 	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/codec/filter"
 	"github.com/mleku/nodl/pkg/relay/eventstore/badger/del"
-	"github.com/mleku/nodl/pkg/util/context"
 )
 
 // Store is a persistence layer for nostr events handled by a relay.
@@ -14,7 +13,7 @@ type Store interface {
 	// The parameters can be used by the database implementations to set custom
 	// parameters such as cache management and other relevant parameters to the
 	// specific implementation.
-	Init() (err error)
+	Init() (err E)
 	// Close must be called after you're done using the store, to free up
 	// resources and so on.
 	Close()
@@ -22,20 +21,20 @@ type Store interface {
 	// should return a channel with the events as they're recovered from a
 	// database. the channel should be closed after the events are all
 	// delivered.
-	QueryEvents(c context.T, f *filter.T) (ch event.C, err error)
+	QueryEvents(c Ctx, f *filter.T) (ch event.C, err E)
 	// CountEvents performs the same work as QueryEvents but instead of
 	// delivering the events that were found it just returns the count of events
-	CountEvents(c context.T, f *filter.T) (count int, err error)
+	CountEvents(c Ctx, f *filter.T) (count int, err E)
 	// DeleteEvent is used to handle deletion events, as per NIP-09.
-	DeleteEvent(c context.T, ev *event.T) (err error)
+	DeleteEvent(c Ctx, ev EV) (err E)
 	// SaveEvent is called once Relay.AcceptEvent reports true.
-	SaveEvent(c context.T, ev *event.T) (err error)
+	SaveEvent(c Ctx, ev EV) (err E)
 }
 
 // Cache is a sketch of an expanded interface that might be used for a
 // size-constrained event store.
 type Cache interface {
 	Store
-	GCCount() (deleteItems del.Items, err error)
-	Delete(serials del.Items) (err error)
+	GCCount() (deleteItems del.Items, err E)
+	Delete(serials del.Items) (err E)
 }

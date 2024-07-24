@@ -8,15 +8,14 @@ import (
 	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/codec/filter"
 	"github.com/mleku/nodl/pkg/relay/subscriptionoption"
-	"github.com/mleku/nodl/pkg/util/context"
 )
 
 // RelayInterface is a wrapper thing that unifies Store and nostr.Relay under a
 // common API.
 type RelayInterface interface {
-	Publish(c context.T, evt *event.T) error
-	QuerySync(c context.T, f *filter.T,
-		opts ...subscriptionoption.I) ([]*event.T, error)
+	Publish(c Ctx, evt EV) E
+	QuerySync(c Ctx, f *filter.T,
+		opts ...subscriptionoption.I) ([]EV, E)
 }
 
 type RelayWrapper struct {
@@ -25,7 +24,7 @@ type RelayWrapper struct {
 
 var _ RelayInterface = (*RelayWrapper)(nil)
 
-func (w RelayWrapper) Publish(c context.T, evt *event.T) (err error) {
+func (w RelayWrapper) Publish(c Ctx, evt EV) (err E) {
 	// var ch event.C
 	// defer close(ch)
 	if evt.Kind.IsEphemeral() {
@@ -71,8 +70,8 @@ func (w RelayWrapper) Publish(c context.T, evt *event.T) (err error) {
 	return nil
 }
 
-func (w RelayWrapper) QuerySync(c context.T, f *filter.T,
-	opts ...subscriptionoption.I) ([]*event.T, error) {
+func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
+	opts ...subscriptionoption.I) ([]EV, E) {
 
 	ch, err := w.Store.QueryEvents(c, f)
 	if err != nil {

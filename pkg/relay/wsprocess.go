@@ -10,13 +10,10 @@ import (
 	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
 	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
 	"github.com/mleku/nodl/pkg/codec/envelopes/reqenvelope"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) wsProcessMessages(msg []byte, c context.T, kill func(), ws *relayws.WS, serviceURL string) (err error) {
-
+func (rl *R) wsProcessMessages(msg B, c Ctx, kill func(), ws WS, serviceURL S) (err E) {
 	if len(msg) == 0 {
 		err = log.E.Err("empty message, probably dropped connection")
 		return
@@ -38,7 +35,7 @@ func (rl *R) wsProcessMessages(msg []byte, c context.T, kill func(), ws *relayws
 	}
 	if len(msg) > rl.Info.Limitation.MaxMessageLength {
 		log.D.F("rejecting event with size: %d from %s %s", len(msg), ws.RealRemote(), ws.AuthPubKey())
-		chk.E(ws.WriteEnvelope(&okenvelope.T{
+		chk.E(ws.WriteEnvelope(&OK{
 			OK: false,
 			Reason: normalize.Reason(fmt.Sprintf(
 				"relay limit disallows messages larger than %d "+

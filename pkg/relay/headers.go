@@ -5,14 +5,14 @@ import (
 	"sort"
 )
 
-type Headers [][]string
+type Headers [][]S
 
 func (h Headers) Len() int { return len(h) }
 func (h Headers) Less(i, j int) bool { return h[i][0] < h[j][0] }
 func (h Headers) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
-func SprintHeader(hdr http.Header) func() (s string) {
-	return func() (s string) {
+func SprintHeader(hdr http.Header) func() (s S) {
+	return func() (s S) {
 		var sections Headers
 		s += "\n"
 		for i := range hdr {

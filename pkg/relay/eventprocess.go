@@ -10,15 +10,11 @@ import (
 	"github.com/mleku/nodl/pkg/codec/eventid"
 	"github.com/mleku/nodl/pkg/codec/kind"
 	"github.com/mleku/nodl/pkg/protocol/auth"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/mleku/nodl/pkg/util/hex"
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
-	c context.T, ws *relayws.WS, serviceURL S) (err error) {
-
+func (rl *R) processEventEnvelope(msg B, env *evEnv.Submission, c Ctx, ws WS, serviceURL S) (err E) {
 	var ok bool
 	if !rl.IsAuthed(c, "EVENT") {
 		return
@@ -28,7 +24,7 @@ func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
 		log.D.F("rejecting event with date: %s %s %s",
 			env.Event.CreatedAt.Time().String(), ws.RealRemote(),
 			ws.AuthPubKey())
-		chk.E(ws.WriteEnvelope(&okenvelope.T{
+		chk.E(ws.WriteEnvelope(&OK{
 			EventID: eventid.NewWith(env.Event.ID),
 			OK:      false,
 			Reason: B(fmt.Sprintf(
@@ -45,7 +41,7 @@ func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
 		j, _ := env.Event.MarshalJSON(nil)
 		log.D.F("id mismatch got %s, expected %s %s %s\n%s\n%s",
 			ws.RealRemote(), ws.AuthPubKey(), id, env.Event.ID, j, msg)
-		chk.E(ws.WriteEnvelope(&okenvelope.T{
+		chk.E(ws.WriteEnvelope(&OK{
 			EventID: eventid.NewWith(env.Event.ID),
 			OK:      false,
 			Reason:  normalize.Reason(okenvelope.Invalid, "id is computed incorrectly"),
@@ -54,7 +50,7 @@ func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
 	}
 	// check signature
 	if ok, err = env.Event.CheckSignature(); chk.E(err) {
-		chk.E(ws.WriteEnvelope(&okenvelope.T{
+		chk.E(ws.WriteEnvelope(&OK{
 			EventID: eventid.NewWith(env.Event.ID),
 			OK:      false,
 			Reason: normalize.Reason(okenvelope.Error,
@@ -64,7 +60,7 @@ func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
 	} else if !ok {
 		log.E.Ln("invalid: signature is invalid", ws.RealRemote(),
 			ws.AuthPubKey())
-		chk.E(ws.WriteEnvelope(&okenvelope.T{
+		chk.E(ws.WriteEnvelope(&OK{
 			EventID: eventid.NewWith(env.Event.ID),
 			OK:      false,
 			Reason:  normalize.Reason(okenvelope.Invalid, "signature is invalid")}))
@@ -91,11 +87,10 @@ func (rl *R) processEventEnvelope(msg []byte, env *evEnv.Submission,
 	} else {
 		ok = true
 	}
-	chk.E(ws.WriteEnvelope(&okenvelope.T{
+	chk.E(ws.WriteEnvelope(&OK{
 		EventID: eventid.NewWith(env.Event.ID),
 		OK:      ok,
 		Reason:  B(reason),
 	}))
-
 	return
 }

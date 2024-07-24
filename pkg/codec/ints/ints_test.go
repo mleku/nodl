@@ -35,7 +35,7 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 func BenchmarkByteStringToInt64(bb *testing.B) {
 	b := make([]byte, 0, 19)
 	var i int
-	const nTests =  100000
+	const nTests =  10000000
 	testInts := make([]*T, nTests)
 	for i = range nTests {
 		testInts[i] = New(frand.Intn(math.MaxInt64))

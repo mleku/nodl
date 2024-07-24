@@ -2,18 +2,16 @@ package relay
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/codec/kinds"
 	"github.com/mleku/nodl/pkg/codec/subscriptionid"
 	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
 )
 
 // BroadcastEvent emits an event to all listeners whose filters' match, skipping
 // all filters and actions it also doesn't attempt to store the event or trigger
 // any reactions or callbacks
-func (rl *R) BroadcastEvent(ev *event.T) {
-	listeners.Range(func(ws *relayws.WS, subs ListenerMap) bool {
+func (rl *R) BroadcastEvent(ev EV) {
+	listeners.Range(func(ws WS, subs ListenerMap) bool {
 
 		if len(ws.AuthPubKey()) == 0 && rl.Info.Limitation.AuthRequired {
 			log.E.Ln("cannot broadcast to", ws.RealRemote(), "not authorized")

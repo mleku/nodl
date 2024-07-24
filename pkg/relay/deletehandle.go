@@ -2,13 +2,11 @@ package relay
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
 // handleDeleteRequest handles a delete event (kind 5)
-func (rl *R) handleDeleteRequest(c context.T, evt *event.T) (err error) {
+func (rl *R) handleDeleteRequest(c Ctx, evt EV) (err E) {
 	// // log.I.Ln("event delete", evt.ToObject().String())
 	// // event deletion -- nip-09
 	// go func() {
@@ -17,7 +15,7 @@ func (rl *R) handleDeleteRequest(c context.T, evt *event.T) (err error) {
 	// 			// log.I.Ln("delete event tag", t)
 	// 			// first we fetch the event
 	// 			for _, query := range rl.QueryEvents {
-	// 				var ch chan *event.T
+	// 				var ch chan EV
 	// 				if ch, err = query(c, &filter.T{IDs: tag.T{t[1]}}); chk.E(err) {
 	// 					continue
 	// 				}
@@ -68,7 +66,7 @@ func (rl *R) handleDeleteRequest(c context.T, evt *event.T) (err error) {
 //
 // Temporarily removing delete functionality until a proper tombstone/indexing
 // strategy is devised to filter out these events from database results.
-func (rl *R) OverrideDelete(c Ctx, tgt, del *event.T) (ok bool,	msg B) {
+func (rl *R) OverrideDelete(c Ctx, tgt, del EV) (ok bool,	msg B) {
 	log.T.Ln("overriding delete")
 	msg = normalize.Reason("not actually deleting", okenvelope.Blocked.S())
 	ok = false

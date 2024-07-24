@@ -1,4 +1,4 @@
-package relay
+package eventstore
 
 import (
 	"net/http"
@@ -10,13 +10,10 @@ import (
 	"github.com/mleku/nodl/pkg/util/context"
 )
 
-type (
-	Ctx       = context.T
-	SubID     = subscriptionid.T
-	WS        = *relayws.WS
-	Responder = http.ResponseWriter
-	Req       = *http.Request
-	OK        = okenvelope.T
-	EV        = *event.T
-	Handler   = http.HandlerFunc
-)
+type Ctx = context.T
+type SubID = subscriptionid.T
+type WS = *relayws.WS
+type Responder = http.ResponseWriter
+type Req = *http.Request
+type OK = okenvelope.T
+type EV = *event.T

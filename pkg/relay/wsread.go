@@ -1,21 +1,18 @@
 package relay
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
 )
 
 type readParams struct {
-	c          context.T
+	c          Ctx
 	kill       func()
-	ws         *relayws.WS
+	ws         WS
 	conn       *websocket.Conn
-	r          *http.Request
-	serviceURL string
+	r          Req
+	serviceURL S
 }
 
 func (rl *R) websocketReadMessages(p readParams) {
@@ -43,7 +40,7 @@ func (rl *R) websocketReadMessages(p readParams) {
 	}
 	p.conn.SetReadLimit(int64(MaxMessageSize))
 	chk.E(p.conn.SetReadDeadline(time.Now().Add(rl.PongWait)))
-	p.conn.SetPongHandler(func(string) (err error) {
+	p.conn.SetPongHandler(func(string) (err E) {
 		err = p.conn.SetReadDeadline(time.Now().Add(rl.PongWait))
 		chk.E(err)
 		return
@@ -52,9 +49,9 @@ func (rl *R) websocketReadMessages(p readParams) {
 		onConnect(p.c)
 	}
 	for {
-		var err error
+		var err E
 		var typ int
-		var message []byte
+		var message B
 		typ, message, err = p.conn.ReadMessage()
 		if err != nil {
 			// log.I.F("%s from %s, %d bytes message", err, p.ws.RealRemote(), len(message))

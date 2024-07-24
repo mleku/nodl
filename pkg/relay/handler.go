@@ -1,7 +1,6 @@
 package relay
 
 import (
-	"net/http"
 	"strings"
 	"time"
 
@@ -13,10 +12,9 @@ import (
 
 // HandleWebsocket is a http handler that accepts and manages websocket
 // connections.
-func (rl *R) HandleWebsocket(serviceURL string) func(w http.ResponseWriter,
-	r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var err error
+func (rl *R) HandleWebsocket(serviceURL S) func(w Responder, r Req) {
+	return func(w Responder, r Req) {
+		var err E
 		var conn *websocket.Conn
 		conn, err = rl.upgrader.Upgrade(w, r, nil)
 		if chk.E(err) {

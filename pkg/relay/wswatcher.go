@@ -3,21 +3,18 @@ package relay
 import (
 	"strings"
 	"time"
-
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
 )
 
 type watcherParams struct {
-	ctx  context.T
+	ctx  Ctx
 	kill func()
 	t    *time.Ticker
-	ws   *relayws.WS
+	ws   WS
 }
 
 
 func (rl *R) websocketWatcher(p watcherParams) {
-	var err error
+	var err E
 	// defer p.kill()
 	for {
 		select {

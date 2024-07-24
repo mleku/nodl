@@ -7,46 +7,50 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/protocol/relayinfo"
-	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/mleku/nodl/pkg/util/units"
 	"github.com/puzpuzpuz/xsync/v2"
 )
 
 type (
 	// OverwriteRelayInformation is a function that can be provided to rewrite the nip-11 relay information document.
-	OverwriteRelayInformation func(c context.T, r *http.Request, info *relayinfo.T) *relayinfo.T
+	OverwriteRelayInformation  func(c Ctx, r Req, info *relayinfo.T) *relayinfo.T
+	OverwriteRelayInformations []OverwriteRelayInformation
 	// Hook is a function that does anything but responds to a context cancel from
 	// the controlling process so it can be shut down along with the calling
 	// process.
-	Hook func(c context.T)
+	Hook  func(c Ctx)
+	Hooks []Hook
 	// RejectEvent checks whether policy would reject an event.
-	RejectEvent func(c context.T, ev *event.T) (rej bool, msg string)
-	// Events are a closure type that responds to an event.
-	Events func(c context.T, ev *event.T) error
+	RejectEvent  func(c Ctx, ev EV) (rej bool, msg string)
+	RejectEvents []RejectEvent
+	// Event are a closure type that responds to an event.
+	Event  func(c Ctx, ev EV) E
+	Events []Event
 	// OnEventSaved runs when an event is stored.
-	OnEventSaved func(c context.T, ev *event.T)
+	OnEventSaved  func(c Ctx, ev EV)
+	OnEventSaveds []OnEventSaved
 	// OverwriteResponseEvent rewrites an event response.
-	OverwriteResponseEvent func(c context.T, ev *event.T)
+	OverwriteResponseEvent  func(c Ctx, ev EV)
+	OverwriteResponseEvents []OverwriteResponseEvent
 	// R is the data structure holding state of the relay.
 	R struct {
-		Ctx                    context.T
-		serveMux               *http.ServeMux
+		Ctx                    Ctx
+		Router                 *http.ServeMux
 		Info                   *relayinfo.T
-		OverwriteRelayInfo     []OverwriteRelayInformation
-		OverwriteResponseEvent []OverwriteResponseEvent
-		RejectEvent            []RejectEvent
-		StoreEvent             []Events
-		OnEventSaved           []OnEventSaved
-		OnConnect              []Hook
-		OnDisconnect           []Hook
+		OverwriteRelayInfo     OverwriteRelayInformations
+		OverwriteResponseEvent OverwriteResponseEvents
+		RejectEvent            RejectEvents
+		StoreEvent             Events
+		OnEventSaved           OnEventSaveds
+		OnConnect              Hooks
+		OnDisconnect           Hooks
 		WriteWait              time.Duration // WriteWait is the time allowed to write a message to the peer.
 		PongWait               time.Duration // PongWait is the time allowed to read the next pong message from the peer.
-		PingPeriod             time.Duration // PingPeriod is the tend pings to peer with this period. Must be less than pongWait.
+		PingPeriod             time.Duration // PingPeriod is the time between pings. Must be less than pongWait.
 		upgrader               websocket.Upgrader
 		clients                *xsync.MapOf[*websocket.Conn, struct{}]
-		Whitelist              []string // whitelist of allowed IPs for access
+		Whitelist              []S // whitelist of allowed IPs for access
 	}
 )
 
@@ -57,7 +61,7 @@ const (
 	MaxMessageSize = 4 * units.Mb
 )
 
-func getServiceBaseURL(r *http.Request) string {
+func getServiceBaseURL(r Req) S {
 	host := r.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = r.Host
