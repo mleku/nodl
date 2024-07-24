@@ -4,18 +4,41 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/fasthttp/websocket"
+	"github.com/mleku/nodl/pkg/codec/bech32encoding"
+	"github.com/mleku/nodl/pkg/crypto/keys"
 	"github.com/mleku/nodl/pkg/protocol/relayinfo"
+	"github.com/mleku/nodl/pkg/relay/acl"
+	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/mleku/nodl/pkg/util/units"
 	"github.com/puzpuzpuz/xsync/v2"
 )
 
+var Version = "v0.0.1"
+var Software = "https://github.com/Hubmakerlabs/replicatr"
+
+const (
+	wsKey = iota
+	subscriptionIdKey
+)
+
+const (
+	WriteWait       = 3 * time.Second
+	PongWait        = 6 * time.Second
+	PingPeriod      = 3 * time.Second
+	ReadBufferSize  = 4096
+	WriteBufferSize = 4096
+	IgnoreAfter     = 16
+	MaxMessageSize  = 4 * units.Mb
+)
+
 type (
-	// OverwriteRelayInformation is a function that can be provided to rewrite the nip-11 relay information document.
-	OverwriteRelayInformation  func(c Ctx, r Req, info *relayinfo.T) *relayinfo.T
-	OverwriteRelayInformations []OverwriteRelayInformation
+	// OverwriteRelayInfo is a function that can be provided to rewrite the nip-11 relay information document.
+	OverwriteRelayInfo  func(c Ctx, r Req, info *relayinfo.T) *relayinfo.T
+	OverwriteRelayInfos []OverwriteRelayInfo
 	// Hook is a function that does anything but responds to a context cancel from
 	// the controlling process so it can be shut down along with the calling
 	// process.
@@ -35,31 +58,83 @@ type (
 	OverwriteResponseEvents []OverwriteResponseEvent
 	// R is the data structure holding state of the relay.
 	R struct {
-		Ctx                    Ctx
-		Router                 *http.ServeMux
-		Info                   *relayinfo.T
-		OverwriteRelayInfo     OverwriteRelayInformations
-		OverwriteResponseEvent OverwriteResponseEvents
-		RejectEvent            RejectEvents
-		StoreEvent             Events
-		OnEventSaved           OnEventSaveds
-		OnConnect              Hooks
-		OnDisconnect           Hooks
-		WriteWait              time.Duration // WriteWait is the time allowed to write a message to the peer.
-		PongWait               time.Duration // PongWait is the time allowed to read the next pong message from the peer.
-		PingPeriod             time.Duration // PingPeriod is the time between pings. Must be less than pongWait.
-		upgrader               websocket.Upgrader
-		clients                *xsync.MapOf[*websocket.Conn, struct{}]
-		Whitelist              []S // whitelist of allowed IPs for access
+		Ctx            Ctx
+		Cancel         context.F
+		WG             *sync.WaitGroup
+		Router         *http.ServeMux
+		Info           *relayinfo.T
+		Config         *Config
+		MaxMessageSize int64 // Maximum message size allowed from peer.
+		RelayPubHex    S
+		RelayNpub      S
+		OverwriteRelayInfos
+		OverwriteResponseEvents
+		RejectEvents
+		StoreEvents Events
+		OnEventSaveds
+		OnConnects    Hooks
+		OnDisconnects Hooks
+		WriteWait     time.Duration // WriteWait is the time allowed to write a message to the peer.
+		PongWait      time.Duration // PongWait is the time allowed to read the next pong message from the peer.
+		PingPeriod    time.Duration // PingPeriod is the time between pings. Must be less than pongWait.
+		upgrader      websocket.Upgrader
+		clients       *xsync.MapOf[*websocket.Conn, struct{}]
+		Whitelist     []S    // whitelist of allowed IPs for access
+		ACL           *acl.T // ACL is the list of users and privileges on this relay
 	}
 )
 
-const (
-	wsKey = iota
-	subscriptionIdKey
-	IgnoreAfter    = 16
-	MaxMessageSize = 4 * units.Mb
-)
+func NewRelay(c Ctx, cancel context.F, inf *relayinfo.T, conf *Config) (r *R) {
+	var maxMessageLength = MaxMessageSize
+	if inf.Limitation.MaxMessageLength > 0 {
+		maxMessageLength = inf.Limitation.MaxMessageLength
+	}
+	var err E
+	var pubKey S
+	pubKey, err = keys.GetPublicKey(conf.SecKey)
+	chk.E(err)
+	var npub B
+	if npub, err = bech32encoding.HexToNpub(B(pubKey)); chk.E(err) {
+		return
+	}
+	chk.E(err)
+	inf.Software = Software
+	inf.Version = Version
+	inf.PubKey = pubKey
+	r = &R{
+		Ctx:    c,
+		Cancel: cancel,
+		Config: conf,
+		Info:   inf,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  ReadBufferSize,
+			WriteBufferSize: WriteBufferSize,
+			CheckOrigin:     func(r *http.Request) bool { return true },
+		},
+		clients: xsync.NewTypedMapOf[*websocket.Conn,
+			struct{}](PointerHasher[websocket.Conn]),
+		Router:         &http.ServeMux{},
+		WriteWait:      WriteWait,
+		PongWait:       PongWait,
+		PingPeriod:     PingPeriod,
+		MaxMessageSize: int64(maxMessageLength),
+		Whitelist:      conf.Whitelist,
+		RelayPubHex:    pubKey,
+		RelayNpub:      S(npub),
+	}
+	log.I.F("relay identity pubkey: %s %s\n", pubKey, npub)
+	// populate ACL with owners to start
+	for _, owner := range r.Config.Owners {
+		if err = r.ACL.AddEntry(&acl.Entry{
+			Role:   acl.Owner,
+			Pubkey: owner,
+		}); chk.E(err) {
+			continue
+		}
+		log.D.Ln("added owner pubkey", owner)
+	}
+	return
+}
 
 func getServiceBaseURL(r Req) S {
 	host := r.Header.Get("X-Forwarded-Host")

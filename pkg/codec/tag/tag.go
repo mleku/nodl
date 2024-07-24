@@ -22,17 +22,19 @@ const (
 	MarkerMention = "mention"
 )
 
+type BS[Z B | S] B
+
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.
 type T struct {
-	Field []B
+	Field []BS[B]
 }
 
-func NewWithCap(c int) *T { return &T{make([]B, 0, c)} }
+func NewWithCap(c int) *T { return &T{make([]BS[B], 0, c)} }
 
-func New[V string | B](fields ...V) (t *T) {
-	t = &T{Field: make([]B, len(fields))}
+func New[V S | B](fields ...V) (t *T) {
+	t = &T{Field: make([]BS[B], len(fields))}
 	for i, field := range fields {
 		t.Field[i] = B(field)
 	}
@@ -41,7 +43,7 @@ func New[V string | B](fields ...V) (t *T) {
 
 // Clone makes a new tag.T with the same members.
 func (t *T) Clone() (c *T) {
-	c = &T{Field: make([]B, 0, len(t.Field))}
+	c = &T{Field: make([]BS[B], 0, len(t.Field))}
 	for _, f := range t.Field {
 		l := len(f)
 		b := make([]byte, l)
@@ -163,15 +165,13 @@ func (t *T) Contains(s B) bool {
 }
 
 // Equal checks that the provided tag list matches.
-func (t *T) Equal(ta any) bool {
-	if t1, ok := ta.(T); ok {
-		if len(t.Field) != len(t1.Field) {
+func (t *T) Equal(ta *T) bool {
+	if len(t.Field) != len(ta.Field) {
+		return false
+	}
+	for i := range t.Field {
+		if !equals(t.Field[i], ta.Field[i]) {
 			return false
-		}
-		for i := range t.Field {
-			if !equals(t.Field[i], t1.Field[i]) {
-				return false
-			}
 		}
 	}
 	return true

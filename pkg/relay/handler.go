@@ -64,7 +64,7 @@ func (rl *R) HandleWebsocket(serviceURL S) func(w Responder, r Req) {
 			} else {
 				log.T.Ln("disconnecting from", rr)
 			}
-			for _, onDisconnect := range rl.OnDisconnect {
+			for _, onDisconnect := range rl.OnDisconnects {
 				onDisconnect(c)
 			}
 			ticker.Stop()

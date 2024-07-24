@@ -10,7 +10,7 @@ func (rl *R) HandleNIP11(w Responder, r Req) {
 	log.T.Ln("NIP-11 request", getServiceBaseURL(r))
 	w.Header().Set("Content-Type", "application/nostr+json")
 	info := rl.Info
-	for _, ovw := range rl.OverwriteRelayInfo {
+	for _, ovw := range rl.OverwriteRelayInfos {
 		info = ovw(r.Context(), r, info)
 	}
 	var b B

@@ -18,7 +18,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 		log.E.Ln(err)
 		return
 	}
-	for _, rej := range rl.RejectEvent {
+	for _, rej := range rl.RejectEvents {
 		if reject, msg := rej(c, ev); reject {
 			if msg == "" {
 				err = errors.New("blocked: no reason")
@@ -33,7 +33,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 	}
 	if !ev.Kind.IsEphemeral() {
 		// log.I.Ln("adding event", ev.ToObject().String())
-		for _, store := range rl.StoreEvent {
+		for _, store := range rl.StoreEvents {
 			if saveErr := store(c, ev); saveErr != nil {
 				switch {
 				case errors.Is(saveErr, eventstore.ErrDupEvent):
@@ -46,7 +46,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 			}
 			// log.I.Ln("added event", ev.ID, "for", GetAuthed(c))
 		}
-		for _, ons := range rl.OnEventSaved {
+		for _, ons := range rl.OnEventSaveds {
 			ons(c, ev)
 		}
 		// log.I.Ln("saved event", ev.ID)
@@ -54,7 +54,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 		// log.I.Ln("ephemeral event")
 		return
 	}
-	for _, ovw := range rl.OverwriteResponseEvent {
+	for _, ovw := range rl.OverwriteResponseEvents {
 		ovw(c, ev)
 	}
 	rl.BroadcastEvent(ev)

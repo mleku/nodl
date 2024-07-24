@@ -7,6 +7,7 @@ require (
 	github.com/fasthttp/websocket v1.5.10
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/minio/sha256-simd v1.0.1
+	github.com/mleku/btcec v1.0.1
 	github.com/mleku/btcec/v2 v2.3.3
 	github.com/puzpuzpuz/xsync/v2 v2.5.1
 	github.com/rs/cors v1.11.0

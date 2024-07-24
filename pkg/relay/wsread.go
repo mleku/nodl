@@ -45,7 +45,7 @@ func (rl *R) websocketReadMessages(p readParams) {
 		chk.E(err)
 		return
 	})
-	for _, onConnect := range rl.OnConnect {
+	for _, onConnect := range rl.OnConnects {
 		onConnect(p.c)
 	}
 	for {

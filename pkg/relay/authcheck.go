@@ -7,7 +7,7 @@ import (
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-// AuthCheck sends out a request if auth is required (this is an OnConnect
+// AuthCheck sends out a request if auth is required (this is an OnConnects
 // method). It just asks for auth if enabled, saving the client time waiting
 // until after sending a req.
 func (rl *R) AuthCheck(c Ctx) { rl.IsAuthed(c, "connect") }
