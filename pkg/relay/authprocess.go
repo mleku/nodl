@@ -10,9 +10,10 @@ import (
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) processAuthEnvelope(msg B, env *ae.Response, ws WS, serviceURL S) (err E) {
+func (rl *R) processAuthEnvelope(h *Handle, msg B, env *ae.Response) (err E) {
+	_, ws, svcURL, _ := h.H()
 	log.T.Ln("received auth response")
-	wsBaseUrl := strings.Replace(serviceURL, "http", "ws", 1)
+	wsBaseUrl := strings.Replace(svcURL, "http", "ws", 1)
 	var ok bool
 	if ok, err = auth.Validate(env.Event, ws.Challenge(),
 		wsBaseUrl); ok {

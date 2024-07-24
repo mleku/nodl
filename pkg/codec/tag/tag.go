@@ -24,8 +24,6 @@ const (
 
 type BS[Z B | S] B
 
-
-
 // T is a list of strings with a literal ordering.
 //
 // Not a set, there can be repeating elements.

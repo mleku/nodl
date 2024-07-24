@@ -10,6 +10,16 @@ import (
 	"github.com/mleku/nodl/pkg/util/qu"
 )
 
+type Handle struct {
+	c      Ctx
+	ws     WS
+	svcURL S
+	kill   func()
+}
+
+func H(c Ctx, ws WS, svcURL S, kill func()) (h *Handle)    { return &Handle{c, ws, svcURL, kill} }
+func (h *Handle) H() (c Ctx, ws WS, svcURL S, kill func()) { return h.c, h.ws, h.svcURL, h.kill }
+
 // HandleWebsocket is a http handler that accepts and manages websocket
 // connections.
 func (rl *R) HandleWebsocket(serviceURL S) func(w Responder, r Req) {
@@ -74,8 +84,7 @@ func (rl *R) HandleWebsocket(serviceURL S) func(w Responder, r Req) {
 				RemoveListener(ws)
 			}
 		}
-		go rl.websocketReadMessages(readParams{c, kill, ws, conn, r,
-			serviceURL})
-		go rl.websocketWatcher(watcherParams{c, kill, ticker, ws})
+		go rl.websocketReadMessages(H(c, ws, serviceURL, kill), conn, r)
+		go rl.websocketWatcher(H(c, ws, "", kill), ticker)
 	}
 }

@@ -6,26 +6,18 @@ import (
 	"github.com/fasthttp/websocket"
 )
 
-type readParams struct {
-	c          Ctx
-	kill       func()
-	ws         WS
-	conn       *websocket.Conn
-	r          Req
-	serviceURL S
-}
-
-func (rl *R) websocketReadMessages(p readParams) {
-	if p.ws.OffenseCount.Load() > IgnoreAfter {
+func (rl *R) websocketReadMessages(h *Handle, conn *websocket.Conn, r Req) {
+	c, ws, _, _ := h.H()
+	if ws.OffenseCount.Load() > IgnoreAfter {
 		log.T.Ln("dropping message due to over", IgnoreAfter,
 			"errors from this client on this connection",
-			p.ws.RealRemote(), p.ws.AuthPubKey())
+			ws.RealRemote(), ws.AuthPubKey())
 		return
 	}
 	deny := true
 	if len(rl.Whitelist) > 0 {
 		for i := range rl.Whitelist {
-			if rl.Whitelist[i] == p.ws.RealRemote() {
+			if rl.Whitelist[i] == ws.RealRemote() {
 				deny = false
 			}
 		}
@@ -34,27 +26,27 @@ func (rl *R) websocketReadMessages(p readParams) {
 	}
 	if deny {
 		// log.T.F("denying access to '%s': dropping message",
-		// 	p.ws.RealRemote())
-		// p.kill()
+		// 	ws.RealRemote())
+		// kill()
 		return
 	}
-	p.conn.SetReadLimit(int64(MaxMessageSize))
-	chk.E(p.conn.SetReadDeadline(time.Now().Add(rl.PongWait)))
-	p.conn.SetPongHandler(func(string) (err E) {
-		err = p.conn.SetReadDeadline(time.Now().Add(rl.PongWait))
+	conn.SetReadLimit(int64(MaxMessageSize))
+	chk.E(conn.SetReadDeadline(time.Now().Add(rl.PongWait)))
+	conn.SetPongHandler(func(string) (err E) {
+		err = conn.SetReadDeadline(time.Now().Add(rl.PongWait))
 		chk.E(err)
 		return
 	})
 	for _, onConnect := range rl.OnConnects {
-		onConnect(p.c)
+		onConnect(c)
 	}
 	for {
 		var err E
 		var typ int
 		var message B
-		typ, message, err = p.conn.ReadMessage()
+		typ, message, err = conn.ReadMessage()
 		if err != nil {
-			// log.I.F("%s from %s, %d bytes message", err, p.ws.RealRemote(), len(message))
+			// log.I.F("%s from %s, %d bytes message", err, ws.RealRemote(), len(message))
 			if websocket.IsUnexpectedCloseError(
 				err,
 				websocket.CloseNormalClosure,    // 1000
@@ -63,17 +55,16 @@ func (rl *R) websocketReadMessages(p readParams) {
 				websocket.CloseAbnormalClosure,  // 1006
 			) {
 				log.E.F("unexpected close error from %s: %v",
-					p.ws.RealRemote(), err)
+					ws.RealRemote(), err)
 			}
 			return
 		}
 		if typ == websocket.PingMessage {
-			chk.E(p.ws.Pong())
+			chk.E(ws.Pong())
 			continue
 		}
-		log.T.Ln("received message", string(message), p.ws.RealRemote())
-		if err = rl.wsProcessMessages(message, p.c, p.kill, p.ws,
-			p.serviceURL); err != nil {
+		log.T.Ln("received message", string(message), ws.RealRemote())
+		if err = rl.wsProcessMessages(h, message); err != nil {
 		}
 	}
 }

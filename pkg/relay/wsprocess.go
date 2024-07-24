@@ -13,7 +13,8 @@ import (
 	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) wsProcessMessages(msg B, c Ctx, kill func(), ws WS, serviceURL S) (err E) {
+func (rl *R) wsProcessMessages(h *Handle, msg B) (err E) {
+	_, ws, _, _ := h.H()
 	if len(msg) == 0 {
 		err = log.E.Err("empty message, probably dropped connection")
 		return
@@ -99,7 +100,7 @@ func (rl *R) wsProcessMessages(msg B, c Ctx, kill func(), ws WS, serviceURL S) (
 		if msg, err = response.UnmarshalJSON(msg); chk.E(err) {
 			return
 		}
-		if err = rl.processAuthEnvelope(msg, response, ws, serviceURL); chk.E(err) {
+		if err = rl.processAuthEnvelope(h, msg, response); chk.E(err) {
 			return
 		}
 	}

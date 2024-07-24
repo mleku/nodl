@@ -5,28 +5,20 @@ import (
 	"time"
 )
 
-type watcherParams struct {
-	ctx  Ctx
-	kill func()
-	t    *time.Ticker
-	ws   WS
-}
-
-
-func (rl *R) websocketWatcher(p watcherParams) {
+func (rl *R) websocketWatcher(h *Handle, t *time.Ticker) {
+	ctx, ws, _, kill := h.H()
 	var err E
-	// defer p.kill()
 	for {
 		select {
 		case <-rl.Ctx.Done():
 			return
-		case <-p.ctx.Done():
+		case <-ctx.Done():
 			return
-		case <-p.t.C:
+		case <-t.C:
 			deny := true
 			if len(rl.Whitelist) > 0 {
 				for i := range rl.Whitelist {
-					if rl.Whitelist[i] == p.ws.RealRemote() {
+					if rl.Whitelist[i] == ws.RealRemote() {
 						deny = false
 					}
 				}
@@ -35,15 +27,15 @@ func (rl *R) websocketWatcher(p watcherParams) {
 			}
 			if deny {
 				// log.T.F("denying access to '%s': dropping message",
-				// 	p.ws.RealRemote())
+				// 	ws.RealRemote())
 				return
 			}
-			if err = p.ws.Ping(); err != nil {
+			if err = ws.Ping(); err != nil {
 				if !strings.HasSuffix(err.Error(),
 					"use of closed network connection") {
 					// log.T.F("error writing ping: %v; closing websocket", err)
 				}
-				p.kill()
+				kill()
 				return
 			}
 		}
