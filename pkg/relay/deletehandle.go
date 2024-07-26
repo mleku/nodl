@@ -1,10 +1,5 @@
 package relay
 
-import (
-	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
-	"github.com/mleku/nodl/pkg/util/normalize"
-)
-
 // handleDeleteRequest handles a delete event (kind 5)
 func (rl *R) handleDeleteRequest(c Ctx, evt EV) (err E) {
 	// // log.I.Ln("event delete", evt.ToObject().String())
@@ -66,9 +61,9 @@ func (rl *R) handleDeleteRequest(c Ctx, evt EV) (err E) {
 //
 // Temporarily removing delete functionality until a proper tombstone/indexing
 // strategy is devised to filter out these events from database results.
-func (rl *R) OverrideDelete(c Ctx, tgt, del EV) (ok bool,	msg B) {
+func (rl *R) OverrideDelete(c Ctx, tgt, del EV) (ok bool, msg B) {
 	log.T.Ln("overriding delete")
-	msg = normalize.Reason("not actually deleting", okenvelope.Blocked.S())
+	msg = Reason(Blocked, "not actually deleting")
 	ok = false
 	return
 }

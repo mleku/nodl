@@ -7,14 +7,13 @@ import (
 
 	"github.com/mleku/nodl/pkg/codec/filter"
 	"github.com/mleku/nodl/pkg/codec/filters"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
 	"github.com/mleku/nodl/pkg/protocol/relayws"
 	"github.com/mleku/nodl/pkg/util/context"
 	"github.com/puzpuzpuz/xsync/v2"
 )
 
 type Listener struct {
-	filters filters.T
+	filters *filters.T
 	cancel  context.C
 	ws      WS
 }
@@ -50,16 +49,14 @@ func GetListeningFilters() (respFilters *filters.T) {
 }
 
 // SetListener adds a filter to a connection.
-func SetListener(id string, ws WS, f filters.T, c context.C) {
-	subs, _ := listeners.LoadOrCompute(ws, func() ListenerMap {
-		return xsync.NewMapOf[*Listener]()
-	})
+func SetListener(id S, ws WS, f *filters.T, c context.C) {
+	subs, _ := listeners.LoadOrCompute(ws, func() ListenerMap { return xsync.NewMapOf[*Listener]() })
 	subs.Store(id, &Listener{filters: f, cancel: c, ws: ws})
 }
 
 // RemoveListenerId removes a specific subscription id from listeners for a
 // given ws client and cancel its specific context
-func RemoveListenerId(ws WS, id *subscriptionid.T) {
+func RemoveListenerId(ws WS, id SubID) {
 	if subs, ok := listeners.Load(ws); ok {
 		if listener, ok := subs.LoadAndDelete(S(id.T)); ok {
 			listener.cancel(fmt.Errorf("subscription closed by client"))

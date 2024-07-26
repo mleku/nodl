@@ -2,45 +2,43 @@ package eoseenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
+	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
 )
 
 const L = "EOSE"
 
 type T struct {
-	ID *subscriptionid.T
-}
-var _ envelopes.I = (*T)(nil)
-
-func New() *T {
-	return &T{ID: subscriptionid.NewStd()}
+	Subscription *sid.T
 }
 
-func NewFrom(id *subscriptionid.T) *T {
-	return &T{ID: id}
-}
+var _ enveloper.I = (*T)(nil)
 
-func (req *T) Label() string { return L }
+func New() *T                              { return &T{Subscription: sid.NewStd()} }
+func NewFrom(id *sid.T) *T                 { return &T{Subscription: id} }
+func (en *T) Label() string                { return L }
+func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
-func (req *T) MarshalJSON(dst B) (b B, err error) {
+func (en *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = req.ID.MarshalJSON(o); chk.E(err) {
+			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			return
-		})
+		},
+	)
 	return
 }
 
-func (req *T) UnmarshalJSON(b B) (r B, err error) {
+func (en *T) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if req.ID, err = subscriptionid.New(B{0}); chk.E(err) {
+	if en.Subscription, err = sid.New(B{0}); chk.E(err) {
 		return
 	}
-	if r, err = req.ID.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {

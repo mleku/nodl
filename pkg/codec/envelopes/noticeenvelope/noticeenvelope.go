@@ -2,6 +2,7 @@ package noticeenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes"
+	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
 	"github.com/mleku/nodl/pkg/codec/text"
 )
 
@@ -11,34 +12,29 @@ type T struct {
 	Message B
 }
 
-var _ envelopes.I = (*T)(nil)
+var _ enveloper.I = (*T)(nil)
 
-func New() *T {
-	return &T{}
-}
+func New() *T                              { return &T{} }
+func NewFrom[V S | B](msg V) *T            { return &T{Message: B(msg)} }
+func (en *T) Label() string                { return L }
+func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
-func NewFrom(msg B) *T {
-	return &T{Message: msg}
-}
-
-func (ce *T) Label() string { return L }
-
-func (ce *T) MarshalJSON(dst B) (b B, err error) {
+func (en *T) MarshalJSON(dst B) (b B, err E) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
 			o = append(o, '"')
-			o = text.NostrEscape(o, ce.Message)
+			o = text.NostrEscape(o, en.Message)
 			o = append(o, '"')
 			return
 		})
 	return
 }
 
-func (ce *T) UnmarshalJSON(b B) (r B, err error) {
+func (en *T) UnmarshalJSON(b B) (r B, err E) {
 	r = b
-	if ce.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
+	if en.Message, r, err = text.UnmarshalQuoted(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {

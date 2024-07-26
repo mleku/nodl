@@ -2,8 +2,7 @@ package relay
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/kinds"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
 	"github.com/mleku/nodl/pkg/codec/tag"
 )
 
@@ -13,18 +12,17 @@ import (
 func (rl *R) BroadcastEvent(ev EV) {
 	listeners.Range(func(ws WS, subs ListenerMap) bool {
 
-		if len(ws.AuthPubKey()) == 0 && rl.Info.Limitation.AuthRequired {
-			log.E.Ln("cannot broadcast to", ws.RealRemote(), "not authorized")
+		if len(ws.AuthPub()) == 0 && rl.Info.Limitation.AuthRequired {
+			log.E.F("cannot broadcast to %s not authorized", ws.Remote())
 			return true
 		}
 		subs.Range(func(id string, listener *Listener) bool {
 			if !listener.filters.Match(ev) {
 				return true
 			}
-			if kinds.IsPrivileged(ev.Kind) && rl.Info.Limitation.AuthRequired {
-				if len(ws.AuthPubKey()) == 0 {
-					log.T.Ln("not broadcasting privileged event to",
-						ws.RealRemote(), "not authenticated")
+			if ev.Kind.IsPrivileged() && rl.Info.Limitation.AuthRequired {
+				if len(ws.AuthPub()) == 0 {
+					log.T.F("not broadcasting privileged event to %s not authenticated", ws.Remote())
 					return true
 				}
 				parties := tag.New(ev.PubKey)
@@ -32,22 +30,20 @@ func (rl *R) BroadcastEvent(ev EV) {
 				for i := range pTags.T {
 					parties.Field = append(parties.Field, pTags.T[i].Field[1])
 				}
-				if !parties.Contains(ws.AuthPubKey()) {
-					log.T.Ln("not broadcasting privileged event to",
-						ws.RealRemote(), "not party to event")
+				if !parties.Contains(ws.AuthPub()) {
+					log.T.F("not broadcasting privileged event to %s not party to event", ws.Remote())
 					return true
 				}
 			}
 			// todo: there may be an issue triggering repeated broadcasts via L2 reviving
 			log.D.F("sending event to subscriber %v %s (%d %s)",
-				ws.RealRemote(), ws.AuthPubKey(),
-				ev.Kind,
-				ev.Kind.Name(),
-			)
-			chk.E(ws.WriteEnvelope(&eventenvelope.Result{
-				Subscription: &subscriptionid.T{T: subscriptionid.B(id)},
-				Event:        ev},
-			))
+				ws.Remote(), ws.AuthPub(), ev.Kind, ev.Kind.Name())
+			var err E
+			var si *sid.T
+			if si, err = sid.New(id); chk.E(err) {
+				return true
+			}
+			chk.E(eventenvelope.NewResultWith(si, ev).Write(ws))
 			return true
 		})
 		return true

@@ -6,11 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fasthttp/websocket"
 	w "github.com/fasthttp/websocket"
 	"github.com/mleku/btcec/v2/bech32"
 	"github.com/mleku/nodl/pkg/codec/bech32encoding"
-	"github.com/mleku/nodl/pkg/codec/envelopes"
+	enveloper "github.com/mleku/nodl/pkg/codec/envelopes/interface"
 	"github.com/mleku/nodl/pkg/util/atomic"
 	"github.com/mleku/nodl/pkg/util/qu"
 )
@@ -52,8 +51,11 @@ type WS struct {
 	OffenseCount atomic.Uint32 // when client does dumb stuff, increment this
 }
 
-func New(conn *websocket.Conn, req *http.Request, authed qu.C) (ws *WS) {
-	return &WS{Conn: conn, Request: req, Authed: authed}
+func New(conn *w.Conn, req *http.Request, authed qu.C) (ws *WS) {
+	// authPubKey must be initialized with a zero length slice so it can be detected when it hasn't been loaded.
+	var authPubKey atomic.Value
+	authPubKey.Store(B{})
+	return &WS{Conn: conn, Request: req, Authed: authed, authPubKey: authPubKey}
 }
 
 func (ws *WS) Pong() (err E) {
@@ -68,19 +70,19 @@ func (ws *WS) write(t MessageType, b B) (err E) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	if len(b) != 0 {
-		log.T.F("sending message to %s %0x\n%s", ws.RealRemote(), ws.AuthPubKey(), string(b))
+		log.T.F("sending message to %s %0x\n%s", ws.Remote(), ws.AuthPub(), string(b))
 	}
 	chk.E(ws.Conn.SetWriteDeadline(time.Now().Add(time.Second * 5)))
 	return ws.Conn.WriteMessage(int(t), b)
 }
 
 // WriteTextMessage writes a text (binary?) message
-func (ws *WS) WriteTextMessage(b B) (err error) {
+func (ws *WS) WriteTextMessage(b B) (err E) {
 	return ws.write(w.TextMessage, b)
 }
 
 // WriteEnvelope writes a message with a given websocket type specifier
-func (ws *WS) WriteEnvelope(env envelopes.I) (err error) {
+func (ws *WS) WriteEnvelope(env enveloper.I) (err error) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	var b B
@@ -119,18 +121,23 @@ func (ws *WS) GenerateChallenge() (challenge S) {
 // Challenge returns the current challenge on a websocket.
 func (ws *WS) Challenge() (challenge B) { return B(ws.challenge.Load()) }
 
-// RealRemote returns the current real remote.
-func (ws *WS) RealRemote() (remote S) { return ws.remote.Load() }
+// Remote returns the current real remote.
+func (ws *WS) Remote() (remote S)     { return ws.remote.Load() }
 func (ws *WS) SetRealRemote(remote S) { ws.remote.Store(remote) }
 
-// AuthPubKey returns the current authed Pubkey.
-func (ws *WS) AuthPubKey() (a B) {
+// SetAuthPubKey loads the outhPubKey atomic of the websocket. Note that []byte is a reference so the caller should not
+// mutate it. Calls to access it are copied as above.
+func (ws *WS) SetAuthPubKey(a B) { ws.authPubKey.Store(a) }
+
+// AuthPub returns the current authed Pubkey.
+func (ws *WS) AuthPub() (a B) {
 	b := ws.authPubKey.Load().(B)
 	// make a copy because bytes are references
 	a = append(a, b...)
 	return
 }
 
-// SetAuthPubKey loads the outhPubKey atomic of the websocket. Note that []byte is a reference so the caller should not
-// mutate it. Calls to access it are copied as above.
-func (ws *WS) SetAuthPubKey(a B) { ws.authPubKey.Store(a) }
+func (ws *WS) HasAuth() bool {
+	b := ws.authPubKey.Load().(B)
+	return len(b) > 0
+}

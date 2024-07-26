@@ -14,8 +14,6 @@ import (
 	"github.com/mleku/nodl/pkg/codec/timestamp"
 )
 
-const Required = "auth-required"
-
 // GenerateChallenge creates a reasonable, 96 byte base64 challenge string
 func GenerateChallenge() (b B) {
 	bb := make(B, 12)

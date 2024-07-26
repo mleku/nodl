@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/mleku/nodl/pkg/relay/eventstore"
-	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
 // AddEvent sends an event through then normal add pipeline, as if it was
@@ -14,18 +13,18 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 		return
 	}
 	if ev == nil {
-		err = errors.New("error: event is nil")
+		err = errors.New(S(Reason(Error, "event is nil")))
 		log.E.Ln(err)
 		return
 	}
 	for _, rej := range rl.RejectEvents {
 		if reject, msg := rej(c, ev); reject {
 			if msg == "" {
-				err = errors.New("blocked: no reason")
+				err = errors.New(S(Reason(Blocked, "no reason")))
 				log.E.Ln(err)
 				return
 			} else {
-				err = errors.New(string(normalize.Reason(msg, "blocked")))
+				err = errors.New(S(Reason(Blocked, msg)))
 				log.E.Ln(err)
 				return
 			}
@@ -39,7 +38,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 				case errors.Is(saveErr, eventstore.ErrDupEvent):
 					return saveErr
 				default:
-					err = log.E.Err(S(normalize.Reason(saveErr.Error(), "error")))
+					err = log.E.Err(S(Reason(Error, saveErr.Error())))
 					log.D.Ln(ev.ID, err)
 					return
 				}

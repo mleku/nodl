@@ -2,11 +2,11 @@ package normalize
 
 import (
 	"bytes"
+	"fmt"
 	"net/url"
-	"strings"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
 	"github.com/mleku/nodl/pkg/codec/ints"
+	"github.com/mleku/nodl/pkg/protocol/reasons"
 )
 
 var (
@@ -91,12 +91,10 @@ func URL(u B) (b B) {
 	return B(p.String())
 }
 
-// Reason takes a string message that is to be sent in an `OK` or `CLOSED`
-// command and prefixes it with "<prefix>: " if it doesn't already have an
-// acceptable prefix.
-func Reason[V S | B | okenvelope.Reason](prefix, reason V) B {
-	if idx := strings.Index(S(reason), ": "); idx == -1 || strings.IndexByte(S(reason)[0:idx], ' ') != -1 {
-		return append(append(B(prefix), ": "...), reason...)
+// Reason constructs a properly formatted message with a machine readable prefix for OK and CLOSED envelopes.
+func Reason(prefix reasons.Reason, format S, params ...any) B {
+	if len(prefix) < 1 {
+		prefix = reasons.Error
 	}
-	return B(reason)
+	return B(fmt.Sprintf(prefix.S()+": "+format, params...))
 }

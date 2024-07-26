@@ -9,10 +9,7 @@ type T struct {
 	K []*kind.T
 }
 
-func New(k ...*kind.T) *T {
-	return &T{k}
-}
-
+func New(k ...*kind.T) *T { return &T{k} }
 func NewWithCap(c int) *T { return &T{make([]*kind.T, 0, c)} }
 
 func FromIntSlice(is []int) (k *T) {
@@ -22,6 +19,8 @@ func FromIntSlice(is []int) (k *T) {
 	}
 	return
 }
+
+func (k *T) Len() (l int) { return len(k.K) }
 
 func (k *T) ToUint16() (o []uint16) {
 	for i := range k.K {

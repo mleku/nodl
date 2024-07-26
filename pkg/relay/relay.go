@@ -9,6 +9,8 @@ import (
 
 	"github.com/fasthttp/websocket"
 	"github.com/mleku/nodl/pkg/codec/bech32encoding"
+	"github.com/mleku/nodl/pkg/codec/event"
+	"github.com/mleku/nodl/pkg/codec/filter"
 	"github.com/mleku/nodl/pkg/crypto/keys"
 	"github.com/mleku/nodl/pkg/protocol/relayinfo"
 	"github.com/mleku/nodl/pkg/relay/acl"
@@ -50,12 +52,24 @@ type (
 	// Event are a closure type that responds to an event.
 	Event  func(c Ctx, ev EV) E
 	Events []Event
+	// CountEvent is a function to count the events that match the filter.
+	CountEvent  func(c Ctx, f *filter.T) (cnt int, err error)
+	CountEvents []CountEvent
 	// OnEventSaved runs when an event is stored.
 	OnEventSaved  func(c Ctx, ev EV)
 	OnEventSaveds []OnEventSaved
 	// OverwriteResponseEvent rewrites an event response.
 	OverwriteResponseEvent  func(c Ctx, ev EV)
 	OverwriteResponseEvents []OverwriteResponseEvent
+	// OverwriteFilter rewrites the content of a filter according to policy.
+	OverwriteFilter  func(c Ctx, f *filter.T)
+	OverwriteFilters []OverwriteFilter
+	// RejectFilter is a closure to examine a filter and if it is invalid, reject it.
+	RejectFilter  func(c Ctx, id SubID, f *filter.T) (reject bool, msg B)
+	RejectFilters []RejectFilter
+	// QueryEvent is a closure for making a query to the event store.
+	QueryEvent  func(c Ctx, f *filter.T) (C event.C, err error)
+	QueryEvents []QueryEvent
 	// R is the data structure holding state of the relay.
 	R struct {
 		Ctx            Ctx
@@ -69,8 +83,13 @@ type (
 		RelayNpub      S
 		OverwriteRelayInfos
 		OverwriteResponseEvents
+		OverwriteReqFilter   OverwriteFilters
+		OverwriteCountFilter OverwriteFilters
 		RejectEvents
+		RejectFilters
+		QueryEvents
 		StoreEvents Events
+		CountEvents
 		OnEventSaveds
 		OnConnects    Hooks
 		OnDisconnects Hooks

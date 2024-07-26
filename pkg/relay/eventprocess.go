@@ -1,96 +1,76 @@
 package relay
 
 import (
-	"fmt"
-	"strings"
+	"bytes"
 
 	"github.com/minio/sha256-simd"
 	evEnv "github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
-	"github.com/mleku/nodl/pkg/codec/eventid"
 	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/protocol/auth"
+	"github.com/mleku/nodl/pkg/protocol/reasons"
 	"github.com/mleku/nodl/pkg/util/hex"
-	"github.com/mleku/nodl/pkg/util/normalize"
 )
 
-func (rl *R) processEventEnvelope(msg B, env *evEnv.Submission, c Ctx, ws WS, serviceURL S) (err E) {
+func (rl *R) processEventEnvelope(msg B, env *evEnv.Submission, c Ctx, ws WS, svcURL S) (err E) {
 	var ok bool
 	if !rl.IsAuthed(c, "EVENT") {
 		return
 	}
 	// reject old dated events according to nip11
-	if *env.Event.CreatedAt <= rl.Info.Limitation.Oldest {
-		log.D.F("rejecting event with date: %s %s %s",
-			env.Event.CreatedAt.Time().String(), ws.RealRemote(),
-			ws.AuthPubKey())
-		chk.E(ws.WriteEnvelope(&OK{
-			EventID: eventid.NewWith(env.Event.ID),
-			OK:      false,
-			Reason: B(fmt.Sprintf(
-				"invalid: relay limit disallows timestamps older than %d",
-				rl.Info.Limitation.Oldest)),
-		}))
+	if *env.T.CreatedAt <= rl.Info.Limitation.Oldest {
+		log.D.F("rejecting event with date: %s %s %s", env.T.CreatedAt.Time().String(), ws.Remote(), ws.AuthPub())
+		if err = NewOK(NewEID(env.ID), false,
+			Reason(Invalid, "relay limit disallows timestamps older than %d",
+				rl.Info.Limitation.Oldest)).Write(ws); chk.E(err) {
+			return
+		}
 		return
 	}
 	// check id
-	evs := env.Event.ToCanonical()
+	evs := env.T.ToCanonical()
 	hash := sha256.Sum256(evs)
 	id := hex.EncAppend(nil, hash[:])
-	if !equals(id, env.Event.ID) {
-		j, _ := env.Event.MarshalJSON(nil)
-		log.D.F("id mismatch got %s, expected %s %s %s\n%s\n%s",
-			ws.RealRemote(), ws.AuthPubKey(), id, env.Event.ID, j, msg)
-		chk.E(ws.WriteEnvelope(&OK{
-			EventID: eventid.NewWith(env.Event.ID),
-			OK:      false,
-			Reason:  normalize.Reason(okenvelope.Invalid, "id is computed incorrectly"),
-		}))
+	if !equals(id, env.T.ID) {
+		j, _ := env.T.MarshalJSON(nil)
+		log.D.F("id mismatch got %s, expected %s %s %s\n%s\n%s", ws.Remote(), ws.AuthPub(), id, env.ID, j, msg)
+		if err = NewOK(NewEID(env.ID), false, Reason(Invalid, "id is computed incorrectly")).Write(ws); chk.E(err) {
+			return
+		}
 		return
 	}
 	// check signature
-	if ok, err = env.Event.CheckSignature(); chk.E(err) {
-		chk.E(ws.WriteEnvelope(&OK{
-			EventID: eventid.NewWith(env.Event.ID),
-			OK:      false,
-			Reason: normalize.Reason(okenvelope.Error,
-				okenvelope.Reason("failed to verify signature: "+err.Error())),
-		}))
+	if ok, err = env.T.Verify(); chk.E(err) {
+		chk.E(NewOK(NewEID(env.ID), false, Reason(Error, "failed to verify signature: "+err.Error())).Write(ws))
 		return
 	} else if !ok {
-		log.E.Ln("invalid: signature is invalid", ws.RealRemote(),
-			ws.AuthPubKey())
-		chk.E(ws.WriteEnvelope(&OK{
-			EventID: eventid.NewWith(env.Event.ID),
-			OK:      false,
-			Reason:  normalize.Reason(okenvelope.Invalid, "signature is invalid")}))
+		log.D.Ln("invalid: signature is invalid", ws.Remote(), ws.AuthPub())
+		if err = NewOK(NewEID(env.ID), false, Reason(Invalid, "signature is invalid")).Write(ws); chk.E(err) {
+			return
+		}
 		return
 	}
-	if env.Event.Kind == kind.Deletion {
+	if env.T.Kind == kind.Deletion {
 		// this always returns "blocked: " whenever it returns an error
-		err = rl.handleDeleteRequest(c, env.Event)
+		err = rl.handleDeleteRequest(c, env.T)
 	} else {
 		// this will also always return a prefixed reason
-		err = rl.AddEvent(c, env.Event)
+		err = rl.AddEvent(c, env.T)
 	}
-	var reason string
+	var reason B
 	if err != nil {
-		reason = err.Error()
-		if strings.HasPrefix(reason, auth.Required) {
+		reason = B(err.Error())
+		if bytes.HasPrefix(reason, reasons.AuthRequired) {
 			log.I.Ln("requesting auth")
 			RequestAuth(c, env.Label())
 			ok = true
 		}
-		if strings.HasPrefix(reason, "duplicate") {
+		if bytes.HasPrefix(reason, reasons.Duplicate) {
 			ok = true
 		}
 	} else {
 		ok = true
 	}
-	chk.E(ws.WriteEnvelope(&OK{
-		EventID: eventid.NewWith(env.Event.ID),
-		OK:      ok,
-		Reason:  B(reason),
-	}))
+	if err = NewOK(NewEID(env.ID), ok, reason).Write(ws); chk.E(err) {
+		return
+	}
 	return
 }

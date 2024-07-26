@@ -12,6 +12,8 @@ type T struct {
 	T B
 }
 
+func (si *T) String() S { return S(si.T) }
+
 // IsValid returns true if the subscription id is between 1 and 64 characters.
 // Invalid means too long or not present.
 func (si *T) IsValid() bool { return len(si.T) <= 64 && len(si.T) > 0 }

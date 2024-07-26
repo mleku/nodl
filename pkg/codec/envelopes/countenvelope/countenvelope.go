@@ -5,41 +5,37 @@ import (
 	"bytes"
 
 	"github.com/mleku/nodl/pkg/codec/envelopes"
+	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
 	"github.com/mleku/nodl/pkg/codec/filters"
 	"github.com/mleku/nodl/pkg/codec/ints"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
 	"github.com/mleku/nodl/pkg/codec/text"
 )
 
 const L = "COUNT"
 
 type Request struct {
-	ID      *subscriptionid.T
+	ID      *sid.T
 	Filters *filters.T
 }
 
-var _ envelopes.I = (*Request)(nil)
+var _ enveloper.I = (*Request)(nil)
 
-func New() *Request {
-	return &Request{ID: subscriptionid.NewStd(), Filters: filters.New()}
-}
+func New() *Request                                     { return &Request{ID: sid.NewStd(), Filters: filters.New()} }
+func NewRequest(id *sid.T, filters *filters.T) *Request { return &Request{ID: id, Filters: filters} }
+func (en *Request) Label() string                       { return L }
+func (en *Request) Write(ws enveloper.Writer) (err E)        { return ws.WriteEnvelope(en) }
 
-func NewRequest(id *subscriptionid.T, filters *filters.T) *Request {
-	return &Request{ID: id, Filters: filters}
-}
-
-func (req *Request) Label() string { return L }
-
-func (req *Request) MarshalJSON(dst B) (b B, err error) {
+func (en *Request) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = req.ID.MarshalJSON(o); chk.E(err) {
+			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')
-			if o, err = req.Filters.MarshalJSON(o); chk.E(err) {
+			if o, err = en.Filters.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			return
@@ -47,16 +43,16 @@ func (req *Request) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (req *Request) UnmarshalJSON(b B) (r B, err error) {
+func (en *Request) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if req.ID, err = subscriptionid.New(B{0}); chk.E(err) {
+	if en.ID, err = sid.New(B{0}); chk.E(err) {
 		return
 	}
-	if r, err = req.ID.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.ID.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	req.Filters = filters.New()
-	if r, err = req.Filters.UnmarshalJSON(r); chk.E(err) {
+	en.Filters = filters.New()
+	if r, err = en.Filters.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
@@ -66,27 +62,30 @@ func (req *Request) UnmarshalJSON(b B) (r B, err error) {
 }
 
 type Response struct {
-	ID          *subscriptionid.T
+	ID          *sid.T
 	Count       int
 	Approximate bool
 }
 
-var _ envelopes.I = (*Response)(nil)
+var _ enveloper.I = (*Response)(nil)
 
-func (res *Response) Label() string { return L }
+func NewResponse() *Response                                    { return &Response{ID: sid.NewStd()} }
+func NewResponseFrom(id *sid.T, cnt int, approx bool) *Response { return &Response{id, cnt, approx} }
+func (en *Response) Label() string                              { return L }
+func (en *Response) Write(ws enveloper.Writer) (err E)               { return ws.WriteEnvelope(en) }
 
-func (res *Response) MarshalJSON(dst B) (b B, err error) {
+func (en *Response) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = res.ID.MarshalJSON(o); chk.E(err) {
+			if o, err = en.ID.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')
-			c := ints.New(res.Count)
+			c := ints.New(en.Count)
 			o, err = c.MarshalJSON(o)
-			if res.Approximate {
+			if en.Approximate {
 				o = append(dst, ',')
 				o = append(o, "true"...)
 			}
@@ -95,7 +94,7 @@ func (res *Response) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (res *Response) UnmarshalJSON(b B) (r B, err error) {
+func (en *Response) UnmarshalJSON(b B) (r B, err error) {
 	r = b
 	var inID, inCount bool
 	for ; len(r) > 0; r = r[1:] {
@@ -114,7 +113,7 @@ func (res *Response) UnmarshalJSON(b B) (r B, err error) {
 							continue
 						}
 					}
-					if res.ID, err = subscriptionid.
+					if en.ID, err = sid.
 						New(text.NostrUnescape(r[:i])); chk.E(err) {
 
 						return
@@ -133,7 +132,7 @@ func (res *Response) UnmarshalJSON(b B) (r B, err error) {
 				if r, err = n.UnmarshalJSON(r); chk.E(err) {
 					return
 				}
-				res.Count = int(n.Uint64())
+				en.Count = int(n.Uint64())
 			} else {
 				// can only be either the end or optional approx
 				if r[0] == ']' {
@@ -142,7 +141,7 @@ func (res *Response) UnmarshalJSON(b B) (r B, err error) {
 					for i := range r {
 						if r[i] == ']' {
 							if bytes.Contains(r[:i], B("true")) {
-								res.Approximate = true
+								en.Approximate = true
 							}
 							return
 						}

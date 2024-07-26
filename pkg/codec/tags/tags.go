@@ -69,8 +69,7 @@ func (t *T) Swap(i, j int) {
 
 func (t *T) Len() (l int) { return len(t.T) }
 
-// GetFirst gets the first tag in tags that matches the prefix, see
-// [T.StartsWith]
+// GetFirst gets the first tag in tags that matches the prefix, see [T.StartsWith]
 func (t *T) GetFirst(tagPrefix *tag.T) *tag.T {
 	for _, v := range t.T {
 		if v.StartsWith(tagPrefix) {
@@ -125,6 +124,14 @@ func (t *T) AppendUnique(tag *tag.T) *T {
 		return &T{append(t.T, tag)}
 	}
 	return t
+}
+
+func (t *T) Append(ttt ...*T) {
+	for _, tt := range ttt {
+		for _, v := range tt.T {
+			t.T = append(t.T, v)
+		}
+	}
 }
 
 // Scan parses a string or raw bytes that should be a string and embeds the

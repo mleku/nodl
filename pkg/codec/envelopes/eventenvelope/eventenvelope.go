@@ -2,29 +2,31 @@ package eventenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes"
+	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
 	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
 )
 
 const L = "EVENT"
 
 // Submission is a request from a client for a relay to store an event.
 type Submission struct {
-	Event *event.T
+	*event.T
 }
 
-var _ envelopes.I = (*Submission)(nil)
+var _ enveloper.I = (*Submission)(nil)
 
-func NewSubmission() *Submission                { return &Submission{Event: &event.T{}} }
-func NewSubmissionWith(ev *event.T) *Submission { return &Submission{Event: ev} }
-func (sub *Submission) Label() string           { return L }
+func NewSubmission() *Submission                         { return &Submission{T: &event.T{}} }
+func NewSubmissionWith(ev *event.T) *Submission          { return &Submission{T: ev} }
+func (en *Submission) Label() string                     { return L }
+func (en *Submission) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
-func (sub *Submission) MarshalJSON(dst B) (b B, err error) {
+func (en *Submission) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = sub.Event.MarshalJSON(o); chk.E(err) {
+			if o, err = en.T.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			return
@@ -32,10 +34,10 @@ func (sub *Submission) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (sub *Submission) UnmarshalJSON(b B) (r B, err error) {
+func (en *Submission) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	sub.Event = event.New()
-	if r, err = sub.Event.UnmarshalJSON(r); chk.E(err) {
+	en.T = event.New()
+	if r, err = en.T.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
@@ -46,28 +48,27 @@ func (sub *Submission) UnmarshalJSON(b B) (r B, err error) {
 
 // Result is an event matching a filter associated with a subscription.
 type Result struct {
-	Subscription *subscriptionid.T
+	Subscription *sid.T
 	Event        *event.T
 }
 
-var _ envelopes.I = (*Result)(nil)
+var _ enveloper.I = (*Result)(nil)
 
-func NewResult() *Result { return &Result{} }
-func NewResultWith(s *subscriptionid.T, ev *event.T) *Result {
-	return &Result{Subscription: s, Event: ev}
-}
-func (res *Result) Label() string { return L }
+func NewResult() *Result                             { return &Result{} }
+func NewResultWith(s *sid.T, ev *event.T) *Result    { return &Result{Subscription: s, Event: ev} }
+func (en *Result) Label() string                     { return L }
+func (en *Result) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
-func (res *Result) MarshalJSON(dst B) (b B, err error) {
+func (en *Result) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b, err = envelopes.Marshal(b, L,
 		func(bst B) (o B, err error) {
 			o = bst
-			if o, err = res.Subscription.MarshalJSON(o); chk.E(err) {
+			if o, err = en.Subscription.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			o = append(o, ',')
-			if o, err = res.Event.MarshalJSON(o); chk.E(err) {
+			if o, err = en.Event.MarshalJSON(o); chk.E(err) {
 				return
 			}
 			return
@@ -75,16 +76,16 @@ func (res *Result) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
-func (res *Result) UnmarshalJSON(b B) (r B, err error) {
+func (en *Result) UnmarshalJSON(b B) (r B, err error) {
 	r = b
-	if res.Subscription, err = subscriptionid.New(B{0}); chk.E(err) {
+	if en.Subscription, err = sid.New(B{0}); chk.E(err) {
 		return
 	}
-	if r, err = res.Subscription.UnmarshalJSON(r); chk.E(err) {
+	if r, err = en.Subscription.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
-	res.Event = event.New()
-	if r, err = res.Event.UnmarshalJSON(r); chk.E(err) {
+	en.Event = event.New()
+	if r, err = en.Event.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
