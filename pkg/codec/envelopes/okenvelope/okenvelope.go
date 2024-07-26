@@ -22,7 +22,7 @@ var _ enveloper.I = (*T)(nil)
 func New() *T                                   { return &T{} }
 func NewFrom(eid *eventid.T, ok bool, msg B) *T { return &T{EventID: eid, OK: ok, Reason: msg} }
 func (en *T) Label() string                     { return L }
-func (en *T) Write(ws enveloper.Writer) (err E)      { return ws.WriteEnvelope(en) }
+func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst

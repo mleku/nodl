@@ -14,9 +14,9 @@ type T struct {
 
 var _ enveloper.I = (*T)(nil)
 
-func New() *T                              { return &T{} }
-func NewFrom[V S | B](msg V) *T            { return &T{Message: B(msg)} }
-func (en *T) Label() string                { return L }
+func New() *T                                   { return &T{} }
+func NewFrom[V S | B](msg V) *T                 { return &T{Message: B(msg)} }
+func (en *T) Label() string                     { return L }
 func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *T) MarshalJSON(dst B) (b B, err E) {

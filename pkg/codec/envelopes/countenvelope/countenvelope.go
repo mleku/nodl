@@ -24,7 +24,7 @@ var _ enveloper.I = (*Request)(nil)
 func New() *Request                                     { return &Request{ID: sid.NewStd(), Filters: filters.New()} }
 func NewRequest(id *sid.T, filters *filters.T) *Request { return &Request{ID: id, Filters: filters} }
 func (en *Request) Label() string                       { return L }
-func (en *Request) Write(ws enveloper.Writer) (err E)        { return ws.WriteEnvelope(en) }
+func (en *Request) Write(ws enveloper.Writer) (err E)   { return ws.WriteEnvelope(en) }
 
 func (en *Request) MarshalJSON(dst B) (b B, err error) {
 	b = dst
@@ -72,7 +72,7 @@ var _ enveloper.I = (*Response)(nil)
 func NewResponse() *Response                                    { return &Response{ID: sid.NewStd()} }
 func NewResponseFrom(id *sid.T, cnt int, approx bool) *Response { return &Response{id, cnt, approx} }
 func (en *Response) Label() string                              { return L }
-func (en *Response) Write(ws enveloper.Writer) (err E)               { return ws.WriteEnvelope(en) }
+func (en *Response) Write(ws enveloper.Writer) (err E)          { return ws.WriteEnvelope(en) }
 
 func (en *Response) MarshalJSON(dst B) (b B, err error) {
 	b = dst

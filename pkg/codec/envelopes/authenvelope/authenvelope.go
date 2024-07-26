@@ -13,9 +13,9 @@ type Challenge struct {
 	Challenge B
 }
 
-func NewChallenge() *Challenge                     { return &Challenge{} }
-func NewChallengeWith(challenge B) *Challenge      { return &Challenge{Challenge: challenge} }
-func (en *Challenge) Label() string                { return L }
+func NewChallenge() *Challenge                          { return &Challenge{} }
+func NewChallengeWith(challenge B) *Challenge           { return &Challenge{Challenge: challenge} }
+func (en *Challenge) Label() string                     { return L }
 func (en *Challenge) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *Challenge) MarshalJSON(dst B) (b B, err E) {
@@ -51,8 +51,8 @@ type Response struct {
 
 var _ enveloper.I = (*Response)(nil)
 
-func NewResponse() *Response                      { return &Response{} }
-func (en *Response) Label() string                { return L }
+func NewResponse() *Response                           { return &Response{} }
+func (en *Response) Label() string                     { return L }
 func (en *Response) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *Response) MarshalJSON(dst B) (b B, err E) {
