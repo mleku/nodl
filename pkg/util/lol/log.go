@@ -35,7 +35,7 @@ type (
 	Ln func(a ...interface{})
 	// F prints like fmt.Println surrounded by log details
 	F func(format string, a ...interface{})
-	// S prints a spew.Sdump for an interface slice
+	// S prints a spew.Sdump for an enveloper slice
 	S func(a ...interface{})
 	// C accepts a function so that the extra computation can be avoided if it is
 	// not being viewed

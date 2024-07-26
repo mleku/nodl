@@ -2,7 +2,7 @@ package reqenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
+	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
 	"github.com/mleku/nodl/pkg/codec/filters"
 	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
 	"github.com/mleku/nodl/pkg/codec/text"

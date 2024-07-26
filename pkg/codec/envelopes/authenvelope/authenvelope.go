@@ -2,7 +2,7 @@ package authenvelope
 
 import (
 	envs "github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
+	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
 	"github.com/mleku/nodl/pkg/codec/event"
 	"github.com/mleku/nodl/pkg/codec/text"
 )

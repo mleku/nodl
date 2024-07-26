@@ -49,12 +49,12 @@ func (h *Handle) processEventSubmission(msg B, env *eventenvelope.Submission) (e
 	ok = true
 	if err != nil {
 		reason = B(err.Error())
-		if bytes.HasPrefix(reason, B(AuthRequired)) {
+		if bytes.HasPrefix(reason, AuthRequired) {
 			log.I.Ln("requesting auth")
 			RequestAuth(c, env.Label())
 			ok = true
 		} else {
-			ok = bytes.HasPrefix(reason, B(Duplicate))
+			ok = bytes.HasPrefix(reason, Duplicate)
 		}
 	} else {
 		ok = true

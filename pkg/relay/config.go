@@ -78,7 +78,7 @@ type Config struct {
 	AuthRequired bool     `arg:"-a,--auth" json:"auth_required"  help:"NIP-42 authentication required for all access"` // default:"false"
 	Public       bool     `arg:"--public" json:"public"  help:"allow public read access to users not on ACL"`          // default:"true"
 	Owners       []string `arg:"-o,--owner,separate" json:"owners" help:"specify public keys of users with owner level permissions on relay"`
-	SecKey       string   `arg:"-s,--seckey" json:"seckey" help:"identity key of relay, used to sign 30066 and 30166 events and for message control interface"`
+	SecKey       string   `arg:"-s,--seckey" json:"seckey" help:"identity key of relay, used to sign 30066 and 30166 events and for message control enveloper"`
 	// Whitelist permits ONLY inbound connections from specified IP addresses.
 	Whitelist []string `arg:"-w,--whitelist,separate" json:"ip_whitelist" help:"IP addresses that are only allowed to access"`
 	// AllowIPs is for bypassing authentication required for clients based on IP

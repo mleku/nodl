@@ -246,6 +246,5 @@ func (ev *T) MarshalBinary(dst B) (b B, err E) {
 		return
 	}
 	b = w.Bytes()
-
 	return
 }

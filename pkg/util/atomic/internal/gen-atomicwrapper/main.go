@@ -25,8 +25,8 @@
 //
 // Given, atomic.Value and the functions,
 //
-//	func packString(string) interface{}
-//	func unpackString(interface{}) string
+//	func packString(string) enveloper{}
+//	func unpackString(enveloper{}) string
 //
 // We can run the following command:
 //

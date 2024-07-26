@@ -23,9 +23,7 @@ func (rl *R) processReqEnvelope(msg B, env *reqenvelope.T, c Ctx, ws WS, svcURL 
 	// handle each filter separately -- dispatching events as they're loaded
 	// from databases
 	for _, f := range env.Filters.F {
-		if err = rl.handleFilter(handleFilterParams{
-			reqCtx, env.Subscription, &wg, ws, f,
-		}); log.T.Chk(err) {
+		if err = rl.handleFilter(handleFilterParams{reqCtx, env.Subscription, &wg, ws, f}); log.T.Chk(err) {
 			// fail everything if any filter is rejected
 			reason := B(err.Error())
 			if reasons.AuthRequired.IsPrefix(reason) {

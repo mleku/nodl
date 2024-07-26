@@ -2,7 +2,7 @@ package okenvelope
 
 import (
 	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/interface"
+	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
 	"github.com/mleku/nodl/pkg/codec/eventid"
 	"github.com/mleku/nodl/pkg/codec/text"
 )

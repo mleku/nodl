@@ -31,7 +31,7 @@ type Store interface {
 	SaveEvent(c Ctx, ev EV) (err E)
 }
 
-// Cache is a sketch of an expanded interface that might be used for a
+// Cache is a sketch of an expanded enveloper that might be used for a
 // size-constrained event store.
 type Cache interface {
 	Store

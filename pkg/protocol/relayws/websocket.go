@@ -9,7 +9,7 @@ import (
 	w "github.com/fasthttp/websocket"
 	"github.com/mleku/btcec/v2/bech32"
 	"github.com/mleku/nodl/pkg/codec/bech32encoding"
-	enveloper "github.com/mleku/nodl/pkg/codec/envelopes/interface"
+	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
 	"github.com/mleku/nodl/pkg/util/atomic"
 	"github.com/mleku/nodl/pkg/util/qu"
 )

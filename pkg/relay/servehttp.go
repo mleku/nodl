@@ -4,7 +4,7 @@ import (
 	"github.com/rs/cors"
 )
 
-// ServeHTTP implements http.Handler interface.
+// ServeHTTP implements http.Handler enveloper.
 //
 // This is the main starting function of the relay. This launches
 // HandleWebsocket which runs the message handling main loop.

@@ -20,10 +20,9 @@ func New() (ei *T) { return &T{} }
 
 func NewWith[V S | B](s V) (ei *T) { return &T{b: B(s)} }
 
-func (ei *T) Set(b []byte) (err error) {
+func (ei *T) Set(b []byte) (err E) {
 	if len(b) != sha256.Size {
-		err = fmt.Errorf("ID bytes incorrect size, got %d require %d",
-			len(b), sha256.Size)
+		err = errorf.E("ID bytes incorrect size, got %d require %d", len(b), sha256.Size)
 		return
 	}
 	ei.b = b

@@ -111,6 +111,11 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	return
 }
 
+func (f *T) Serialize() (b B) {
+	b, _ = f.MarshalJSON(nil)
+	return
+}
+
 // states of the unmarshaler
 const (
 	beforeOpen = iota
