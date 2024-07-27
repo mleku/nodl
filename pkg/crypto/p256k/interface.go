@@ -2,7 +2,7 @@
 
 package p256k
 
-import "github.com/mleku/nodl/pkg"
+import "git.replicatr.dev/pkg"
 
 // Signer implements the pkg.Signer interface.
 //

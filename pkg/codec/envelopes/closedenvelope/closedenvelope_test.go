@@ -3,8 +3,8 @@ package closedenvelope
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
 	"lukechampine.com/frand"
 )
 

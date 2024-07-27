@@ -3,7 +3,7 @@ package relay
 import (
 	"strings"
 
-	"github.com/mleku/nodl/pkg/codec/filter"
+	"git.replicatr.dev/pkg/codec/filter"
 )
 
 func (rl *R) handleCountRequest(c Ctx, id SubID, ws WS, f *filter.T) (subtotal int) {
@@ -14,7 +14,7 @@ func (rl *R) handleCountRequest(c Ctx, id SubID, ws WS, f *filter.T) (subtotal i
 		ovw(c, f)
 	}
 	// then check if we'll reject this filter
-	for _, reject := range rl.RejectFilters {
+	for _, reject := range rl.RejectReqFilters {
 		if rej, msg := reject(c, id, f); rej {
 			chk.E(NewNotice(msg).Write(ws))
 			return 0

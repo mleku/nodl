@@ -3,7 +3,7 @@ package kind
 import (
 	"sync"
 
-	"github.com/mleku/nodl/pkg/codec/ints"
+	"git.replicatr.dev/pkg/codec/ints"
 )
 
 // T - which will be externally referenced as kind.T is the event type in the

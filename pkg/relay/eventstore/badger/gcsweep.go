@@ -3,11 +3,11 @@ package badger
 import (
 	"time"
 
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
 )
 
 func (b *Backend) GCSweep(evs, idxs DelItems) (err E) {

@@ -3,10 +3,10 @@ package text
 import (
 	"io"
 
-	"github.com/mleku/nodl/pkg/codec/ints"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/kinds"
-	"github.com/mleku/nodl/pkg/util/hex"
+	"git.replicatr.dev/pkg/codec/ints"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/kinds"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/templexxx/xhex"
 )
 

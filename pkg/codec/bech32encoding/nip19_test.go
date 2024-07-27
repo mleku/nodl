@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/bech32encoding/pointers"
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/util/hex"
+	"git.replicatr.dev/pkg/codec/bech32encoding/pointers"
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/util/hex"
 )
 
 func TestEncodeNpub(t *testing.T) {

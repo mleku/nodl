@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
 )
 
 const Len = 8

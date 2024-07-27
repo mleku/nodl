@@ -3,11 +3,11 @@ package acl
 import (
 	"testing"
 
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/mleku/btcec/schnorr"
 	"github.com/mleku/btcec/secp256k1"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
-	"github.com/mleku/nodl/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 

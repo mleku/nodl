@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mleku/nodl/pkg/util/context"
-	"github.com/mleku/nodl/pkg/util/normalize"
+	"git.replicatr.dev/pkg/util/context"
+	"git.replicatr.dev/pkg/util/normalize"
 )
 
 // Fetch fetches the NIP-11 Info.

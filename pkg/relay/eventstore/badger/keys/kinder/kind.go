@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 )
 
 const Len = 2

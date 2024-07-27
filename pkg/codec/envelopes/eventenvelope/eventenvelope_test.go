@@ -5,10 +5,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/event/examples"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/event/examples"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
 )
 
 func TestSubmission(t *testing.T) {

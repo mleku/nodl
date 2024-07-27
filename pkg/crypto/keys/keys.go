@@ -3,21 +3,21 @@ package keys
 import (
 	"strings"
 
+	"git.replicatr.dev/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/mleku/btcec"
 	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
-	"github.com/mleku/nodl/pkg/util/hex"
 )
 
-var GeneratePrivateKey = func() string { return GenerateSecretKey() }
+var GeneratePrivateKey = func() B { return GenerateSecretKey() }
 
-func GenerateSecretKey() (sks S) {
+func GenerateSecretKey() (sks B) {
 	var err E
 	var sb B
 	if sb, err = p256k.GenSecBytes(); chk.E(err) {
 		return
 	}
-	sks = hex.Enc(sb)
+	sks = B(hex.Enc(sb))
 	return
 }
 

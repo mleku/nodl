@@ -1,8 +1,8 @@
 package event
 
 import (
-	"github.com/mleku/nodl/pkg/codec/text"
-	"github.com/mleku/nodl/pkg/util/hex"
+	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/util/hex"
 )
 
 func (ev *T) MarshalJSON(dst B) (b B, err error) {

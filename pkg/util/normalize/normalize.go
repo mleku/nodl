@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/mleku/nodl/pkg/codec/ints"
-	"github.com/mleku/nodl/pkg/protocol/reasons"
+	"git.replicatr.dev/pkg/codec/ints"
+	"git.replicatr.dev/pkg/protocol/reasons"
 )
 
 var (

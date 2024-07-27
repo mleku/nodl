@@ -5,10 +5,10 @@ import (
 	"hash/maphash"
 	"unsafe"
 
-	"github.com/mleku/nodl/pkg/codec/filter"
-	"github.com/mleku/nodl/pkg/codec/filters"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
+	"git.replicatr.dev/pkg/codec/filter"
+	"git.replicatr.dev/pkg/codec/filters"
+	"git.replicatr.dev/pkg/protocol/relayws"
+	"git.replicatr.dev/pkg/util/context"
 	"github.com/puzpuzpuz/xsync/v2"
 )
 

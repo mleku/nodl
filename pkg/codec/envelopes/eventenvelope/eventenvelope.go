@@ -1,10 +1,10 @@
 package eventenvelope
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
-	"github.com/mleku/nodl/pkg/codec/event"
-	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
+	"git.replicatr.dev/pkg/codec/event"
+	sid "git.replicatr.dev/pkg/codec/subscriptionid"
 )
 
 const L = "EVENT"

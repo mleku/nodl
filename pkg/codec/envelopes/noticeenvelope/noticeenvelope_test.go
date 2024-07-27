@@ -3,8 +3,8 @@ package noticeenvelope
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/messages"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/envelopes/messages"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

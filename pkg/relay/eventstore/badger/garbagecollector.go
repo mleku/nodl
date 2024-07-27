@@ -3,7 +3,7 @@ package badger
 import (
 	"time"
 
-	"github.com/mleku/nodl/pkg/util/units"
+	"git.replicatr.dev/pkg/util/units"
 )
 
 // GarbageCollector starts up a ticker that runs a check on space utilisation

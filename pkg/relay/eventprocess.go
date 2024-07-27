@@ -3,11 +3,11 @@ package relay
 import (
 	"bytes"
 
+	evEnv "git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/protocol/reasons"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	evEnv "github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/protocol/reasons"
-	"github.com/mleku/nodl/pkg/util/hex"
 )
 
 func (rl *R) processEventEnvelope(msg B, env *evEnv.Submission, c Ctx, ws WS, svcURL S) (err E) {

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"unsafe"
 
-	"github.com/mleku/nodl/pkg/codec/text"
-	"github.com/mleku/nodl/pkg/util/normalize"
+	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/util/normalize"
 )
 
 // The tag position meanings so they are clear when reading.
@@ -62,6 +62,14 @@ func (t *T) Slice(start, end int) *T { return &T{t.Field[start:end]} }
 func (t *T) ToByteSlice() (b []B) {
 	for i := range t.Field {
 		b = append(b, t.Field[i])
+	}
+	return
+}
+
+func (t *T) ToStringSlice() (b []S) {
+	b = make([]S, 0, len(t.Field))
+	for i := range t.Field {
+		b = append(b, S(t.Field[i]))
 	}
 	return
 }

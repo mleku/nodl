@@ -1,9 +1,9 @@
 package p256k
 
 import (
+	"git.replicatr.dev/pkg"
 	"github.com/mleku/btcec/v2/schnorr"
 	"github.com/mleku/btcec/v2/secp256k1"
-	"github.com/mleku/nodl/pkg"
 )
 
 type BTCECSigner struct {

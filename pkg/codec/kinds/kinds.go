@@ -1,8 +1,8 @@
 package kinds
 
 import (
-	"github.com/mleku/nodl/pkg/codec/ints"
-	"github.com/mleku/nodl/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/ints"
+	"git.replicatr.dev/pkg/codec/kind"
 )
 
 type T struct {
@@ -110,6 +110,15 @@ func (k *T) UnmarshalJSON(b B) (r B, err error) {
 		log.I.F("\n%v\n%s", k, r)
 		return nil, errorf.E("kinds: failed to unmarshal\n%s\n%s\n%s", k,
 			b, r)
+	}
+	return
+}
+
+func (k *T) IsPrivileged() (priv bool) {
+	for i := range k.K {
+		if k.K[i].IsPrivileged() {
+			return true
+		}
 	}
 	return
 }

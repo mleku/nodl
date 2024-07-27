@@ -3,11 +3,11 @@ package badger
 import (
 	"fmt"
 
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/util/context"
 	"github.com/dgraph-io/badger/v4"
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
-	"github.com/mleku/nodl/pkg/util/context"
 )
 
 type AccessEvent struct {

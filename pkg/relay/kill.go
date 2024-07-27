@@ -3,7 +3,7 @@ package relay
 import (
 	"time"
 
-	"github.com/mleku/nodl/pkg/util/context"
+	"git.replicatr.dev/pkg/util/context"
 )
 
 func (rl *R) Kill(c Ctx, cancel context.F, ws WS, ticker *time.Ticker) func() {

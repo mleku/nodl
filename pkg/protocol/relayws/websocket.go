@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"git.replicatr.dev/pkg/codec/bech32encoding"
+	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
+	"git.replicatr.dev/pkg/util/atomic"
+	"git.replicatr.dev/pkg/util/qu"
 	w "github.com/fasthttp/websocket"
 	"github.com/mleku/btcec/v2/bech32"
-	"github.com/mleku/nodl/pkg/codec/bech32encoding"
-	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
-	"github.com/mleku/nodl/pkg/util/atomic"
-	"github.com/mleku/nodl/pkg/util/qu"
 )
 
 type MessageType int

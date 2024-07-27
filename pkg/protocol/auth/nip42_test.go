@@ -3,8 +3,8 @@ package auth
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg"
+	"git.replicatr.dev/pkg/crypto/p256k"
 )
 
 func TestCreateUnsigned(t *testing.T) {

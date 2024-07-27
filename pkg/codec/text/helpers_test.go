@@ -3,8 +3,8 @@ package text
 import (
 	"testing"
 
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 

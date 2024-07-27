@@ -3,9 +3,9 @@ package relay
 import (
 	"strings"
 
-	ae "github.com/mleku/nodl/pkg/codec/envelopes/authenvelope"
-	eid "github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/protocol/auth"
+	ae "git.replicatr.dev/pkg/codec/envelopes/authenvelope"
+	eid "git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/protocol/auth"
 )
 
 func (h *Handle) processAuthEnvelope(msg B, env *ae.Response) (err E) {

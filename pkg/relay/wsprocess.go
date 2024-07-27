@@ -1,13 +1,13 @@
 package relay
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/authenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/closeenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/countenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/reqenvelope"
-	"github.com/mleku/nodl/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/envelopes/authenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/closeenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/countenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
+	"git.replicatr.dev/pkg/codec/eventid"
 )
 
 func (h *Handle) wsProcessMessages(msg B) (err E) {

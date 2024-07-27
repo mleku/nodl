@@ -5,7 +5,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/mleku/nodl/pkg/codec/ints"
+	"git.replicatr.dev/pkg/codec/ints"
 )
 
 // T is a convenience type for UNIX 64 bit timestamps of 1 second
@@ -55,6 +55,7 @@ func FromUnix(t int64) *T {
 	tt := T(t)
 	return &tt
 }
+func (t *T) FromInt(i int)  { *t = T(i) }
 
 // FromBytes converts from a string of raw bytes.
 func FromBytes(b []byte) *T {

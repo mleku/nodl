@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mleku/nodl/pkg"
-	"github.com/mleku/nodl/pkg/codec/event/examples"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg"
+	"git.replicatr.dev/pkg/codec/event/examples"
+	"git.replicatr.dev/pkg/crypto/p256k"
 )
 
 func TestTMarshal_Unmarshal(t *testing.T) {

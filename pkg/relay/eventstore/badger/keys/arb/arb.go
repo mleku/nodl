@@ -3,7 +3,7 @@ package arb
 import (
 	"bytes"
 
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 )
 
 // T is an arbitrary length byte string. In any construction there can only be one with arbitrary length. Custom lengths

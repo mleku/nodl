@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/mleku/nodl/pkg/util/atomic"
-	"github.com/mleku/nodl/pkg/util/qu"
+	"git.replicatr.dev/pkg/util/atomic"
+	"git.replicatr.dev/pkg/util/qu"
 )
 
 type HandlerWithSource struct {

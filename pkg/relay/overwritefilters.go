@@ -1,7 +1,7 @@
 package relay
 
 import (
-	"github.com/mleku/nodl/pkg/codec/filter"
+	"git.replicatr.dev/pkg/codec/filter"
 )
 
 var MaxLimit int

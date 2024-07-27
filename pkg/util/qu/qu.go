@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mleku/nodl/pkg/util/atomic"
-	"github.com/mleku/nodl/pkg/util/lol"
+	"git.replicatr.dev/pkg/util/atomic"
+	"git.replicatr.dev/pkg/util/lol"
 )
 
 // C is your basic empty struct signalling channel

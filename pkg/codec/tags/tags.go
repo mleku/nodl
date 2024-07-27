@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mleku/nodl/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/tag"
 )
 
 // T is a list of T - which are lists of string elements with ordering and no
@@ -20,6 +20,14 @@ func New(fields ...*tag.T) (t *T) {
 	t = &T{T: make([]*tag.T, len(fields))}
 	for i, field := range fields {
 		t.T[i] = field
+	}
+	return
+}
+
+func (t *T) ToStringSlice() (b [][]S) {
+	b = make([][]S, 0, len(t.T))
+	for i := range t.T {
+		b = append(b, t.T[i].ToStringSlice())
 	}
 	return
 }

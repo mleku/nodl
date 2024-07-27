@@ -23,7 +23,7 @@ package atomic_test
 import (
 	"fmt"
 
-	"github.com/mleku/nodl/pkg/util/atomic"
+	"git.replicatr.dev/pkg/util/atomic"
 )
 
 func Example() {

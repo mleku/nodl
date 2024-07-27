@@ -3,11 +3,11 @@ package eventstore
 import (
 	"net/http"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
+	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/protocol/relayws"
+	"git.replicatr.dev/pkg/util/context"
 )
 
 type Ctx = context.T

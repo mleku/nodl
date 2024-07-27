@@ -3,10 +3,10 @@ package authenvelope
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg"
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
-	"github.com/mleku/nodl/pkg/protocol/auth"
+	"git.replicatr.dev/pkg"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg/protocol/auth"
 )
 
 const relayURL = "wss://example.com"

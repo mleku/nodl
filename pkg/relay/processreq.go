@@ -4,11 +4,11 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/closedenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/eoseenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/reqenvelope"
-	"github.com/mleku/nodl/pkg/protocol/reasons"
-	"github.com/mleku/nodl/pkg/util/context"
+	"git.replicatr.dev/pkg/codec/envelopes/closedenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/eoseenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
+	"git.replicatr.dev/pkg/protocol/reasons"
+	"git.replicatr.dev/pkg/util/context"
 )
 
 func (rl *R) processReqEnvelope(msg B, env *reqenvelope.T, c Ctx, ws WS, svcURL S) (err error) {

@@ -1,9 +1,9 @@
 package eventstore
 
 import (
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/filter"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/del"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/filter"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/del"
 )
 
 // Store is a persistence layer for nostr events handled by a relay.

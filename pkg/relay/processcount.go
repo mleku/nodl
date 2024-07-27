@@ -1,8 +1,8 @@
 package relay
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes/closedenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/countenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/closedenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/countenvelope"
 )
 
 func (rl *R) processCountEnvelope(_ B, env *countenvelope.Request, c Ctx, ws WS, _ S) (err E) {

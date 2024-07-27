@@ -6,26 +6,23 @@ package badger
 // 	"testing"
 // 	"time"
 
-// 	"github.com/mleku/nodl/pkg/relay/bech32encoding"
-// 	"github.com/mleku/nodl/pkg/relay/context"
-// 	"github.com/mleku/nodl/pkg/relay/event"
-// 	"github.com/mleku/nodl/pkg/relay/eventid"
-// 	"github.com/mleku/nodl/pkg/relay/filter"
-// 	"github.com/mleku/nodl/pkg/relay/keys"
-// 	"github.com/mleku/nodl/pkg/relay/tag"
-// 	"github.com/mleku/nodl/pkg/relay/tests"
+// 	"git.replicatr.dev/pkg/relay/bech32encoding"
+// 	"git.replicatr.dev/pkg/relay/context"
+// 	"git.replicatr.dev/pkg/relay/event"
+// 	"git.replicatr.dev/pkg/relay/eventid"
+// 	"git.replicatr.dev/pkg/relay/filter"
+// 	"git.replicatr.dev/pkg/relay/keys"
+// 	"git.replicatr.dev/pkg/relay/tag"
+// 	"git.replicatr.dev/pkg/relay/tests"
 // 	"lukechampine.com/frand"
-// 	"github.com/Hubmakerlabs/replicatr/pkg/interrupt"
-// 	"github.com/Hubmakerlabs/replicatr/pkg/qu"
-// 	"github.com/Hubmakerlabs/replicatr/pkg/slog"
+// 	"git.replicatr.dev/pkg/util/interrupt"
+// 	"git.replicatr.dev/pkg/util/qu"
 // )
 
 // type Counter struct {
 // 	id        *eventid.T
 // 	requested int
 // }
-
-// var log, chk = slog.New(os.Stderr)
 
 // func TestGarbageCollector(t *testing.T) {
 // 	var (

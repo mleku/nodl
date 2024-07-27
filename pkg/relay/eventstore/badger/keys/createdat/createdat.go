@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )
 
 const Len = 8

@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"testing"
 
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/event/examples"
+	"git.replicatr.dev/pkg/crypto/p256k"
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/v2/schnorr"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/event/examples"
-	"github.com/mleku/nodl/pkg/crypto/p256k"
 )
 
 func TestSignerVerify(t *testing.T) {

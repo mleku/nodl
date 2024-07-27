@@ -3,7 +3,7 @@ package relay
 import (
 	"errors"
 
-	"github.com/mleku/nodl/pkg/relay/eventstore"
+	"git.replicatr.dev/pkg/relay/eventstore"
 )
 
 // AddEvent sends an event through then normal add pipeline, as if it was

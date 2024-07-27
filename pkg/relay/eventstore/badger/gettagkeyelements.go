@@ -4,15 +4,15 @@ import (
 	"strconv"
 	"strings"
 
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/arb"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/arb"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/createdat"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/kinder"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/pubkey"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
-	"github.com/mleku/nodl/pkg/util/hex"
 )
 
 func GetTagKeyElements(tagValue string, CA *createdat.T,

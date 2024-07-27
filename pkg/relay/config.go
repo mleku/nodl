@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mleku/nodl/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/codec/timestamp"
 )
 
 type ExportCmd struct {

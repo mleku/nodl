@@ -1,7 +1,7 @@
 package enveloper
 
 import (
-	"github.com/mleku/nodl/pkg/codec"
+	"git.replicatr.dev/pkg/codec"
 )
 
 type I interface {

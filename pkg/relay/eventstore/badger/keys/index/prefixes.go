@@ -1,12 +1,12 @@
 package index
 
 import (
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/createdat"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/id"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/kinder"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/pubkey"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/id"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )
 
 type P byte

@@ -3,16 +3,16 @@ package relay
 import (
 	"net/http"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/noticeenvelope"
-	"github.com/mleku/nodl/pkg/codec/envelopes/okenvelope"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
-	"github.com/mleku/nodl/pkg/protocol/reasons"
-	"github.com/mleku/nodl/pkg/protocol/relayws"
-	"github.com/mleku/nodl/pkg/util/context"
-	"github.com/mleku/nodl/pkg/util/normalize"
+	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/noticeenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/protocol/reasons"
+	"git.replicatr.dev/pkg/protocol/relayws"
+	"git.replicatr.dev/pkg/util/context"
+	"git.replicatr.dev/pkg/util/normalize"
 )
 
 type (

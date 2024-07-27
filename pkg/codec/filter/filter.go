@@ -4,18 +4,18 @@ import (
 	"bytes"
 	"fmt"
 
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/ints"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/kinds"
+	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/tags"
+	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
 	"github.com/mleku/btcec/v2/schnorr"
 	"github.com/mleku/btcec/v2/secp256k1"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/ints"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/kinds"
-	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/codec/tags"
-	"github.com/mleku/nodl/pkg/codec/text"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 
@@ -115,6 +115,8 @@ func (f *T) Serialize() (b B) {
 	b, _ = f.MarshalJSON(nil)
 	return
 }
+
+func (f *T) String() (r S) { return S(f.Serialize()) }
 
 // states of the unmarshaler
 const (

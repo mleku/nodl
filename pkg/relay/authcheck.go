@@ -1,9 +1,9 @@
 package relay
 
 import (
-	authEnv "github.com/mleku/nodl/pkg/codec/envelopes/authenvelope"
-	clEnv "github.com/mleku/nodl/pkg/codec/envelopes/closedenvelope"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
+	authEnv "git.replicatr.dev/pkg/codec/envelopes/authenvelope"
+	clEnv "git.replicatr.dev/pkg/codec/envelopes/closedenvelope"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
 )
 
 // AuthCheck sends out a request if auth is required (this is an OnConnects

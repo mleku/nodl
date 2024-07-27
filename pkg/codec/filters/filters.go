@@ -1,8 +1,8 @@
 package filters
 
 import (
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/filter"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/filter"
 )
 
 type T struct {

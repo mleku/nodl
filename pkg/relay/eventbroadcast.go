@@ -1,9 +1,9 @@
 package relay
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	sid "github.com/mleku/nodl/pkg/codec/subscriptionid"
-	"github.com/mleku/nodl/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	sid "git.replicatr.dev/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/codec/tag"
 )
 
 // BroadcastEvent emits an event to all listeners whose filters' match, skipping

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 	"lukechampine.com/frand"
 )
 

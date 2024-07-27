@@ -7,15 +7,15 @@ import (
 	"sync"
 	"time"
 
+	"git.replicatr.dev/pkg/codec/bech32encoding"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/filter"
+	"git.replicatr.dev/pkg/crypto/keys"
+	"git.replicatr.dev/pkg/protocol/relayinfo"
+	"git.replicatr.dev/pkg/relay/acl"
+	"git.replicatr.dev/pkg/util/context"
+	"git.replicatr.dev/pkg/util/units"
 	"github.com/fasthttp/websocket"
-	"github.com/mleku/nodl/pkg/codec/bech32encoding"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/filter"
-	"github.com/mleku/nodl/pkg/crypto/keys"
-	"github.com/mleku/nodl/pkg/protocol/relayinfo"
-	"github.com/mleku/nodl/pkg/relay/acl"
-	"github.com/mleku/nodl/pkg/util/context"
-	"github.com/mleku/nodl/pkg/util/units"
 	"github.com/puzpuzpuz/xsync/v2"
 )
 
@@ -70,6 +70,9 @@ type (
 	// QueryEvent is a closure for making a query to the event store.
 	QueryEvent  func(c Ctx, f *filter.T) (C event.C, err error)
 	QueryEvents []QueryEvent
+	// OverrideDeletion checks a delete request and overrides it according to policy.
+	OverrideDeletion  func(c Ctx, tgt, del *event.T) (ok bool, msg B)
+	OverrideDeletions []OverrideDeletion
 	// R is the data structure holding state of the relay.
 	R struct {
 		Ctx            Ctx
@@ -85,10 +88,13 @@ type (
 		OverwriteResponseEvents
 		OverwriteReqFilter   OverwriteFilters
 		OverwriteCountFilter OverwriteFilters
+		OverrideDeletions
 		RejectEvents
-		RejectFilters
+		RejectReqFilters   RejectFilters
+		RejectCountFilters RejectFilters
 		QueryEvents
-		StoreEvents Events
+		StoreEvents  Events
+		DeleteEvents Events
 		CountEvents
 		OnEventSaveds
 		OnConnects    Hooks

@@ -3,8 +3,8 @@ package badger
 import (
 	"sort"
 
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/count"
-	"github.com/mleku/nodl/pkg/util/units"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/count"
+	"git.replicatr.dev/pkg/util/units"
 )
 
 type DelItems []uint64

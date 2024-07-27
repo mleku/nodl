@@ -1,11 +1,11 @@
 package bech32encoding
 
 import (
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/mleku/btcec/v2"
 	"github.com/mleku/btcec/v2/bech32"
 	"github.com/mleku/btcec/v2/schnorr"
 	"github.com/mleku/btcec/v2/secp256k1"
-	"github.com/mleku/nodl/pkg/util/hex"
 )
 
 const (

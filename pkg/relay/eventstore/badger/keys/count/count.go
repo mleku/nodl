@@ -1,7 +1,7 @@
 package count
 
 import (
-	"github.com/mleku/nodl/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/codec/timestamp"
 )
 
 type Item struct {

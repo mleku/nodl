@@ -1,8 +1,8 @@
 package pointers
 
 import (
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/kind"
 )
 
 type Profile struct {

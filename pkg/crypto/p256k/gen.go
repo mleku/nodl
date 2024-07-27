@@ -1,8 +1,8 @@
 package p256k
 
 import (
+	"git.replicatr.dev/pkg"
 	"github.com/mleku/btcec/v2"
-	"github.com/mleku/nodl/pkg"
 )
 
 func GenSecBytes() (skb B, err error) {

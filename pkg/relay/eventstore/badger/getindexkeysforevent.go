@@ -1,15 +1,15 @@
 package badger
 
 import (
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/createdat"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/id"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/kinder"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/pubkey"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/id"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )
 
 // GetIndexKeysForEvent generates all the index keys required to filter for

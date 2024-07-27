@@ -1,13 +1,13 @@
 package event
 
 import (
+	"git.replicatr.dev/pkg"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/tags"
+	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/nodl/pkg"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/tags"
-	"github.com/mleku/nodl/pkg/codec/text"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 
@@ -34,14 +34,16 @@ type T struct {
 	Sig B `json:"sig"`
 }
 
-func New() (ev *T) { return &T{} }
-
 type C chan *T
+
+func New() (ev *T) { return &T{} }
 
 func (ev *T) Serialize() (b B) {
 	b, _ = ev.MarshalJSON(nil)
 	return
 }
+
+func (ev *T) String() (r S) { return S(ev.Serialize()) }
 
 func (ev *T) ToCanonical() (b B) {
 	b = append(b, "[0,\""...)
@@ -64,6 +66,16 @@ func (ev *T) ToCanonical() (b B) {
 	b = append(b, ']')
 	return
 }
+
+// stringy functions for retarded other libraries
+
+func (ev *T) IDString() (s S)     { return hex.Enc(ev.ID) }
+func (ev *T) PubKeyString() (s S) { return hex.Enc(ev.PubKey) }
+func (ev *T) SigString() (s S)    { return hex.Enc(ev.Sig) }
+func (ev *T) TagStrings() (s [][]S) {
+	return ev.Tags.ToStringSlice()
+}
+func (ev *T) ContentString() (s S) { return S(ev.Content) }
 
 func Hash(in []byte) (out []byte) {
 	h := sha256.Sum256(in)

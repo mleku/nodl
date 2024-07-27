@@ -4,13 +4,13 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/reqenvelope"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/filter"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/subscriptionid"
-	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/util/context"
+	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/filter"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/util/context"
 )
 
 type handleFilterParams struct {
@@ -39,7 +39,7 @@ func (rl *R) handleFilter(h handleFilterParams) (err error) {
 	// because we may, for example, remove some things from the incoming filters
 	// that we know we don't support, and then if the end result is an empty
 	// filter we can just reject it)
-	for _, reject := range rl.RejectFilters {
+	for _, reject := range rl.RejectReqFilters {
 		if rej, msg := reject(h.c, h.id, h.f); rej {
 			return log.D.Err("%s %s", Reason(Blocked, S(msg)),
 				h.ws.AuthPub())

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
 	"github.com/dgraph-io/badger/v4"
 )
 

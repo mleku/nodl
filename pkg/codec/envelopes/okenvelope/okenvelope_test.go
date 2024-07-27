@@ -3,9 +3,9 @@ package okenvelope
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/messages"
-	"github.com/mleku/nodl/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/envelopes/messages"
+	"git.replicatr.dev/pkg/codec/eventid"
 )
 
 func TestMarshalJSONUnmarshalJSON(t *testing.T) {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/filter"
-	"github.com/mleku/nodl/pkg/relay/subscriptionoption"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/filter"
+	"git.replicatr.dev/pkg/relay/subscriptionoption"
 )
 
 // RelayInterface is a wrapper thing that unifies Store and nostr.Relay under a

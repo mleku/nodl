@@ -1,9 +1,9 @@
 package noticeenvelope
 
 import (
-	"github.com/mleku/nodl/pkg/codec/envelopes"
-	"github.com/mleku/nodl/pkg/codec/envelopes/enveloper"
-	"github.com/mleku/nodl/pkg/codec/text"
+	"git.replicatr.dev/pkg/codec/envelopes"
+	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
+	"git.replicatr.dev/pkg/codec/text"
 )
 
 const L = "NOTICE"

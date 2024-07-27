@@ -1,8 +1,8 @@
 package badger
 
 import (
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/serial"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )
 
 // GetCounterKey returns the proper counter key for a given event ID.

@@ -6,10 +6,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/mleku/nodl/pkg/codec/kinds"
-	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/util/number"
+	"git.replicatr.dev/pkg/codec/kinds"
+	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/util/number"
 )
 
 type NIP struct {

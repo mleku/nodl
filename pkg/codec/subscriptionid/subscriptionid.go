@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"errors"
 
+	"git.replicatr.dev/pkg/codec/text"
 	"github.com/mleku/btcec/v2/bech32"
-	"github.com/mleku/nodl/pkg/codec/text"
 )
 
 type T struct {

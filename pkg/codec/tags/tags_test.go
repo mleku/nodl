@@ -3,7 +3,7 @@ package tags
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/tag"
 	"lukechampine.com/frand"
 )
 

@@ -1,13 +1,13 @@
 package badger
 
 import (
-	"github.com/mleku/nodl/pkg/relay/eventstore"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/arb"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/index"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/kinder"
-	"github.com/mleku/nodl/pkg/relay/eventstore/badger/keys/pubkey"
-	"github.com/mleku/nodl/pkg/util/hex"
+	"git.replicatr.dev/pkg/relay/eventstore"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/arb"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
+	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
+	"git.replicatr.dev/pkg/util/hex"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a

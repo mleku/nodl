@@ -3,7 +3,7 @@ package kinds
 import (
 	"testing"
 
-	"github.com/mleku/nodl/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/kind"
 	"lukechampine.com/frand"
 )
 

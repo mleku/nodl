@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/codec/tags"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/tags"
+	"git.replicatr.dev/pkg/codec/timestamp"
 )
 
 // GenerateChallenge creates a reasonable, 96 byte base64 challenge string

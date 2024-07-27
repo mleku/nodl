@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"sync"
 
+	"git.replicatr.dev/pkg/codec/event"
+	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/codec/tags"
+	"git.replicatr.dev/pkg/codec/timestamp"
+	"git.replicatr.dev/pkg/util/hex"
 	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/nodl/pkg/codec/event"
-	"github.com/mleku/nodl/pkg/codec/eventid"
-	"github.com/mleku/nodl/pkg/codec/kind"
-	"github.com/mleku/nodl/pkg/codec/tag"
-	"github.com/mleku/nodl/pkg/codec/tags"
-	"github.com/mleku/nodl/pkg/codec/timestamp"
-	"github.com/mleku/nodl/pkg/util/hex"
 )
 
 type Role int

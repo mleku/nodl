@@ -3,8 +3,8 @@ package relay
 import (
 	"bytes"
 
-	"github.com/mleku/nodl/pkg/codec/envelopes/eventenvelope"
-	"github.com/mleku/nodl/pkg/codec/kind"
+	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/kind"
 )
 
 func (h *Handle) processEventSubmission(msg B, env *eventenvelope.Submission) (err E) {
