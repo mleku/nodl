@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"reflect"
 
+	"ec.mleku.dev/v2/bech32"
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/bech32encoding/pointers"
 	"git.replicatr.dev/pkg/codec/eventid"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/bech32"
-	"github.com/mleku/btcec/v2/schnorr"
 )
 
 var (

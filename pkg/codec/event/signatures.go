@@ -1,10 +1,10 @@
 package event
 
 import (
+	sch "ec.mleku.dev/v2/schnorr"
+	k1 "ec.mleku.dev/v2/secp256k1"
 	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/crypto/p256k"
-	sch "github.com/mleku/btcec/v2/schnorr"
-	k1 "github.com/mleku/btcec/v2/secp256k1"
 )
 
 // Sign the event using the pkg.Signer. Uses github.com/bitcoin-core/secp256k1 if available for much faster

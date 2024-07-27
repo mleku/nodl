@@ -5,38 +5,32 @@ import (
 
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/crypto/p256k"
-	"git.replicatr.dev/pkg/util/hex"
-	"github.com/mleku/btcec/schnorr"
-	"github.com/mleku/btcec/secp256k1"
 	"lukechampine.com/frand"
 )
 
 var testRelaySec = "f16dca5c36931305a4ac30d31b77962af96ea6b7240736da11af318fb7e11317"
 
 func TestT(t *testing.T) {
-	// generate a bunch of deterministic random pub keys might as well use the test
-	// relay pubkey
-	seed, err := hex.Dec(testRelaySec)
-	if err != nil {
-		t.Fatal(err)
-	}
-	src := frand.NewCustom(seed, 128, 20)
-	var pubKeys []string
-	var sec *secp256k1.SecretKey
-	for i := 0; i < 10; i++ {
-		if sec, err = secp256k1.GenerateSecretKeyFromRand(src); err != nil {
+	var signers []*p256k.Signer
+	var err error
+	for _ = range 10 {
+		var skb B
+		if skb, err = p256k.GenSecBytes(); chk.E(err) {
 			t.Fatal(err)
 		}
-		pub := sec.PubKey()
-		pubBytes := schnorr.SerializePubKey(pub)
-		pubKeys = append(pubKeys, hex.Enc(pubBytes))
+		signer := &p256k.Signer{}
+		if err = signer.InitSec(skb); chk.E(err) {
+			t.Fatal(err)
+		}
+		signers = append(signers, signer)
 	}
+	log.I.S(signers)
 	aclT := &T{}
-	for i := range pubKeys {
+	for i := range signers {
 		role := (i % (len(RoleStrings) - 1)) + 1
 		en := &Entry{
 			Role:         Role(role),
-			Pubkey:       B(pubKeys[i]),
+			Pubkey:       signers[i].Pub(),
 			Created:      timestamp.FromUnix(timestamp.Now().I64() - 1),
 			LastModified: timestamp.Now(),
 			Expires:      timestamp.FromUnix(timestamp.Now().I64() + 100000),
@@ -46,7 +40,7 @@ func TestT(t *testing.T) {
 		}
 		ev := en.ToEvent()
 		signer := &p256k.Signer{}
-		if err= signer.InitPub(en.Pubkey);chk.E(err){
+		if err = signer.InitPub(en.Pubkey); chk.E(err) {
 			t.Fatal(err)
 		}
 		if err = ev.Sign(signer); err != nil {
@@ -58,11 +52,11 @@ func TestT(t *testing.T) {
 		}
 		_ = e
 	}
-	frand.Shuffle(len(pubKeys), func(i, j int) {
-		pubKeys[i], pubKeys[j] = pubKeys[j], pubKeys[i]
+	frand.Shuffle(len(signers), func(i, j int) {
+		signers[i], signers[j] = signers[j], signers[i]
 	})
-	for i := range pubKeys {
-		if err = aclT.DeleteEntry(B(pubKeys[i])); err != nil {
+	for i := range signers {
+		if err = aclT.DeleteEntry(signers[i].Pub()); err != nil {
 			t.Fatal(err)
 		}
 	}

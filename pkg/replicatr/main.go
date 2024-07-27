@@ -9,16 +9,18 @@ import (
 	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
-	"strings"
 	"sync"
 	"time"
 
+	"ec.mleku.dev/v2/lol"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/tag"
+	"git.replicatr.dev/pkg/crypto/keys"
 	"git.replicatr.dev/pkg/protocol/relayinfo"
 	app "git.replicatr.dev/pkg/relay"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/IC"
+	"git.replicatr.dev/pkg/relay/eventstore/IC/agent"
 	"git.replicatr.dev/pkg/relay/eventstore/IConly"
 	"git.replicatr.dev/pkg/relay/eventstore/badger"
 	"git.replicatr.dev/pkg/relay/eventstore/badgerbadger"
@@ -28,13 +30,9 @@ import (
 	"git.replicatr.dev/pkg/util/interrupt"
 	"git.replicatr.dev/pkg/util/number"
 	"git.replicatr.dev/pkg/util/units"
-	"github.com/Hubmakerlabs/replicatr/pkg/ic/agent"
-	"github.com/Hubmakerlabs/replicatr/pkg/nostr/keys"
-	"github.com/Hubmakerlabs/replicatr/pkg/slog"
 	arg "github.com/alexflint/go-arg"
 	"github.com/aviate-labs/agent-go/identity"
 	sec "github.com/aviate-labs/secp256k1"
-	"github.com/mleku/btcec/lol"
 )
 
 var (
@@ -42,9 +40,8 @@ var (
 	Version = "v1.2.16"
 )
 
-var conf, args app.Config
-
-// var args = base.GetDefaultConfig()
+var args = app.GetDefaultConfig()
+var conf app.Config
 
 var nips = number.List{
 	relayinfo.BasicProtocol.Number,                  // NIP1 events, envelopes and filters
@@ -130,14 +127,15 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 			}
 		}
 	}
-	// set logging level if non-default was set in args
-	if args.LogLevel != "" {
-		for i := range lol.LevelSpecs {
-			if slog.LevelSpecs[i].Name[:1] == strings.ToLower(args.LogLevel[:1]) {
-				slog.SetLogLevel(i)
-			}
-		}
-	}
+	// todo: restore log level filtering
+	// // set logging level if non-default was set in args
+	// if args.LogLevel != "" {
+	// 	for i := range lol.LevelSpecs {
+	// 		if lol.LevelSpecs[i].Name[:1] == strings.ToLower(args.LogLevel[:1]) {
+	// 			lol.SetLogLevel(i)
+	// 		}
+	// 	}
+	// }
 	inf := &relayinfo.T{Nips: nips}
 	var err error
 	var dataDirBase string
@@ -158,15 +156,15 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	if args.InitCfgCmd != nil {
 		apputil.EnsureDir(configPath)
 		// reload the args to default
-		args = *app.GetDefaultConfig()
+		args = app.GetDefaultConfig()
 		// generate a relay identity key if one wasn't given
-		args.SecKey = keys.GeneratePrivateKey()
+		args.SecKey = hex.Enc(keys.GeneratePrivateKey())
 		if args.Pubkey, err = keys.GetPublicKey(args.SecKey); chk.E(err) {
 		}
 		// overlay what is present on the commandline
-		arg.MustParse(&args)
+		arg.MustParse(args)
 		// derive the info from the state of the config
-		inf = GetInfo(&args)
+		inf = GetInfo(args)
 		if err = args.Save(configPath); chk.E(err) {
 			log.E.F("failed to write relay configuration: '%s'", err)
 			os.Exit(1)
@@ -371,8 +369,8 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 			DBHighWater:    conf.DBHighWater,
 			GCFrequency:    time.Duration(conf.GCFrequency) * time.Second,
 			BlockCacheSize: 8 * units.Gb,
-			InitLogLevel:   slog.Off,
-			// InitLogLevel:   slog.GetLogLevel(),
+			InitLogLevel:   lol.Off,
+			// InitLogLevel:   lol.GetLogLevel(),
 		}
 	}
 	switch eso {

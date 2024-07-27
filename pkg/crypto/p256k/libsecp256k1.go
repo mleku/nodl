@@ -7,8 +7,8 @@ import (
 	"crypto/rand"
 	"unsafe"
 
+	"ec.mleku.dev/v2/schnorr"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/schnorr"
 )
 
 /*

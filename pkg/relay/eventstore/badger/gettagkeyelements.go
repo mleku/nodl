@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/arb"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
@@ -12,7 +13,6 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 	"git.replicatr.dev/pkg/util/hex"
-	"github.com/mleku/btcec/schnorr"
 )
 
 func GetTagKeyElements(tagValue string, CA *createdat.T,

@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"testing"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/eventid"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/timestamp"
@@ -17,7 +18,6 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
-	"github.com/mleku/btcec/schnorr"
 	"lukechampine.com/frand"
 )
 

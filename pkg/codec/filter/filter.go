@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"ec.mleku.dev/v2/schnorr"
+	"ec.mleku.dev/v2/secp256k1"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/ints"
 	"git.replicatr.dev/pkg/codec/kind"
@@ -14,8 +16,6 @@ import (
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/schnorr"
-	"github.com/mleku/btcec/v2/secp256k1"
 	"lukechampine.com/frand"
 )
 

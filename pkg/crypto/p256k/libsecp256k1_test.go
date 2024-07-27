@@ -7,11 +7,11 @@ import (
 	"bytes"
 	"testing"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/event/examples"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/schnorr"
 )
 
 func TestVerify(t *testing.T) {

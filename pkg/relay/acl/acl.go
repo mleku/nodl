@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/eventid"
 	"git.replicatr.dev/pkg/codec/kind"
@@ -12,7 +13,6 @@ import (
 	"git.replicatr.dev/pkg/codec/tags"
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/util/hex"
-	"github.com/mleku/btcec/schnorr"
 )
 
 type Role int
@@ -55,7 +55,7 @@ var RoleStrings = []B{
 }
 
 type (
-	// Entry is
+	// Entry is a record of a role in the ACL.
 	Entry struct {
 		// EventID is the event ID that creates the Entry.
 		EventID *eventid.T

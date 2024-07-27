@@ -3,12 +3,12 @@ package event
 import (
 	"io"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/tags"
 	"git.replicatr.dev/pkg/codec/text"
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/schnorr"
 )
 
 func (ev *T) UnmarshalJSON(b B) (r B, err error) {

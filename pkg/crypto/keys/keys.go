@@ -3,10 +3,10 @@ package keys
 import (
 	"strings"
 
+	"ec.mleku.dev/v2"
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/util/hex"
-	"github.com/mleku/btcec"
-	"github.com/mleku/btcec/schnorr"
 )
 
 var GeneratePrivateKey = func() B { return GenerateSecretKey() }

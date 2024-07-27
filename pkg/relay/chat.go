@@ -12,7 +12,7 @@ import (
 	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/codec/tags"
 	"git.replicatr.dev/pkg/codec/timestamp"
-	"git.replicatr.dev/pkg/crypto"
+	"git.replicatr.dev/pkg/crypto/encryption"
 	"git.replicatr.dev/pkg/crypto/p256k"
 )
 
@@ -21,10 +21,10 @@ func DecryptDM(ev *event.T, meSec, youPub B) (decryptedStr B, err E) {
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
 		var secret, decrypted B
-		if secret, err = crypto.ComputeSharedSecret(S(meSec), S(youPub)); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecret(meSec, youPub); chk.E(err) {
 			return
 		}
-		if decrypted, err = crypto.Decrypt(ev.ContentString(), secret); chk.E(err) {
+		if decrypted, err = encryption.DecryptNip4(ev.ContentString(), secret); chk.E(err) {
 			return
 		}
 		decryptedStr = decrypted
@@ -39,10 +39,10 @@ func EncryptDM(ev *event.T, meSec, youPub B) (evo *event.T, err E) {
 	var secret []byte
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
-		if secret, err = crypto.ComputeSharedSecret(S(meSec), S(youPub)); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecret(meSec, youPub); chk.E(err) {
 			return
 		}
-		if ev.Content, err = crypto.Encrypt(ev.ContentString(), secret); chk.E(err) {
+		if ev.Content, err = encryption.EncryptNip4(ev.ContentString(), secret); chk.E(err) {
 			return
 		}
 		var sec pkg.Signer

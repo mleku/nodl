@@ -20,7 +20,7 @@ import (
 )
 
 var Version = "v0.0.1"
-var Software = "https://github.com/Hubmakerlabs/replicatr"
+var Software = "https://git.replicatr.dev"
 
 const (
 	wsKey = iota

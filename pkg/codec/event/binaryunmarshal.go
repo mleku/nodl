@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 
+	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/codec/tags"
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/util/hex"
 	"github.com/minio/sha256-simd"
-	"github.com/mleku/btcec/v2/schnorr"
 )
 
 // Reader is a control structure for reading and writing buffers.

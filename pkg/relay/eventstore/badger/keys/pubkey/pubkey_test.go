@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/mleku/btcec/schnorr"
+	"ec.mleku.dev/v2/schnorr"
 	"lukechampine.com/frand"
 )
 

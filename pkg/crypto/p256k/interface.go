@@ -48,7 +48,7 @@ func (s *Signer) Pub() (b B) { return s.b }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {
-		err = errorf.E("p256k: Signer not initialized")
+		err = errorf.E("p256k: Signer secret not initialized")
 		return
 	}
 	u := ToUchar(msg)

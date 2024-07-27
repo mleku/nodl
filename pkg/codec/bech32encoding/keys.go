@@ -1,11 +1,11 @@
 package bech32encoding
 
 import (
+	btcec "ec.mleku.dev/v2"
+	"ec.mleku.dev/v2/bech32"
+	"ec.mleku.dev/v2/schnorr"
+	"ec.mleku.dev/v2/secp256k1"
 	"git.replicatr.dev/pkg/util/hex"
-	"github.com/mleku/btcec/v2"
-	"github.com/mleku/btcec/v2/bech32"
-	"github.com/mleku/btcec/v2/schnorr"
-	"github.com/mleku/btcec/v2/secp256k1"
 )
 
 const (
@@ -21,17 +21,11 @@ var (
 	PubHRP = B("npub")
 )
 
-// ConvertForBech32 performs the bit expansion required for encoding into
-// Bech32.
-func ConvertForBech32(b8 B) (b5 B, err error) {
-	return bech32.ConvertBits(b8, 8, 5, true)
-}
+// ConvertForBech32 performs the bit expansion required for encoding into Bech32.
+func ConvertForBech32(b8 B) (b5 B, err error) { return bech32.ConvertBits(b8, 8, 5, true) }
 
-// ConvertFromBech32 collapses together the bit expanded 5 bit numbers encoded
-// in bech32.
-func ConvertFromBech32(b5 B) (b8 B, err error) {
-	return bech32.ConvertBits(b5, 5, 8, true)
-}
+// ConvertFromBech32 collapses together the bit expanded 5 bit numbers encoded in bech32.
+func ConvertFromBech32(b5 B) (b8 B, err error) { return bech32.ConvertBits(b5, 5, 8, true) }
 
 // SecretKeyToNsec encodes an secp256k1 secret key as a Bech32 string (nsec).
 func SecretKeyToNsec(sk *secp256k1.SecretKey) (encoded B, err error) {
