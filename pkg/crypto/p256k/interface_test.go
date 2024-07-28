@@ -57,15 +57,14 @@ func TestSignerSign(t *testing.T) {
 	scanner.Buffer(buf, len(buf))
 	var err error
 	signer := &p256k.Signer{}
-	var skb B
-	if skb, err = p256k.GenSecBytes(); chk.E(err) {
+	var skb, pkb B
+	if skb, pkb, err = p256k.GenSecBytes(); chk.E(err) {
 		t.Fatal(err)
 	}
 	if err = signer.InitSec(skb); chk.E(err) {
 		t.Fatal(err)
 	}
 	verifier := &p256k.Signer{}
-	pkb := signer.Pub()
 	if err = verifier.InitPub(pkb); chk.E(err) {
 		t.Fatal(err)
 	}

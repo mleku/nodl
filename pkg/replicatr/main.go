@@ -15,7 +15,7 @@ import (
 	"ec.mleku.dev/v2/lol"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/tag"
-	"git.replicatr.dev/pkg/crypto/keys"
+	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/relayinfo"
 	app "git.replicatr.dev/pkg/relay"
 	"git.replicatr.dev/pkg/relay/eventstore"
@@ -158,9 +158,11 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		// reload the args to default
 		args = app.GetDefaultConfig()
 		// generate a relay identity key if one wasn't given
-		args.SecKey = hex.Enc(keys.GeneratePrivateKey())
-		if args.Pubkey, err = keys.GetPublicKey(args.SecKey); chk.E(err) {
+		var sk, pk B
+		if sk, pk, err = p256k.GenSecBytes(); chk.E(err) {
+			os.Exit(1)
 		}
+		args.SecKey, args.Pubkey = hex.Enc(sk), hex.Enc(pk)
 		// overlay what is present on the commandline
 		arg.MustParse(args)
 		// derive the info from the state of the config

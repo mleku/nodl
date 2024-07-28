@@ -14,4 +14,7 @@ type Signer interface {
 	Verify(msg, sig B) (valid bool, err E)
 	// Zero wipes the secret key to prevent memory leaks.
 	Zero()
+	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the Signer secret and provided
+	// pubkey.
+	ECDH(pub B) (secret B, err E)
 }

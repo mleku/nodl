@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"ec.mleku.dev/v2/schnorr"
+	"ec.mleku.dev/v2/secp256k1"
 	"github.com/minio/sha256-simd"
 )
 
@@ -16,14 +17,16 @@ import (
 #include <secp256k1.h>
 #include <secp256k1_schnorrsig.h>
 #include <secp256k1_extrakeys.h>
+#include <secp256k1_ecdh.h>
 */
 import "C"
 
 type (
-	Context = C.secp256k1_context
-	Uchar   = C.uchar
-	SecKey  = C.secp256k1_keypair
-	PubKey  = C.secp256k1_xonly_pubkey
+	Context  = C.secp256k1_context
+	Uchar    = C.uchar
+	SecKey   = C.secp256k1_keypair
+	PubKey   = C.secp256k1_xonly_pubkey
+	ECPubKey = C.secp256k1_pubkey
 )
 
 var (
@@ -41,7 +44,7 @@ func GetRandom() (u *Uchar) {
 	return ToUchar(rnd)
 }
 
-func AssertLen(b B, length int, name string) (err error) {
+func AssertLen(b B, length int, name string) (err E) {
 	if len(b) != length {
 		err = errorf.E("%s should be %d bytes, got %d", name, length, len(b))
 	}
@@ -71,15 +74,15 @@ type Sec struct {
 	Key SecKey
 }
 
-func GenSec() (sec *Sec, err error) {
+func GenSec() (sec *Sec, err E) {
 	var skb B
-	if skb, err = GenSecBytes(); chk.E(err) {
+	if skb, _, err = GenSecBytes(); chk.E(err) {
 		return
 	}
 	return SecFromBytes(skb)
 }
 
-func SecFromBytes(sk B) (sec *Sec, err error) {
+func SecFromBytes(sk B) (sec *Sec, err E) {
 	sec = new(Sec)
 	if C.secp256k1_keypair_create(ctx, &sec.Key, ToUchar(sk)) != 1 {
 		err = errorf.E("failed to parse private key")
@@ -90,10 +93,38 @@ func SecFromBytes(sk B) (sec *Sec, err error) {
 
 func (s *Sec) Sec() *SecKey { return &s.Key }
 
-func (s *Sec) Pub() (p *Pub, err error) {
+func (s *Sec) Pub() (p *Pub, err E) {
 	p = new(Pub)
 	if C.secp256k1_keypair_xonly_pub(ctx, &p.Key, nil, s.Sec()) != 1 {
 		err = errorf.E("pubkey derivation failed")
+		return
+	}
+	return
+}
+
+func (s *Sec) ECPub() (p *ECPub) {
+	p = new(ECPub)
+
+	return
+}
+
+type ECPub struct {
+	Key ECPubKey
+}
+
+// ECPubFromSchnorrBytes returns a parsed standard compact EC pubkey from a BIP-340 32 byte pubkey. It does this by
+// appending the 0x02 prefix to the bytes before parsing them, as all BIP-340 public keys are equal to the standard EC
+// pubkey with the 0x02 prefix or "even" key, which has a zero as its last bit out of 257.
+func ECPubFromSchnorrBytes(pk B) (pub *ECPub, err E) {
+	if err = AssertLen(pk, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
+		return
+	}
+	pub = &ECPub{}
+	p := append(B{0x02}, pk...)
+	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(p),
+		secp256k1.PubKeyBytesLenCompressed) != 1 {
+		err = errorf.E("failed to parse pubkey from %0x", p)
+		log.I.S(pub)
 		return
 	}
 	return
@@ -103,7 +134,7 @@ type Pub struct {
 	Key PubKey
 }
 
-func PubFromBytes(pk B) (pub *Pub, err error) {
+func PubFromBytes(pk B) (pub *Pub, err E) {
 	if err = AssertLen(pk, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
 		return
 	}
@@ -123,7 +154,7 @@ func (p *Pub) PubB() (b B) {
 
 func (p *Pub) Pub() *PubKey { return &p.Key }
 
-func (p *Pub) ToBytes() (b B, err error) {
+func (p *Pub) ToBytes() (b B, err E) {
 	b = make(B, schnorr.PubKeyBytesLen)
 	if C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(b), p.Pub()) != 1 {
 		err = errorf.E("pubkey serialize failed")
@@ -132,10 +163,10 @@ func (p *Pub) ToBytes() (b B, err error) {
 	return
 }
 
-func Sign(msg *Uchar, k *SecKey) (sig B, err error) {
+func Sign(msg *Uchar, sk *SecKey) (sig B, err E) {
 	sig = make(B, schnorr.SignatureSize)
 	c := CreateRandomContext()
-	if C.secp256k1_schnorrsig_sign32(c, ToUchar(sig), msg, k,
+	if C.secp256k1_schnorrsig_sign32(c, ToUchar(sig), msg, sk,
 		GetRandom()) != 1 {
 		err = errorf.E("failed to sign message")
 		return
@@ -143,7 +174,7 @@ func Sign(msg *Uchar, k *SecKey) (sig B, err error) {
 	return
 }
 
-func SignFromBytes(msg, sk B) (sig B, err error) {
+func SignFromBytes(msg, sk B) (sig B, err E) {
 	var umsg *Uchar
 	if umsg, err = Msg(msg); chk.E(err) {
 		return
@@ -155,7 +186,7 @@ func SignFromBytes(msg, sk B) (sig B, err error) {
 	return Sign(umsg, sec.Sec())
 }
 
-func Msg(b B) (id *Uchar, err error) {
+func Msg(b B) (id *Uchar, err E) {
 	if err = AssertLen(b, sha256.Size, "id"); chk.E(err) {
 		return
 	}
@@ -163,7 +194,7 @@ func Msg(b B) (id *Uchar, err error) {
 	return
 }
 
-func Sig(b B) (sig *Uchar, err error) {
+func Sig(b B) (sig *Uchar, err E) {
 	if err = AssertLen(b, schnorr.SignatureSize, "sig"); chk.E(err) {
 		return
 	}
@@ -194,9 +225,16 @@ func VerifyFromBytes(msg, sig, pk B) (err error) {
 	return
 }
 
-func Zero(s *SecKey) {
-	b := (*[96]byte)(unsafe.Pointer(s))[:96]
+func Zero(sk *SecKey) {
+	b := (*[96]byte)(unsafe.Pointer(sk))[:96]
 	for i := range b {
 		b[i] = 0
 	}
+}
+
+func ECDH(sec *Uchar, pk *ECPub) (secret B) {
+	secret = make(B, sha256.Size)
+	uSecret := ToUchar(secret)
+	C.secp256k1_ecdh(ctx, uSecret, &pk.Key, sec, nil, nil)
+	return
 }

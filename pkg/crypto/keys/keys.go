@@ -9,12 +9,12 @@ import (
 	"git.replicatr.dev/pkg/util/hex"
 )
 
-var GeneratePrivateKey = func() B { return GenerateSecretKey() }
+var GeneratePrivateKey = func() B { return GenerateSecretKeyHex() }
 
-func GenerateSecretKey() (sks B) {
+func GenerateSecretKeyHex() (sks B) {
 	var err E
 	var sb B
-	if sb, err = p256k.GenSecBytes(); chk.E(err) {
+	if sb, _, err = p256k.GenSecBytes(); chk.E(err) {
 		return
 	}
 	sks = B(hex.Enc(sb))

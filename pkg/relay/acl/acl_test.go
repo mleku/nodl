@@ -15,7 +15,7 @@ func TestT(t *testing.T) {
 	var err error
 	for _ = range 10 {
 		var skb B
-		if skb, err = p256k.GenSecBytes(); chk.E(err) {
+		if skb, _, err = p256k.GenSecBytes(); chk.E(err) {
 			t.Fatal(err)
 		}
 		signer := &p256k.Signer{}

@@ -14,7 +14,7 @@ import "git.replicatr.dev/pkg"
 type Signer struct {
 	SecretKey *SecKey
 	PublicKey *PubKey
-	b         B
+	pkb, skb  B
 }
 
 var _ pkg.Signer = &Signer{}
@@ -24,13 +24,14 @@ func (s *Signer) InitSec(sec B) (err error) {
 	if us, err = SecFromBytes(sec); chk.E(err) {
 		return
 	}
+	s.skb = sec
 	s.SecretKey = &us.Key
 	var up *Pub
 	if up, err = us.Pub(); chk.E(err) {
 		return
 	}
 	s.PublicKey = &up.Key
-	s.b = up.PubB()
+	s.pkb = up.PubB()
 	return
 }
 
@@ -40,11 +41,11 @@ func (s *Signer) InitPub(pub B) (err error) {
 		return
 	}
 	s.PublicKey = &up.Key
-	s.b = up.PubB()
+	s.pkb = up.PubB()
 	return
 }
 
-func (s *Signer) Pub() (b B) { return s.b }
+func (s *Signer) Pub() (b B) { return s.pkb }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {
@@ -78,3 +79,11 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 }
 
 func (s *Signer) Zero() { Zero(s.SecretKey) }
+
+func (s *Signer) ECDH(pp B) (secret B, err error) {
+	var pub *ECPub
+	if pub, err = ECPubFromSchnorrBytes(pp); chk.E(err) {
+		return
+	}
+	return ECDH(ToUchar(s.skb), pub), nil
+}

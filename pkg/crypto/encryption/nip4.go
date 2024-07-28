@@ -65,6 +65,10 @@ func ComputeSharedSecret(sec, pub B) (secret B, err E) {
 		err = errorf.E("unable to decode public key for ECDH")
 		return
 	}
+	if p == nil {
+		err = errorf.E("invalid public key for ECDH %0x", sec)
+		return
+	}
 	return secp.GenerateSharedSecret(s, p), err
 }
 
