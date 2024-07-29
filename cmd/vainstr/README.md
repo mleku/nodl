@@ -21,7 +21,7 @@ if you haven't installed the bitcoin-core cgo or don't want to use it, this
 will work for anywhere:
 
 ```bash
-go install -tags btcec git.replicatr.dev/cmd/vainstr@v0.0.7
+go install -tags btcec git.replicatr.dev/cmd/vainstr@v0.0.8
 ```
 
 note that this version is very much slower, ~1/4 the speed
@@ -32,7 +32,7 @@ libsecp256k1 found in this repository here:
 tag:
 
 ```bash
-go install git.replicatr.dev/cmd/vainstr@v0.0.7
+go install git.replicatr.dev/cmd/vainstr@v0.0.8
 ```
 
 a linux binary release will also be available in the github releases page... 
