@@ -136,12 +136,30 @@ func HexToNpub(publicKeyHex B) (s B, err error) {
 	return bech32.Encode(NpubHRP, bits5)
 }
 
+func BinToNpub(b B) (s B, err error) {
+	var bits5 B
+	if bits5, err = bech32.ConvertBits(b, 8, 5, true); chk.D(err) {
+		return nil, err
+	}
+	return bech32.Encode(NpubHRP, bits5)
+}
+
 // HexToNsec converts a hex encoded secret key to a bech32 encoded nsec.
 func HexToNsec(sk B) (nsec B, err error) {
 	var s *btcec.SecretKey
 	if s, err = HexToSecretKey(sk); chk.E(err) {
 		return
 	}
+	if nsec, err = SecretKeyToNsec(s); chk.E(err) {
+		return
+	}
+	return
+}
+
+// BinToNsec converts a binary secret key to a bech32 encoded nsec.
+func BinToNsec(sk B) (nsec B, err error) {
+	var s *btcec.SecretKey
+	s, _ = btcec.SecKeyFromBytes(sk)
 	if nsec, err = SecretKeyToNsec(s); chk.E(err) {
 		return
 	}
