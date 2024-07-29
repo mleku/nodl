@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"testing"
+	"time"
 
 	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg"
@@ -95,18 +96,20 @@ func TestSign(t *testing.T) {
 }
 
 func TestECDH(t *testing.T) {
+	n := time.Now()
 	var err error
 	var s1, s2 pkg.Signer
 	var counter int
-	const total = 1000
+	const total = 10000
+	if s1, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+		t.Fatal(err)
+	}
+	if s2, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+		t.Fatal(err)
+	}
 	for _ = range total {
-		if s1, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
-			t.Fatal(err)
-		}
-		if s2, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
-			t.Fatal(err)
-		}
 		// log.I.S(s1, s2)
+		// _, _ = s1, s2
 		var secret1, secret2 B
 		if secret1, err = s1.ECDH(s2.Pub()); chk.E(err) {
 			t.Fatal(err)
@@ -119,5 +122,8 @@ func TestECDH(t *testing.T) {
 			t.Errorf("ECDH generation failed to work in both directions, %x %x", secret1, secret2)
 		}
 	}
-	log.I.Ln("errors", counter, "total", total)
+	a := time.Now()
+	duration := a.Sub(n)
+	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op", int(duration/total),
+		"ops/sec",int(time.Second)/int(duration/total))
 }

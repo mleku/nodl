@@ -24,6 +24,7 @@ import "C"
 type (
 	Context  = C.secp256k1_context
 	Uchar    = C.uchar
+	Cint     = C.int
 	SecKey   = C.secp256k1_keypair
 	PubKey   = C.secp256k1_xonly_pubkey
 	ECPubKey = C.secp256k1_pubkey
@@ -102,6 +103,59 @@ func (s *Sec) Pub() (p *Pub, err E) {
 	return
 }
 
+type PublicKey struct {
+	pk *C.secp256k1_pubkey
+}
+
+func newPublicKey() *PublicKey {
+	return &PublicKey{
+		pk: &C.secp256k1_pubkey{},
+	}
+}
+
+type XPublicKey struct {
+	pk *C.secp256k1_xonly_pubkey
+}
+
+func newXPublicKey() *XPublicKey {
+	return &XPublicKey{
+		pk: &C.secp256k1_xonly_pubkey{},
+	}
+}
+
+func GenSecBytes() (sk32, pkb B, err error) {
+	// because we must not create pubkeys with odd/0x03 prefix we have to derive the pubkey in this process anyway, and
+	// so we must use the bitcoin-core/secp256k1 library or pay a performance penalty if we want to generate a lot of
+	// new keys (for network transport MAC use case)
+	sk32 = make(B, secp256k1.SecKeyBytesLen)
+	for {
+		var kp Sec
+		kpk := newPublicKey()
+		kpx := newXPublicKey()
+		if _, err = rand.Read(sk32); chk.E(err) {
+			return
+		}
+		usk32 := ToUchar(sk32)
+		res := C.secp256k1_keypair_create(ctx, &kp.Key, usk32)
+		if res != 1 {
+			err = errorf.E("failed to create secp256k1 keypair")
+			return
+		}
+		ecpkb := make(B, secp256k1.PubKeyBytesLenCompressed)
+		clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
+		pkb = make(B, schnorr.PubKeyBytesLen)
+		var parity Cint
+		C.secp256k1_keypair_xonly_pub(ctx, kpx.pk, &parity, &kp.Key)
+		C.secp256k1_keypair_pub(ctx, kpk.pk, &kp.Key)
+		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, kpk.pk, C.SECP256K1_EC_COMPRESSED)
+		C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pkb), kpx.pk)
+		if ecpkb[0] == 2 {
+			break
+		}
+	}
+	return
+}
+
 func (s *Sec) ECPub() (p *ECPub) {
 	p = new(ECPub)
 
@@ -112,9 +166,9 @@ type ECPub struct {
 	Key ECPubKey
 }
 
-// ECPubFromSchnorrBytes returns a parsed standard compact EC pubkey from a BIP-340 32 byte pubkey. It does this by
-// appending the 0x02 prefix to the bytes before parsing them, as all BIP-340 public keys are equal to the standard EC
-// pubkey with the 0x02 prefix or "even" key, which has a zero as its last bit out of 257.
+// ECPubFromSchnorrBytes converts a BIP-340 public key to its even standard 33 byte encoding.
+//
+// This function is for the purpose of getting a key to do ECDH.
 func ECPubFromSchnorrBytes(pk B) (pub *ECPub, err E) {
 	if err = AssertLen(pk, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
 		return

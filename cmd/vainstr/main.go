@@ -13,7 +13,6 @@ import (
 	"git.replicatr.dev/pkg/codec/bech32encoding"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/util/atomic"
-	"git.replicatr.dev/pkg/util/hex"
 	"git.replicatr.dev/pkg/util/interrupt"
 	"git.replicatr.dev/pkg/util/qu"
 	"github.com/alexflint/go-arg"
@@ -72,7 +71,6 @@ Options:
 }
 
 func Vanity(str B, where int, threads int) (e error) {
-
 	// check the string has valid bech32 ciphers
 	for i := range str {
 		wrong := true
@@ -97,7 +95,6 @@ func Vanity(str B, where int, threads int) (e error) {
 	var wg sync.WaitGroup
 	counter := atomic.NewInt64(0)
 	for i := 0; i < threads; i++ {
-		log.D.F("starting up worker %d", i)
 		go mine(str, where, quit, resC, &wg, counter)
 	}
 	tick := time.NewTicker(time.Second * 5)
@@ -127,19 +124,13 @@ out:
 	// wait for all of the workers to stop
 	wg.Wait()
 
-	fmt.Printf("generated in %d attempts using %d threads, taking %v\n",
+	log.I.F("generated in %d attempts using %d threads, taking %v\n",
 		counter.Load(), args.Threads, time.Now().Sub(started))
-	log.D.Ln(
-		"generated key pair:\n"+
-			"\nhex:\n"+
-			"\tsecret: %s\n"+
-			"\tpublic: %s\n\n",
-		hex.Enc(res.sec),
-		hex.Enc(res.pub),
-	)
 	nsec, _ := bech32encoding.BinToNsec(res.sec)
-	fmt.Printf("\nNSEC = %s\nNPUB = %s\n\n",
+	fmt.Printf("NSEC=%s\nNPUB=%s\n",
 		nsec, res.npub)
+	fmt.Printf("SEC=%0x\nPUB=%0x\n",
+		res.sec, res.pub)
 	return
 }
 
@@ -157,11 +148,7 @@ out:
 			wg.Done()
 			if found {
 				// send back the result
-				log.D.Ln("sending back result\n")
 				resC <- r
-				log.D.Ln("sent\n")
-			} else {
-				log.D.Ln("other thread found it\n")
 			}
 			break out
 		default:
