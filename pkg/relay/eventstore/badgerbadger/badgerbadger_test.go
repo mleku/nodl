@@ -45,6 +45,7 @@ func TestBackend(t *testing.T) {
 		// fill rate capped to size of differerce between high and low water mark
 		diff = TotalSize / 100 * (HW - LW) / 100 / 100
 	)
+	// todo: this isn't working currently
 	sec = keys.GenerateSecretKeyHex()
 	var nsec B
 	if nsec, err = bech32encoding.HexToNsec(sec); chk.E(err) {

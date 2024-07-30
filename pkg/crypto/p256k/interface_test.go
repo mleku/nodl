@@ -58,7 +58,7 @@ func TestSignerSign(t *testing.T) {
 	var err error
 	signer := &p256k.Signer{}
 	var skb, pkb B
-	if skb, pkb, err = p256k.GenSecBytes(); chk.E(err) {
+	if skb, pkb, _, _, err = p256k.GenSecBytes(); chk.E(err) {
 		t.Fatal(err)
 	}
 	if err = signer.InitSec(skb); chk.E(err) {

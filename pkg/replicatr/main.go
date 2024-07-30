@@ -159,9 +159,12 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		args = app.GetDefaultConfig()
 		// generate a relay identity key if one wasn't given
 		var sk, pk B
-		if sk, pk, err = p256k.GenSecBytes(); chk.E(err) {
+		signer := p256k.Signer{}
+		if err = signer.Generate(); chk.E(err) {
 			os.Exit(1)
 		}
+		sk=signer.Sec()
+		pk=signer.Pub()
 		args.SecKey, args.Pubkey = hex.Enc(sk), hex.Enc(pk)
 		// overlay what is present on the commandline
 		arg.MustParse(args)

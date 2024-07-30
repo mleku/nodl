@@ -19,6 +19,10 @@ type Signer struct {
 
 var _ pkg.Signer = &Signer{}
 
+func (s *Signer) Generate() (err E) {
+	return
+}
+
 func (s *Signer) InitSec(sec B) (err error) {
 	var us *Sec
 	if us, err = SecFromBytes(sec); chk.E(err) {
@@ -45,6 +49,7 @@ func (s *Signer) InitPub(pub B) (err error) {
 	return
 }
 
+func (s *Signer) Sec() (b B) { return s.skb }
 func (s *Signer) Pub() (b B) { return s.pkb }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {

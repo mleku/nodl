@@ -76,11 +76,10 @@ type Sec struct {
 }
 
 func GenSec() (sec *Sec, err E) {
-	var skb B
-	if skb, _, err = GenSecBytes(); chk.E(err) {
+	if _, _, sec, _, err = GenSecBytes(); chk.E(err) {
 		return
 	}
-	return SecFromBytes(skb)
+	return
 }
 
 func SecFromBytes(sk B) (sec *Sec, err E) {
@@ -123,32 +122,32 @@ func newXPublicKey() *XPublicKey {
 	}
 }
 
-func GenSecBytes() (sk32, pkb B, err error) {
+func GenSecBytes() (skb, pkb B, sec *Sec, pub *XPublicKey, err error) {
 	// because we must not create pubkeys with odd/0x03 prefix we have to derive the pubkey in this process anyway, and
 	// so we must use the bitcoin-core/secp256k1 library or pay a performance penalty if we want to generate a lot of
 	// new keys (for network transport MAC use case)
-	sk32 = make(B, secp256k1.SecKeyBytesLen)
+	skb = make(B, secp256k1.SecKeyBytesLen)
+	ecpkb := make(B, secp256k1.PubKeyBytesLenCompressed)
+	clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
+	pkb = make(B, schnorr.PubKeyBytesLen)
+	var parity Cint
+	kpk := newPublicKey()
+	pub = newXPublicKey()
+	sec = &Sec{}
 	for {
-		var kp Sec
-		kpk := newPublicKey()
-		kpx := newXPublicKey()
-		if _, err = rand.Read(sk32); chk.E(err) {
+		if _, err = rand.Read(skb); chk.E(err) {
 			return
 		}
-		usk32 := ToUchar(sk32)
-		res := C.secp256k1_keypair_create(ctx, &kp.Key, usk32)
+		usk32 := ToUchar(skb)
+		res := C.secp256k1_keypair_create(ctx, &sec.Key, usk32)
 		if res != 1 {
 			err = errorf.E("failed to create secp256k1 keypair")
 			return
 		}
-		ecpkb := make(B, secp256k1.PubKeyBytesLenCompressed)
-		clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
-		pkb = make(B, schnorr.PubKeyBytesLen)
-		var parity Cint
-		C.secp256k1_keypair_xonly_pub(ctx, kpx.pk, &parity, &kp.Key)
-		C.secp256k1_keypair_pub(ctx, kpk.pk, &kp.Key)
+		C.secp256k1_keypair_xonly_pub(ctx, pub.pk, &parity, &sec.Key)
+		C.secp256k1_keypair_pub(ctx, kpk.pk, &sec.Key)
 		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, kpk.pk, C.SECP256K1_EC_COMPRESSED)
-		C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pkb), kpx.pk)
+		C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pkb), pub.pk)
 		if ecpkb[0] == 2 {
 			break
 		}

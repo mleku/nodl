@@ -13,11 +13,14 @@ var GeneratePrivateKey = func() B { return GenerateSecretKeyHex() }
 
 func GenerateSecretKeyHex() (sks B) {
 	var err E
-	var sb B
-	if sb, _, err = p256k.GenSecBytes(); chk.E(err) {
+	var skb B
+	signer := &p256k.Signer{}
+	if err = signer.Generate(); chk.E(err) {
 		return
 	}
-	sks = B(hex.Enc(sb))
+	skb = signer.Sec()
+	log.I.S(skb)
+	sks = B(hex.Enc(skb))
 	return
 }
 

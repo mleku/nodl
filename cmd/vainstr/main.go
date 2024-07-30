@@ -154,10 +154,12 @@ out:
 		default:
 		}
 		counter.Inc()
-		if r.sec, r.pub, err = p256k.GenSecBytes(); chk.E(err) {
+		signer := &p256k.Signer{}
+		if err = signer.Generate(); chk.E(err) {
 			log.E.Ln("error generating key: '%v' worker stopping", err)
 			break out
 		}
+		r.sec, r.pub = signer.Sec(), signer.Pub()
 		r.npub, err = bech32encoding.BinToNpub(r.pub)
 		if err != nil {
 			log.E.Ln("fatal error generating npub: %s\n", err)

@@ -108,8 +108,6 @@ func TestECDH(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _ = range total {
-		// log.I.S(s1, s2)
-		// _, _ = s1, s2
 		var secret1, secret2 B
 		if secret1, err = s1.ECDH(s2.Pub()); chk.E(err) {
 			t.Fatal(err)

@@ -7,7 +7,7 @@ import (
 func NewSigner(s pkg.Signer) (signer pkg.Signer, err error) {
 	var skb B
 	// todo: this really should generate the cgo structs directly
-	if skb, _, err = GenSecBytes(); chk.E(err) {
+	if skb, _, _, _, err = GenSecBytes(); chk.E(err) {
 		return
 	}
 	if err = s.InitSec(skb); chk.E(err) {
