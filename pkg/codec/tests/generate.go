@@ -3,7 +3,6 @@ package tests
 import (
 	"encoding/base64"
 
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/timestamp"
@@ -23,8 +22,8 @@ func GenerateEvent(nsec B, maxSize int) (ev *event.T, binSize int, err E) {
 	if _, err = hex.DecBytes(sec, nsec); chk.E(err) {
 		return
 	}
-	var signer pkg.Signer
-	if signer, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	signer := new(p256k.Signer)
+	if err = signer.Generate(); chk.E(err) {
 		return
 	}
 	if err = signer.InitSec(sec); chk.E(err) {

@@ -20,12 +20,10 @@ func (s *Signer) Generate() (err E) {
 		if s.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
 			return
 		}
-		s.PublicKey= s.SecretKey.PubKey()
+		s.PublicKey = s.SecretKey.PubKey()
 		s.pkb = s.PublicKey.SerializeCompressed()
 		if s.pkb[0] == 2 {
-			s.pkb = s.pkb[1:]
 			s.skb = s.SecretKey.Serialize()
-			log.I.S(s)
 			break
 		}
 	}
@@ -39,7 +37,11 @@ func (s *Signer) InitSec(sec B) (err error) {
 	}
 	s.SecretKey = secp256k1.SecKeyFromBytes(sec)
 	s.PublicKey = s.SecretKey.PubKey()
-	s.pkb = schnorr.SerializePubKey(s.PublicKey)
+	s.pkb = s.SecretKey.PubKey().SerializeCompressed()
+	if s.pkb[0] != 2 {
+		err = errorf.E("invalid odd pubkey from secret key %0x", s.pkb)
+		return
+	}
 	return
 }
 
@@ -51,8 +53,9 @@ func (s *Signer) InitPub(pub B) (err error) {
 	return
 }
 
-func (s *Signer) Sec() (b B) { return s.skb }
-func (s *Signer) Pub() (b B) { return s.pkb }
+func (s *Signer) Sec() (b B)   { return s.skb }
+func (s *Signer) Pub() (b B)   { return s.pkb[1:] }
+func (s *Signer) ECPub() (b B) { return s.pkb }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {

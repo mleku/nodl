@@ -3,7 +3,6 @@ package authenvelope
 import (
 	"testing"
 
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/envelopes"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/auth"
@@ -13,8 +12,8 @@ const relayURL = "wss://example.com"
 
 func TestAuth(t *testing.T) {
 	var err error
-	var signer pkg.Signer
-	if signer, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	signer := new(p256k.Signer)
+	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	var b1, b2, b3, b4 B

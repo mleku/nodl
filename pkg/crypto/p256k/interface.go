@@ -12,30 +12,38 @@ import "git.replicatr.dev/pkg"
 // When using this library only for verification, a constructor that converts
 // from bytes to PubKey is needed prior to calling Verify.
 type Signer struct {
-	SecretKey *SecKey
-	PublicKey *PubKey
-	pkb, skb  B
+	SecretKey   *SecKey
+	PublicKey   *PubKey
+	ECPublicKey *ECPubKey // not sure what this is useful for yet.
+	skb, pkb    B
 }
 
 var _ pkg.Signer = &Signer{}
 
 func (s *Signer) Generate() (err E) {
+	var cs *Sec
+	var cx *XPublicKey
+	var cp *PublicKey
+	if s.skb, s.pkb, cs, cx, cp, err = Generate(); chk.E(err) {
+		return
+	}
+	s.SecretKey = &cs.Key
+	s.PublicKey = cx.Key
+	s.ECPublicKey = cp.Key
 	return
 }
 
-func (s *Signer) InitSec(sec B) (err error) {
-	var us *Sec
-	if us, err = SecFromBytes(sec); chk.E(err) {
+func (s *Signer) InitSec(skb B) (err error) {
+	var cs *Sec
+	var cx *XPublicKey
+	var cp *PublicKey
+	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); chk.E(err) {
 		return
 	}
-	s.skb = sec
-	s.SecretKey = &us.Key
-	var up *Pub
-	if up, err = us.Pub(); chk.E(err) {
-		return
-	}
-	s.PublicKey = &up.Key
-	s.pkb = up.PubB()
+	s.skb = skb
+	s.SecretKey = &cs.Key
+	s.PublicKey = cx.Key
+	s.ECPublicKey = cp.Key
 	return
 }
 
@@ -49,8 +57,9 @@ func (s *Signer) InitPub(pub B) (err error) {
 	return
 }
 
-func (s *Signer) Sec() (b B) { return s.skb }
-func (s *Signer) Pub() (b B) { return s.pkb }
+func (s *Signer) Sec() (b B)   { return s.skb }
+func (s *Signer) Pub() (b B)   { return s.pkb[1:] }
+func (s *Signer) ECPub() (b B) { return s.pkb }
 
 func (s *Signer) Sign(msg B) (sig B, err error) {
 	if s.SecretKey == nil {
@@ -83,12 +92,5 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 	return
 }
 
-func (s *Signer) Zero() { Zero(s.SecretKey) }
-
-func (s *Signer) ECDH(pp B) (secret B, err error) {
-	var pub *ECPub
-	if pub, err = ECPubFromSchnorrBytes(pp); chk.E(err) {
-		return
-	}
-	return ECDH(ToUchar(s.skb), pub), nil
-}
+func (s *Signer) Zero()                            { Zero(s.SecretKey) }
+func (s *Signer) ECDH(xkb B) (secret B, err error) { return ECDH(s.skb, xkb) }

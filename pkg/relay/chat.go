@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/tag"
@@ -45,14 +44,14 @@ func EncryptDM(ev *event.T, meSec, youPub B) (evo *event.T, err E) {
 		if ev.Content, err = encryption.EncryptNip4(ev.ContentString(), secret); chk.E(err) {
 			return
 		}
-		var sec pkg.Signer
-		if sec, err = p256k.NewSigner(sec); chk.E(err) {
+		signer := new(p256k.Signer)
+		if err = signer.Generate(); chk.E(err) {
 			return
 		}
-		if err = sec.InitSec(meSec); chk.E(err) {
+		if err = signer.InitSec(meSec); chk.E(err) {
 			return
 		}
-		if err = ev.Sign(sec); chk.E(err) {
+		if err = ev.Sign(signer); chk.E(err) {
 			return
 		}
 	case kind.GiftWrap:

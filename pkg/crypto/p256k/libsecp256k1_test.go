@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"ec.mleku.dev/v2/schnorr"
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/event/examples"
 	"git.replicatr.dev/pkg/crypto/p256k"
@@ -54,11 +53,9 @@ func TestSign(t *testing.T) {
 	scanner.Buffer(buf, len(buf))
 	var err error
 	var sec1 *p256k.Sec
-	if sec1, err = p256k.GenSec(); chk.E(err) {
-		t.Fatal(err)
-	}
-	var pub1 *p256k.Pub
-	if pub1, err = sec1.Pub(); chk.E(err) {
+	var pub1 *p256k.XPublicKey
+	var pb B
+	if _, pb, sec1, pub1, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	for scanner.Scan() {
@@ -70,10 +67,6 @@ func TestSign(t *testing.T) {
 		evs = append(evs, ev)
 	}
 	sig := make(B, schnorr.SignatureSize)
-	var pb B
-	if pb, err = pub1.ToBytes(); chk.E(err) {
-		t.Fatal(err)
-	}
 	for _, ev := range evs {
 		ev.PubKey = pb
 		var uid *p256k.Uchar
@@ -88,31 +81,31 @@ func TestSign(t *testing.T) {
 		if usig, err = p256k.Sig(sig); chk.E(err) {
 			t.Fatal(err)
 		}
-		if !p256k.Verify(uid, usig, pub1.Pub()) {
+		if !p256k.Verify(uid, usig, pub1.Key) {
 			t.Errorf("invalid signature")
 		}
 	}
 	p256k.Zero(&sec1.Key)
 }
 
-func TestECDH(t *testing.T) {
-	n := time.Now()
+func TestOnlyECDH(t *testing.T) {
 	var err error
-	var s1, s2 pkg.Signer
 	var counter int
 	const total = 10000
-	if s1, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	var skb1, pkb1, skb2, pkb2 B
+	if skb1, pkb1, _, _, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
-	if s2, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	if skb2, pkb2, _, _, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
+	n := time.Now()
 	for _ = range total {
 		var secret1, secret2 B
-		if secret1, err = s1.ECDH(s2.Pub()); chk.E(err) {
+		if secret1, err = p256k.ECDH(skb1, pkb2); chk.E(err) {
 			t.Fatal(err)
 		}
-		if secret2, err = s2.ECDH(s1.Pub()); chk.E(err) {
+		if secret2, err = p256k.ECDH(skb2, pkb1); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !equals(secret1, secret2) {
@@ -123,5 +116,5 @@ func TestECDH(t *testing.T) {
 	a := time.Now()
 	duration := a.Sub(n)
 	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op", int(duration/total),
-		"ops/sec",int(time.Second)/int(duration/total))
+		"ops/sec", int(time.Second)/int(duration/total))
 }

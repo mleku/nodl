@@ -76,7 +76,7 @@ type Sec struct {
 }
 
 func GenSec() (sec *Sec, err E) {
-	if _, _, sec, _, err = GenSecBytes(); chk.E(err) {
+	if _, _, sec, _, _, err = Generate(); chk.E(err) {
 		return
 	}
 	return
@@ -103,35 +103,62 @@ func (s *Sec) Pub() (p *Pub, err E) {
 }
 
 type PublicKey struct {
-	pk *C.secp256k1_pubkey
+	Key *C.secp256k1_pubkey
 }
 
 func newPublicKey() *PublicKey {
 	return &PublicKey{
-		pk: &C.secp256k1_pubkey{},
+		Key: &C.secp256k1_pubkey{},
 	}
 }
 
 type XPublicKey struct {
-	pk *C.secp256k1_xonly_pubkey
+	Key *C.secp256k1_xonly_pubkey
 }
 
 func newXPublicKey() *XPublicKey {
 	return &XPublicKey{
-		pk: &C.secp256k1_xonly_pubkey{},
+		Key: &C.secp256k1_xonly_pubkey{},
 	}
 }
 
-func GenSecBytes() (skb, pkb B, sec *Sec, pub *XPublicKey, err error) {
-	// because we must not create pubkeys with odd/0x03 prefix we have to derive the pubkey in this process anyway, and
-	// so we must use the bitcoin-core/secp256k1 library or pay a performance penalty if we want to generate a lot of
-	// new keys (for network transport MAC use case)
+func FromSecretBytes(skb B) (pkb B, sec *Sec, pub *XPublicKey, ecPub *PublicKey, err error) {
+	ecpkb := make(B, secp256k1.PubKeyBytesLenCompressed)
+	clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
+	pkb = make(B, secp256k1.PubKeyBytesLenCompressed)
+	var parity Cint
+	ecPub = newPublicKey()
+	pub = newXPublicKey()
+	sec = &Sec{}
+	usk32 := ToUchar(skb)
+	res := C.secp256k1_keypair_create(ctx, &sec.Key, usk32)
+	if res != 1 {
+		err = errorf.E("failed to create secp256k1 keypair")
+		return
+	}
+	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
+	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
+	if ecpkb[0] != 2 {
+		err = errorf.E("invalid odd pubkey from secret key %0x", skb)
+		return
+	}
+	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+	pkb = ecpkb
+	// log.I.S(skb, pkb, sec, pub, ecPub)
+	return
+}
+
+// Generate gathers entropy to generate a full set of bytes and CGO values of it and derived from it to perform
+// signature and ECDH operations.
+//
+// Note that the pubkey bytes are the 33 byte form with the sign prefix, slice it off for X-only use.
+func Generate() (skb, pkb B, sec *Sec, pub *XPublicKey, ecpub *PublicKey, err error) {
 	skb = make(B, secp256k1.SecKeyBytesLen)
 	ecpkb := make(B, secp256k1.PubKeyBytesLenCompressed)
 	clen := C.size_t(secp256k1.PubKeyBytesLenCompressed)
-	pkb = make(B, schnorr.PubKeyBytesLen)
+	pkb = make(B, secp256k1.PubKeyBytesLenCompressed)
 	var parity Cint
-	kpk := newPublicKey()
+	ecpub = newPublicKey()
 	pub = newXPublicKey()
 	sec = &Sec{}
 	for {
@@ -139,16 +166,15 @@ func GenSecBytes() (skb, pkb B, sec *Sec, pub *XPublicKey, err error) {
 			return
 		}
 		usk32 := ToUchar(skb)
-		res := C.secp256k1_keypair_create(ctx, &sec.Key, usk32)
-		if res != 1 {
+		if res := C.secp256k1_keypair_create(ctx, &sec.Key, usk32); res != 1 {
 			err = errorf.E("failed to create secp256k1 keypair")
 			return
 		}
-		C.secp256k1_keypair_xonly_pub(ctx, pub.pk, &parity, &sec.Key)
-		C.secp256k1_keypair_pub(ctx, kpk.pk, &sec.Key)
-		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, kpk.pk, C.SECP256K1_EC_COMPRESSED)
-		C.secp256k1_xonly_pubkey_serialize(ctx, ToUchar(pkb), pub.pk)
+		C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
+		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key, C.SECP256K1_EC_COMPRESSED)
 		if ecpkb[0] == 2 {
+			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+			pkb = ecpkb
 			break
 		}
 	}
@@ -167,16 +193,30 @@ type ECPub struct {
 
 // ECPubFromSchnorrBytes converts a BIP-340 public key to its even standard 33 byte encoding.
 //
-// This function is for the purpose of getting a key to do ECDH.
-func ECPubFromSchnorrBytes(pk B) (pub *ECPub, err E) {
-	if err = AssertLen(pk, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
+// This function is for the purpose of getting a key to do ECDH from an x-only key.
+func ECPubFromSchnorrBytes(xkb B) (pub *ECPub, err E) {
+	if err = AssertLen(xkb, schnorr.PubKeyBytesLen, "pubkey"); chk.E(err) {
 		return
 	}
 	pub = &ECPub{}
-	p := append(B{0x02}, pk...)
+	p := append(B{0x02}, xkb...)
 	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(p),
 		secp256k1.PubKeyBytesLenCompressed) != 1 {
 		err = errorf.E("failed to parse pubkey from %0x", p)
+		log.I.S(pub)
+		return
+	}
+	return
+}
+
+// ECPubFromBytes parses a pubkey from 33 bytes to the bitcoin-core/secp256k1 struct.
+func ECPubFromBytes(pkb B) (pub *ECPub, err E) {
+	if err = AssertLen(pkb, secp256k1.PubKeyBytesLenCompressed, "pubkey"); chk.E(err) {
+		return
+	}
+	pub = &ECPub{}
+	if C.secp256k1_ec_pubkey_parse(ctx, &pub.Key, ToUchar(pkb), secp256k1.PubKeyBytesLenCompressed) != 1 {
+		err = errorf.E("failed to parse pubkey from %0x", pkb)
 		log.I.S(pub)
 		return
 	}
@@ -285,9 +325,20 @@ func Zero(sk *SecKey) {
 	}
 }
 
-func ECDH(sec *Uchar, pk *ECPub) (secret B) {
+// ECDH computes a shared secret based on a secret key and an x-only pubkey assuming the pubkey is even. If the pubkey
+// is in fact a 3-prefix in its 33 byte form it will not work both ways. Odd keys are just invalid for taproot/nostr,
+// this is the tradeoff for an even length public key.
+func ECDH(skb B, pkb B) (secret B, err E) {
 	secret = make(B, sha256.Size)
 	uSecret := ToUchar(secret)
-	C.secp256k1_ecdh(ctx, uSecret, &pk.Key, sec, nil, nil)
+	uSec := ToUchar(skb)
+	var pub *ECPub
+	if pub, err = ECPubFromBytes(pkb); chk.E(err) {
+		return
+	}
+	if C.secp256k1_ecdh(ctx, uSecret, &pub.Key, uSec, nil, nil) != 1 {
+		err = errorf.E("failed to ecdh")
+		return
+	}
 	return
 }

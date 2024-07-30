@@ -3,14 +3,13 @@ package auth
 import (
 	"testing"
 
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/crypto/p256k"
 )
 
 func TestCreateUnsigned(t *testing.T) {
 	var err error
-	var signer pkg.Signer
-	if signer, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	signer := new(p256k.Signer)
+	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	var ok bool

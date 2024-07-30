@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"ec.mleku.dev/v2/schnorr"
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/event/examples"
-	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/crypto/p256k/btcec"
 	"github.com/minio/sha256-simd"
 )
@@ -103,13 +101,14 @@ func TestBTCECSignerSign(t *testing.T) {
 func TestBTCECECDH(t *testing.T) {
 	n := time.Now()
 	var err error
-	var s1, s2 pkg.Signer
 	var counter int
 	const total = 10000
-	if s1, err = p256k.NewSigner(&btcec.Signer{}); chk.E(err) {
+	s1 := new(btcec.Signer)
+	if err = s1.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
-	if s2, err = p256k.NewSigner(&btcec.Signer{}); chk.E(err) {
+	s2 := new(btcec.Signer)
+	if err = s2.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	for _ = range total {

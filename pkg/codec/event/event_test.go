@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"git.replicatr.dev/pkg"
 	"git.replicatr.dev/pkg/codec/event/examples"
 	"git.replicatr.dev/pkg/crypto/p256k"
 )
@@ -67,8 +66,8 @@ func TestT_CheckSignature(t *testing.T) {
 
 func TestT_SignWithSecKey(t *testing.T) {
 	var err error
-	var signer pkg.Signer
-	if signer, err = p256k.NewSigner(&p256k.Signer{}); chk.E(err) {
+	signer := new(p256k.Signer)
+	if err = signer.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
 	var ev *T
