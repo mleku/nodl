@@ -4,14 +4,17 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"math"
+	"strings"
 
+	"ec.mleku.dev/v2/secp256k1"
+	"github.com/minio/sha256-simd"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
 )
@@ -22,7 +25,7 @@ const (
 	MaxPlaintextSize      = 0xffff // 65535 (64kb-1) => padded to 64kb
 )
 
-type encryptOptions struct {
+type Options struct {
 	err   error
 	nonce []byte
 }
@@ -30,98 +33,106 @@ type encryptOptions struct {
 // Deprecated: use WithCustomNonce instead of WithCustomSalt, so the naming is less confusing
 var WithCustomSalt = WithCustomNonce
 
-func WithCustomNonce(salt []byte) func(opts *encryptOptions) {
-	return func(opts *encryptOptions) {
-		if len(salt) != 32 {
+func WithCustomNonce(nonce B) func(opts *Options) {
+	return func(opts *Options) {
+		if len(nonce) != 32 {
 			opts.err = errors.New("salt must be 32 bytes")
 		}
-		opts.nonce = salt
+		opts.nonce = nonce
 	}
 }
 
-func Encrypt(plaintext string, conversationKey []byte, applyOptions ...func(opts *encryptOptions)) (string, error) {
-	opts := encryptOptions{}
-	for _, apply := range applyOptions {
-		apply(&opts)
-	}
-	if opts.err != nil {
-		return "", opts.err
-	}
-	nonce := opts.nonce
-	if nonce == nil {
-		nonce := make([]byte, 32)
-		if _, err := rand.Read(nonce); err != nil {
-			return "", err
+// notBetween returns true if x is not between a and b, inclusive.
+func notBetween(x, a, b int) bool {
+	return x < a || x > b
+}
+
+func Encrypt(plain B, key B, opts ...func(opts *Options)) (b64ciphertext S, err E) {
+	eo := Options{}
+	for _, apply := range opts {
+		if apply(&eo); chk.E(eo.err) {
+			err = eo.err
+			return
 		}
 	}
-	enc, cc20nonce, auth, err := messageKeys(conversationKey, nonce)
-	if err != nil {
-		return "", err
+	if eo.nonce == nil {
+		eo.nonce = make(B, 32)
+		if _, err = rand.Read(eo.nonce); chk.E(err) {
+			return
+		}
 	}
-	plain := []byte(plaintext)
-	size := len(plain)
-	if size < MinPlaintextSize || size > MaxPlaintextSize {
-		return "", errors.New("plaintext should be between 1b and 64kB")
+	var enc, cc20nonce, auth B
+	if enc, cc20nonce, auth, err = messageKeys(key, eo.nonce); chk.E(err) {
+		return
 	}
-	padding := calcPadding(size)
-	padded := make([]byte, 2+padding)
-	binary.BigEndian.PutUint16(padded, uint16(size))
-	copy(padded[2:], plain)
-	ciphertext, err := chacha(enc, cc20nonce, []byte(padded))
-	if err != nil {
-		return "", err
+	l := len(plain)
+	if notBetween(l, MinPlaintextSize, MaxPlaintextSize) {
+		err = errorf.E("plaintext must be between %d and %d", MinPlaintextSize, MaxPlaintextSize)
+		return
 	}
-	mac, err := sha256Hmac(auth, ciphertext, nonce)
-	if err != nil {
-		return "", err
+	padding := make([]byte, calcPadding(l))
+	// 2 byte length prefix for ext
+	binary.BigEndian.PutUint16(padding, uint16(l))
+	copy(padding[2:], plain)
+	var ciphertext B
+	if ciphertext, err = ChaCha20Encipher(enc, cc20nonce, padding); chk.E(err) {
+		return
 	}
-	concat := make([]byte, 1+32+len(ciphertext)+32)
-	concat[0] = version
-	copy(concat[1:], nonce)
-	copy(concat[1+32:], ciphertext)
-	copy(concat[1+32+len(ciphertext):], mac)
-	return base64.StdEncoding.EncodeToString(concat), nil
+	var mac B
+	if mac, err = sha256Hmac(auth, ciphertext, eo.nonce); chk.E(err) {
+		return
+	}
+	msg := make([]byte, 0, 1+32+len(ciphertext)+32)
+	msg = append(msg, version)
+	msg = append(msg, eo.nonce...)
+	msg = append(msg, ciphertext...)
+	msg = append(msg, mac...)
+	return base64.StdEncoding.EncodeToString(msg), nil
 }
 
-func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (string, error) {
-	cLen := len(b64ciphertextWrapped)
-	if cLen < 132 || cLen > 87472 {
-		return "", errors.New(fmt.Sprintf("invalid payload length: %d", cLen))
+func Decrypt(b64ciphertext S, key B) (plaintext S, err E) {
+	cLen := len(b64ciphertext)
+	if notBetween(cLen, 132, 87472) {
+		err = errorf.E("invalid payload length: %d", cLen)
+		return
 	}
-	if b64ciphertextWrapped[0:1] == "#" {
+	if b64ciphertext[:1] == "#" {
 		return "", errors.New("unknown version")
 	}
-	decoded, err := base64.StdEncoding.DecodeString(b64ciphertextWrapped)
-	if err != nil {
-		return "", errors.New("invalid base64")
+	var decoded B
+	if decoded, err = base64.StdEncoding.DecodeString(b64ciphertext); chk.E(err) {
+		return
 	}
 	if decoded[0] != version {
-		return "", errors.New(fmt.Sprintf("unknown version %d", decoded[0]))
+		err = errorf.E("unknown version %d", decoded[0])
+		return
 	}
 	dLen := len(decoded)
-	if dLen < 99 || dLen > 65603 {
-		return "", errors.New(fmt.Sprintf("invalid data length: %d", dLen))
+	if notBetween(dLen, 99, 65603) {
+		err = errorf.E(fmt.Sprintf("invalid data length: %d", dLen))
+		return
 	}
 	nonce, ciphertext, givenMac := decoded[1:33], decoded[33:dLen-32], decoded[dLen-32:]
-	enc, cc20nonce, auth, err := messageKeys(conversationKey, nonce)
-	if err != nil {
-		return "", err
+	var enc, cc20nonce, auth B
+	if enc, cc20nonce, auth, err = messageKeys(key, nonce); chk.E(err) {
+		return
 	}
-	expectedMac, err := sha256Hmac(auth, ciphertext, nonce)
-	if err != nil {
-		return "", err
+	var expectedMac B
+	if expectedMac, err = sha256Hmac(auth, ciphertext, nonce); chk.E(err) {
+		return
 	}
 	if !bytes.Equal(givenMac, expectedMac) {
-		return "", errors.New("invalid hmac")
+		err = errorf.E("invalid hmac")
+		return
 	}
-	padded, err := chacha(enc, cc20nonce, ciphertext)
-	if err != nil {
-		return "", err
+	var padded B
+	if padded, err = ChaCha20Encipher(enc, cc20nonce, ciphertext); chk.E(err) {
+		return
 	}
-	unpaddedLen := binary.BigEndian.Uint16(padded[0:2])
-	if unpaddedLen < uint16(MinPlaintextSize) || unpaddedLen > uint16(MaxPlaintextSize) ||
-		len(padded) != 2+calcPadding(int(unpaddedLen)) {
-		return "", errors.New("invalid padding")
+	unpaddedLen := int(binary.BigEndian.Uint16(padded[:2]))
+	if notBetween(unpaddedLen, MinPlaintextSize, MaxPlaintextSize) || len(padded) != calcPadding(unpaddedLen) {
+		err = errorf.E("invalid padding")
+		return
 	}
 	unpadded := padded[2:][:unpaddedLen]
 	if len(unpadded) == 0 || len(unpadded) != int(unpaddedLen) {
@@ -130,28 +141,58 @@ func Decrypt(b64ciphertextWrapped string, conversationKey []byte) (string, error
 	return string(unpadded), nil
 }
 
-func GenerateConversationKey(pub string, sk string) ([]byte, error) {
-	if sk >= "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141" || sk == "0000000000000000000000000000000000000000000000000000000000000000" {
+func MustBytes(s S) (b B) {
+	if len(s)%2 != 0 {
+		panic("hex string must be even")
+	}
+	b = make(B, len(s)/2)
+	var err E
+	if _, err = hex.Decode(b, B(s)); chk.E(err) {
+		panic(err)
+	}
+	return
+}
+
+var secp256k1Order = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+var zero = strings.Repeat("0", 64)
+
+func GenerateConversationKey(pub, sk S) (key B, err E) {
+	if sk >= secp256k1Order || sk == zero {
 		return nil, fmt.Errorf("invalid private key: x coordinate %s is not on the secp256k1 curve", sk)
 	}
-	shared, err := ComputeSharedSecret(B(pub), B(sk))
-	if err != nil {
-		return nil, err
+	var secret B
+	if secret, err = ComputeSharedSecret(pub, sk); chk.E(err) {
+		return
 	}
-	return hkdf.Extract(sha256.New, shared, []byte("nip44-v2")), nil
+	return hkdf.Extract(sha256.New, secret, []byte("nip44-v2")), nil
 }
 
-func chacha(key []byte, nonce []byte, message []byte) ([]byte, error) {
-	cipher, err := chacha20.NewUnauthenticatedCipher(key, nonce)
-	if err != nil {
-		return nil, err
+var secp256k1OrderBytes = MustBytes("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141")
+var zeroBytes = make(B, secp256k1.SecKeyBytesLen)
+
+func GenerateConversationKeyFromBytes(pub, sk B) (key B, err E) {
+	if bytes.Compare(sk, secp256k1OrderBytes) >= 0 || bytes.Equal(sk, zeroBytes) {
+		err = errorf.E("invalid private key: x coordinate %s is not on the secp256k1 curve", sk)
+		return
 	}
-	dst := make([]byte, len(message))
+	var secret B
+	if secret, err = ComputeSharedSecretFromBytes(pub, sk); chk.E(err) {
+		return
+	}
+	return hkdf.Extract(sha256.New, secret, []byte("nip44-v2")), nil
+}
+
+func ChaCha20Encipher(key, nonce, message B) (dst B, err E) {
+	var cipher *chacha20.Cipher
+	if cipher, err = chacha20.NewUnauthenticatedCipher(key, nonce); chk.E(err) {
+		return
+	}
+	dst = make(B, len(message))
 	cipher.XORKeyStream(dst, message)
-	return dst, nil
+	return
 }
 
-func sha256Hmac(key []byte, ciphertext []byte, nonce []byte) ([]byte, error) {
+func sha256Hmac(key, ciphertext, nonce B) (hash B, err E) {
 	if len(nonce) != 32 {
 		return nil, errors.New("nonce aad must be 32 bytes")
 	}
@@ -161,24 +202,26 @@ func sha256Hmac(key []byte, ciphertext []byte, nonce []byte) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
-func messageKeys(conversationKey []byte, nonce []byte) ([]byte, []byte, []byte, error) {
-	if len(conversationKey) != 32 {
-		return nil, nil, nil, errors.New("conversation key must be 32 bytes")
+func messageKeys(key, nonce B) (enc, cc20nonce, auth B, err E) {
+	if len(key) != 32 {
+		err = errorf.E("conversation key must be 32 bytes\n%0x", key)
+		return
 	}
 	if len(nonce) != 32 {
-		return nil, nil, nil, errors.New("nonce must be 32 bytes")
+		err = errorf.E("nonce must be 32 bytes")
+		return
 	}
-	r := hkdf.Expand(sha256.New, conversationKey, nonce)
-	enc := make([]byte, 32)
-	if _, err := io.ReadFull(r, enc); err != nil {
+	r := hkdf.Expand(sha256.New, key, nonce)
+	enc = make(B, 32)
+	if _, err = io.ReadFull(r, enc); err != nil {
 		return nil, nil, nil, err
 	}
-	cc20nonce := make([]byte, 12)
-	if _, err := io.ReadFull(r, cc20nonce); err != nil {
+	cc20nonce = make(B, 12)
+	if _, err = io.ReadFull(r, cc20nonce); err != nil {
 		return nil, nil, nil, err
 	}
-	auth := make([]byte, 32)
-	if _, err := io.ReadFull(r, auth); err != nil {
+	auth = make(B, 32)
+	if _, err = io.ReadFull(r, auth); err != nil {
 		return nil, nil, nil, err
 	}
 	return enc, cc20nonce, auth, nil
@@ -186,9 +229,9 @@ func messageKeys(conversationKey []byte, nonce []byte) ([]byte, []byte, []byte, 
 
 func calcPadding(sLen int) int {
 	if sLen <= 32 {
-		return 32
+		return 32 + 2
 	}
 	nextPower := 1 << int(math.Floor(math.Log2(float64(sLen-1)))+1)
 	chunk := int(math.Max(32, float64(nextPower/8)))
-	return chunk * int(math.Floor(float64((sLen-1)/chunk))+1)
+	return chunk*int(math.Floor(float64((sLen-1)/chunk))+1) + 2 // 2 byte length prefix
 }

@@ -1,3 +1,5 @@
+//go:build !btcec
+
 package p256k_test
 
 import (

@@ -19,7 +19,6 @@ func GenerateSecretKeyHex() (sks B) {
 		return
 	}
 	skb = signer.Sec()
-	log.I.S(skb)
 	sks = B(hex.Enc(skb))
 	return
 }
@@ -33,8 +32,17 @@ func GetPublicKey(sk S) (pk S, err E) {
 	if b, err = hex.Dec(sk); chk.E(err) {
 		return
 	}
-	_, pkk := btcec.SecKeyFromBytes(b)
+	return SecretBytesToPubKeyHex(b)
+}
+
+func SecretBytesToPubKeyHex(skb B) (pk S, err E) {
+	_, pkk := btcec.SecKeyFromBytes(skb)
 	return hex.Enc(schnorr.SerializePubKey(pkk)), nil
+}
+
+func SecretToPubKeyBytes(skb B) (pk B, err E) {
+	_, pkk := btcec.SecKeyFromBytes(skb)
+	return schnorr.SerializePubKey(pkk), nil
 }
 
 func IsValid32ByteHex(pk string) bool {

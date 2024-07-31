@@ -20,7 +20,7 @@ func DecryptDM(ev *event.T, meSec, youPub B) (decryptedStr B, err E) {
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
 		var secret, decrypted B
-		if secret, err = encryption.ComputeSharedSecret(meSec, youPub); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecretFromBytes(meSec, youPub); chk.E(err) {
 			return
 		}
 		if decrypted, err = encryption.DecryptNip4(ev.ContentString(), secret); chk.E(err) {
@@ -38,7 +38,7 @@ func EncryptDM(ev *event.T, meSec, youPub B) (evo *event.T, err E) {
 	var secret []byte
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
-		if secret, err = encryption.ComputeSharedSecret(meSec, youPub); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecretFromBytes(meSec, youPub); chk.E(err) {
 			return
 		}
 		if ev.Content, err = encryption.EncryptNip4(ev.ContentString(), secret); chk.E(err) {

@@ -5,71 +5,50 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"encoding/hex"
 	"strings"
 
-	"ec.mleku.dev/v2/schnorr"
+	btcec "ec.mleku.dev/v2"
 	secp "ec.mleku.dev/v2/secp256k1"
-	b32 "git.replicatr.dev/pkg/codec/bech32encoding"
-	"git.replicatr.dev/pkg/util/hex"
 	"lukechampine.com/frand"
 )
 
-// ComputeSharedSecret computes an Elliptic Curve Diffie Hellman shared secret out of one public key and another secret
-// key.
-//
-// The main thing this function actually does is automatically recognise whether the keys are in hex, bech32 or raw
-// binary, and use them accordingly, both can be in a different but valid encoding. All will be checked to be valid as
-// secp256k1 secret keys.
-func ComputeSharedSecret(sec, pub B) (secret B, err E) {
-	var s *secp.SecretKey
-	var p *secp.PublicKey
-	switch {
-	case len(sec) == secp.SecKeyBytesLen:
-		s = secp.SecKeyFromBytes(sec)
-	case len(sec) == secp.SecKeyBytesLen*2:
-		var sb B
-		if _, err = hex.DecBytes(sb, sec); chk.E(err) {
-			return
-		}
-		s = secp.SecKeyFromBytes(sec)
-	case len(sec) <= b32.MinKeyStringLen:
-		if s, err = b32.NsecToSecretKey(sec); chk.E(err) {
-			return
-		}
-	default:
-		err = errorf.E("unable to decode secret key for ECDH")
+// ComputeSharedSecret returns a shared secret key used to encrypt messages.
+// The private and public keys should be hex encoded.
+// Uses the Diffie-Hellman key exchange (ECDH) (RFC 4753).
+func ComputeSharedSecret(pub, sk string) (sharedSecret []byte, err error) {
+	var privKeyBytes, pubKeyBytes B
+	if privKeyBytes, err = hex.DecodeString(sk); chk.E(err) {
+		err = errorf.E("error decoding sender private key: %w", err)
 		return
 	}
-	if s == nil {
-		err = errorf.E("invalid secret key for ECDH %0x", sec)
+	privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
+	// appending 02 to signal that this is a compressed public key (33 bytes)
+	if pubKeyBytes, err = hex.DecodeString("02" + pub); chk.E(err) {
+		err = errorf.E("error decoding hex string of receiver public key '%s': %w", "02"+pub, err)
 		return
 	}
-	switch {
-	case len(pub) == schnorr.PubKeyBytesLen:
-		if p, err = schnorr.ParsePubKey(pub); chk.E(err) {
-			return
-		}
-	case len(pub) == schnorr.PubKeyBytesLen*2:
-		var pb B
-		if _, err = hex.DecBytes(pb, sec); chk.E(err) {
-			return
-		}
-		if p, err = schnorr.ParsePubKey(pb); chk.E(err) {
-			return
-		}
-	case len(pub) <= b32.MinKeyStringLen:
-		if p, err = b32.NpubToPublicKey(pub); chk.E(err) {
-			return
-		}
-	default:
-		err = errorf.E("unable to decode public key for ECDH")
+	var pubKey *btcec.PublicKey
+	if pubKey, err = btcec.ParsePubKey(pubKeyBytes); chk.E(err) {
+		err = errorf.E("error parsing receiver public key '%s': %w", "02"+pub, err)
 		return
 	}
-	if p == nil {
-		err = errorf.E("invalid public key for ECDH %0x", sec)
+	return btcec.GenerateSharedSecret(privKey, pubKey), nil
+}
+
+// ComputeSharedSecretFromBytes returns a shared secret key used to encrypt messages. Uses the Diffie-Hellman key
+// exchange (ECDH) (RFC 4753).
+func ComputeSharedSecretFromBytes(pkb, skb B) (secret []byte, err error) {
+	privKey, _ := btcec.PrivKeyFromBytes(skb)
+	// appending 02 to signal that this is a compressed public key (33 bytes)
+	pkb = append(B{2}, pkb...)
+	var pubKey *btcec.PublicKey
+	if pubKey, err = btcec.ParsePubKey(pkb); chk.E(err) {
+		err = errorf.E("error parsing receiver public key '%0x': %w", pkb, err)
 		return
 	}
-	return secp.GenerateSharedSecret(s, p), err
+	secret = btcec.GenerateSharedSecret(privKey, pubKey)
+	return
 }
 
 func GenerateSharedSecret(s *secp.SecretKey, p *secp.PublicKey) []byte {
