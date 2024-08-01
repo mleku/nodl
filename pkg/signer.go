@@ -24,4 +24,6 @@ type Signer interface {
 	// ECDH returns a shared secret derived using Elliptic Curve Diffie Hellman on the Signer secret and provided
 	// pubkey.
 	ECDH(pub B) (secret B, err E)
+	// Negate flips the the secret key to change between odd and even compressed public key.
+	Negate()
 }

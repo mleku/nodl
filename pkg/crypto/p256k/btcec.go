@@ -10,3 +10,6 @@ import (
 // implementation and points it at the btec version.
 
 type Signer = btcec.Signer
+type Keygen = btcec.Keygen
+
+func NewKeygen() (k *Keygen) { return new(Keygen) }

@@ -38,3 +38,10 @@ go install git.replicatr.dev/cmd/vainstr@v0.0.8
 a linux binary release will also be available in the github releases page... 
 for windows users, this can be run using WSL2 directly 
 [https://github.com/mleku/nodl/releases](https://github.com/mleku/nodl/releases)
+
+you can also run it directly like this, omit the `-tags btcec` if you have 
+the bitcoin core secp256k1 library installed:
+
+```bash
+ go run -tags btcec git.replicatr.dev/cmd/vainstr@latest
+```

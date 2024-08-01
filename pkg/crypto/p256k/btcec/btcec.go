@@ -26,10 +26,7 @@ func (s *Signer) Generate() (err E) {
 			s.skb = s.SecretKey.Serialize()
 			break
 		} else {
-			s.SecretKey.Key = *s.SecretKey.Key.Negate()
-			s.skb = s.SecretKey.Serialize()
-			s.PublicKey = s.SecretKey.PubKey()
-			s.pkb = s.PublicKey.SerializeCompressed()
+			s.Negate()
 		}
 	}
 	return
@@ -101,4 +98,34 @@ func (s *Signer) ECDH(pubkeyBytes B) (secret B, err E) {
 	}
 	secret = ec.GenerateSharedSecret(s.SecretKey, pub)
 	return
+}
+
+func (s *Signer) Negate() {
+	s.SecretKey.Key = *s.SecretKey.Key.Negate()
+	s.skb = s.SecretKey.Serialize()
+	s.PublicKey = s.SecretKey.PubKey()
+	s.pkb = s.PublicKey.SerializeCompressed()
+}
+
+type Keygen struct {
+	Signer
+}
+
+func (k *Keygen) Generate() (pubBytes B, err E) {
+	if k.Signer.SecretKey, err = ec.NewSecretKey(); chk.E(err) {
+		return
+	}
+	k.Signer.PublicKey = k.SecretKey.PubKey()
+	k.Signer.pkb = k.PublicKey.SerializeCompressed()
+	pubBytes = k.Signer.pkb
+	return
+}
+
+func (k *Keygen) Negate() {
+	k.Signer.Negate()
+	return
+}
+
+func (k *Keygen) KeyPairBytes() (secBytes, cmprPubBytes B) {
+	return k.Signer.SecretKey.Serialize(), k.Signer.PublicKey.SerializeCompressed()
 }

@@ -37,8 +37,11 @@ func (s *Signer) InitSec(skb B) (err error) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
-	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); chk.E(err) {
-		return
+	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); err != nil {
+		if err.Error() != "provided secret generates a public key with odd Y coordinate, fixed version returned" {
+			log.E.Ln(err)
+			return
+		}
 	}
 	s.skb = skb
 	s.SecretKey = &cs.Key
@@ -94,3 +97,8 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 
 func (s *Signer) Zero()                            { Zero(s.SecretKey) }
 func (s *Signer) ECDH(xkb B) (secret B, err error) { return ECDH(s.skb, xkb) }
+
+func (s *Signer) Negate() {
+	Negate(s.skb)
+	chk.E(s.InitSec(s.skb))
+}

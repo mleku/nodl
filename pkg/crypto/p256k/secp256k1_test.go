@@ -99,13 +99,14 @@ func TestOnlyECDH(t *testing.T) {
 	if skb2, pkb2, _, _, _, err = p256k.Generate(); chk.E(err) {
 		t.Fatal(err)
 	}
+	pk1, pk2 := pkb1[1:], pkb2[1:]
 	n := time.Now()
 	for _ = range total {
 		var secret1, secret2 B
-		if secret1, err = p256k.ECDH(skb1, pkb2); chk.E(err) {
+		if secret1, err = p256k.ECDH(skb1, pk2); chk.E(err) {
 			t.Fatal(err)
 		}
-		if secret2, err = p256k.ECDH(skb2, pkb1); chk.E(err) {
+		if secret2, err = p256k.ECDH(skb2, pk1); chk.E(err) {
 			t.Fatal(err)
 		}
 		if !equals(secret1, secret2) {

@@ -18,6 +18,11 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
+type Result struct {
+	sec, pub B
+	npub     B
+}
+
 var prefix = append(bech32encoding.PubHRP, '1')
 
 const (
@@ -25,11 +30,6 @@ const (
 	PositionContains
 	PositionEnding
 )
-
-type Result struct {
-	sec, pub B
-	npub     B
-}
 
 var args struct {
 	String   string `arg:"positional" help:"the string you want to appear in the npub"`
@@ -106,7 +106,7 @@ out:
 			workingFor := time.Now().Sub(started)
 			wm := workingFor % time.Second
 			workingFor -= wm
-			fmt.Printf("working for %v, attempts %d\n",
+			log.I.F("working for %v, attempts %d",
 				workingFor, counter.Load())
 		case r := <-resC:
 			// one of the workers found the solution
@@ -124,13 +124,11 @@ out:
 	// wait for all of the workers to stop
 	wg.Wait()
 
-	log.I.F("generated in %d attempts using %d threads, taking %v\n",
+	fmt.Printf("# generated in %d attempts using %d threads, taking %v\n",
 		counter.Load(), args.Threads, time.Now().Sub(started))
 	nsec, _ := bech32encoding.BinToNsec(res.sec)
-	fmt.Printf("NSEC=%s\nNPUB=%s\n",
-		nsec, res.npub)
-	fmt.Printf("SEC=%0x\nPUB=%0x\n",
-		res.sec, res.pub)
+	fmt.Printf("NSEC = %s\nNPUB = %s\n", nsec, res.npub)
+	fmt.Printf("SEC = %0x\nPUB = %0x\n", res.sec, res.pub)
 	return
 }
 
@@ -141,12 +139,20 @@ func mine(str B, where int, quit qu.C, resC chan Result, wg *sync.WaitGroup, cou
 	var err error
 	found := false
 	atstart := append(prefix, str...)
+	s := p256k.NewKeygen()
+	var pkb B
 out:
 	for {
 		select {
 		case <-quit:
 			wg.Done()
 			if found {
+				if pkb[0] == 3 {
+					s.Negate()
+				}
+				sk, pk := s.KeyPairBytes()
+				r.sec = sk
+				r.pub = pk
 				// send back the result
 				resC <- r
 			}
@@ -154,15 +160,10 @@ out:
 		default:
 		}
 		counter.Inc()
-		signer := &p256k.Signer{}
-		if err = signer.Generate(); chk.E(err) {
-			log.E.Ln("error generating key: '%v' worker stopping", err)
-			break out
-		}
-		r.sec, r.pub = signer.Sec(), signer.Pub()
-		r.npub, err = bech32encoding.BinToNpub(r.pub)
+		pkb, err = s.Generate()
+		r.npub, err = bech32encoding.BinToNpub(pkb[1:])
 		if err != nil {
-			log.E.Ln("fatal error generating npub: %s\n", err)
+			log.F.Ln("fatal error generating npub: %s\n", err)
 			break out
 		}
 		switch where {

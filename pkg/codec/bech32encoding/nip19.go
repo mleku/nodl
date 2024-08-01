@@ -24,7 +24,7 @@ var (
 	NentityHRP  = B("naddr")
 )
 
-func DecodeToString(bech32String B) (prefix, value B, err error) {
+func DecodeToString(bech32String B) (prefix, value B, err E) {
 	var s any
 	if prefix, s, err = Decode(bech32String); chk.D(err) {
 		return
@@ -38,7 +38,7 @@ func DecodeToString(bech32String B) (prefix, value B, err error) {
 	return
 }
 
-func Decode(bech32string B) (prefix B, value any, err error) {
+func Decode(bech32string B) (prefix B, value any, err E) {
 	var bits5 []byte
 	if prefix, bits5, err = bech32.DecodeNoLimit(bech32string); chk.D(err) {
 		return
@@ -154,7 +154,7 @@ func Decode(bech32string B) (prefix B, value any, err error) {
 	return prefix, data, fmt.Errorf("unknown tag %s", prefix)
 }
 
-func EncodeNote(eventIDHex B) (s B, err error) {
+func EncodeNote(eventIDHex B) (s B, err E) {
 	var b []byte
 	if _, err = hex.DecBytes(b, eventIDHex); chk.D(err) {
 		err = log.E.Err("failed to decode event id hex: %w", err)
@@ -167,7 +167,7 @@ func EncodeNote(eventIDHex B) (s B, err error) {
 	return bech32.Encode(NoteHRP, bits5)
 }
 
-func EncodeProfile(publicKeyHex B, relays []B) (s B, err error) {
+func EncodeProfile(publicKeyHex B, relays []B) (s B, err E) {
 	buf := &bytes.Buffer{}
 	pb := make(B, schnorr.PubKeyBytesLen)
 	if _, err = hex.DecBytes(pb, publicKeyHex); chk.D(err) {
@@ -186,7 +186,7 @@ func EncodeProfile(publicKeyHex B, relays []B) (s B, err error) {
 	return bech32.Encode(NprofileHRP, bits5)
 }
 
-func EncodeEvent(eventIDHex *eventid.T, relays []B, author B) (s B, err error) {
+func EncodeEvent(eventIDHex *eventid.T, relays []B, author B) (s B, err E) {
 	buf := &bytes.Buffer{}
 	id := make(B, sha256.Size)
 	if _, err = hex.DecBytes(id, eventIDHex.ByteString(nil)); chk.D(err) ||
@@ -212,7 +212,7 @@ func EncodeEvent(eventIDHex *eventid.T, relays []B, author B) (s B, err error) {
 	return bech32.Encode(NeventHRP, bits5)
 }
 
-func EncodeEntity(pk B, k *kind.T, id B, relays []B) (s B, err error) {
+func EncodeEntity(pk B, k *kind.T, id B, relays []B) (s B, err E) {
 	buf := &bytes.Buffer{}
 	writeTLVEntry(buf, TLVDefault, []byte(id))
 	for _, url := range relays {
