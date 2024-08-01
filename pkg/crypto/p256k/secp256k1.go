@@ -176,6 +176,13 @@ func Generate() (skb, pkb B, sec *Sec, pub *XPublicKey, ecpub *PublicKey, err er
 			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
 			pkb = ecpkb
 			break
+		} else {
+			C.secp256k1_ec_seckey_negate(ctx, usk32)
+			C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
+			C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key, C.SECP256K1_EC_COMPRESSED)
+			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+			pkb = ecpkb
+			break
 		}
 	}
 	return

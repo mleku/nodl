@@ -94,6 +94,8 @@ func (s *Signer) Zero() { s.SecretKey.Key.Zero() }
 
 func (s *Signer) ECDH(pubkeyBytes B) (secret B, err E) {
 	var pub *secp256k1.PublicKey
+	// Note the public key must be even, if the secret key derives an odd compressed pubkey ECDH will fail in that
+	// direction.
 	if pub, err = secp256k1.ParsePubKey(append(B{0x02}, pubkeyBytes...)); chk.E(err) {
 		return
 	}
