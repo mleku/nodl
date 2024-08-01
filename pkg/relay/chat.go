@@ -20,7 +20,7 @@ func DecryptDM(ev *event.T, meSec, youPub B) (decryptedStr B, err E) {
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
 		var secret, decrypted B
-		if secret, err = encryption.ComputeSharedSecretFromBytes(meSec, youPub); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecret(S(meSec), S(youPub)); chk.E(err) {
 			return
 		}
 		if decrypted, err = encryption.DecryptNip4(ev.ContentString(), secret); chk.E(err) {
@@ -38,20 +38,17 @@ func EncryptDM(ev *event.T, meSec, youPub B) (evo *event.T, err E) {
 	var secret []byte
 	switch ev.Kind {
 	case kind.EncryptedDirectMessage:
-		if secret, err = encryption.ComputeSharedSecretFromBytes(meSec, youPub); chk.E(err) {
+		if secret, err = encryption.ComputeSharedSecret(S(meSec), S(youPub)); chk.E(err) {
 			return
 		}
 		if ev.Content, err = encryption.EncryptNip4(ev.ContentString(), secret); chk.E(err) {
 			return
 		}
-		signer := new(p256k.Signer)
-		if err = signer.Generate(); chk.E(err) {
+		sec := &p256k.Signer{}
+		if err = sec.InitSec(meSec); chk.E(err) {
 			return
 		}
-		if err = signer.InitSec(meSec); chk.E(err) {
-			return
-		}
-		if err = ev.Sign(signer); chk.E(err) {
+		if err = ev.Sign(sec); chk.E(err) {
 			return
 		}
 	case kind.GiftWrap:

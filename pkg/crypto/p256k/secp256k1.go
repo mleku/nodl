@@ -5,7 +5,6 @@ package p256k
 import "C"
 import (
 	"crypto/rand"
-	"errors"
 	"unsafe"
 
 	"ec.mleku.dev/v2/schnorr"
@@ -142,18 +141,18 @@ func FromSecretBytes(skb B) (pkb B, sec *Sec, pub *XPublicKey, ecPub *PublicKey,
 	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
 	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
 	if ecpkb[0] != 2 {
-		// log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
-		Negate(skb)
-		uskb = ToUchar(skb)
-		res = C.secp256k1_keypair_create(ctx, &sec.Key, uskb)
-		if res != 1 {
-			err = errorf.E("failed to create secp256k1 keypair")
-			return
-		}
-		C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
-		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
-		C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-		err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
+		log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
+		// 	Negate(skb)
+		// 	uskb = ToUchar(skb)
+		// 	res = C.secp256k1_keypair_create(ctx, &sec.Key, uskb)
+		// 	if res != 1 {
+		// 		err = errorf.E("failed to create secp256k1 keypair")
+		// 		return
+		// 	}
+		// 	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
+		// 	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
+		// 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+		// 	err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
 	}
 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
 	pkb = ecpkb
@@ -184,30 +183,24 @@ func Generate() (skb, pkb B, sec *Sec, pub *XPublicKey, ecpub *PublicKey, err E)
 		}
 		C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
 		C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key, C.SECP256K1_EC_COMPRESSED)
-		// negate key if it generates an odd Y compressed public key
+		// negate key if it generates an odd Y compressed public key per BIP-340 (or at least so ecdsa can assume - and
+		// maybe it's a tiny bit faster to verify? idk, bip-340 says "implicit 0x02 key" so whatever let's make em)
 		if ecpkb[0] == 2 {
 			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-			pkb = ecpkb
 			break
 		} else {
 			Negate(skb)
 			C.secp256k1_keypair_pub(ctx, ecpub.Key, &sec.Key)
 			C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecpub.Key, C.SECP256K1_EC_COMPRESSED)
 			C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-			pkb = ecpkb
 			break
 		}
 	}
+	pkb = ecpkb
 	return
 }
 
 func Negate(uskb B) { C.secp256k1_ec_seckey_negate(ctx, ToUchar(uskb)) }
-
-// func (s *Sec) ECPub() (p *ECPub) {
-// 	p = new(ECPub)
-//
-// 	return
-// }
 
 type ECPub struct {
 	Key ECPubKey
