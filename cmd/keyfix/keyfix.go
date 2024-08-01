@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 1 {
+	if len(os.Args) < 2 {
 		fmt.Printf("keyfix: check your nsec (in bech32 or hex format) makes an even key and if not, " +
 			"give you the fixed version\n\n")
 		fmt.Printf("Usage: keyfix <nsec>\n")
