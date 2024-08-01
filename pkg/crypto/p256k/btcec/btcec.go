@@ -25,6 +25,11 @@ func (s *Signer) Generate() (err E) {
 		if s.pkb[0] == 2 {
 			s.skb = s.SecretKey.Serialize()
 			break
+		} else {
+			s.SecretKey.Key = *s.SecretKey.Key.Negate()
+			s.skb = s.SecretKey.Serialize()
+			s.PublicKey = s.SecretKey.PubKey()
+			s.pkb = s.PublicKey.SerializeCompressed()
 		}
 	}
 	return

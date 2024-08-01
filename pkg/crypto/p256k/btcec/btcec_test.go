@@ -13,6 +13,21 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
+func TestSigner_Generate(t *testing.T) {
+	for _=range 100{
+		var err error
+		signer := &btcec.Signer{}
+		var skb B
+		if err = signer.Generate(); chk.E(err) {
+			t.Fatal(err)
+		}
+		skb = signer.Sec()
+		if err = signer.InitSec(skb); chk.E(err) {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestBTCECSignerVerify(t *testing.T) {
 	evs := make([]*event.T, 0, 10000)
 	scanner := bufio.NewScanner(bytes.NewBuffer(examples.Cache))
@@ -57,7 +72,6 @@ func TestBTCECSignerSign(t *testing.T) {
 	buf := make(B, 1_000_000)
 	scanner.Buffer(buf, len(buf))
 	var err error
-
 	signer := &btcec.Signer{}
 	var skb B
 	if err = signer.Generate(); chk.E(err) {
