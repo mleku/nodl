@@ -16,6 +16,7 @@ func main() {
 		fmt.Printf("keyfix: check your nsec (in bech32 or hex format) makes an even key and if not, " +
 			"give you the fixed version\n\n")
 		fmt.Printf("Usage: keyfix <nsec>\n")
+		os.Exit(0)
 	}
 	nsec := B(os.Args[1])
 	sec := make(B, secp256k1.SecKeyBytesLen)
