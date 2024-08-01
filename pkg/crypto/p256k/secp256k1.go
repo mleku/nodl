@@ -333,7 +333,7 @@ func ECDH(skb B, pkb B) (secret B, err E) {
 	uSecret := ToUchar(secret)
 	uSec := ToUchar(skb)
 	var pub *ECPub
-	if pub, err = ECPubFromBytes(pkb); chk.E(err) {
+	if pub, err = ECPubFromSchnorrBytes(pkb); chk.E(err) {
 		return
 	}
 	if C.secp256k1_ecdh(ctx, uSecret, &pub.Key, uSec, nil, nil) != 1 {

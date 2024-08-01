@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"encoding/hex"
 	"strings"
 
 	btcec "ec.mleku.dev/v2"
@@ -13,28 +12,6 @@ import (
 	"lukechampine.com/frand"
 )
 
-// ComputeSharedSecret returns a shared secret key used to encrypt messages.
-// The private and public keys should be hex encoded.
-// Uses the Diffie-Hellman key exchange (ECDH) (RFC 4753).
-func ComputeSharedSecret(pub, sk string) (sharedSecret []byte, err error) {
-	var privKeyBytes, pubKeyBytes B
-	if privKeyBytes, err = hex.DecodeString(sk); chk.E(err) {
-		err = errorf.E("error decoding sender private key: %w", err)
-		return
-	}
-	privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
-	// appending 02 to signal that this is a compressed public key (33 bytes)
-	if pubKeyBytes, err = hex.DecodeString("02" + pub); chk.E(err) {
-		err = errorf.E("error decoding hex string of receiver public key '%s': %w", "02"+pub, err)
-		return
-	}
-	var pubKey *btcec.PublicKey
-	if pubKey, err = btcec.ParsePubKey(pubKeyBytes); chk.E(err) {
-		err = errorf.E("error parsing receiver public key '%s': %w", "02"+pub, err)
-		return
-	}
-	return btcec.GenerateSharedSecret(privKey, pubKey), nil
-}
 
 // ComputeSharedSecretFromBytes returns a shared secret key used to encrypt messages. Uses the Diffie-Hellman key
 // exchange (ECDH) (RFC 4753).

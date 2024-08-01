@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"strings"
 
 	"ec.mleku.dev/v2/secp256k1"
+	"git.replicatr.dev/pkg/crypto/p256k"
 	"github.com/minio/sha256-simd"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
@@ -153,30 +153,20 @@ func MustBytes(s S) (b B) {
 	return
 }
 
-var secp256k1Order = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
-var zero = strings.Repeat("0", 64)
-
-func GenerateConversationKey(pub, sk S) (key B, err E) {
-	if sk >= secp256k1Order || sk == zero {
-		return nil, fmt.Errorf("invalid private key: x coordinate %s is not on the secp256k1 curve", sk)
-	}
-	var secret B
-	if secret, err = ComputeSharedSecret(pub, sk); chk.E(err) {
-		return
-	}
-	return hkdf.Extract(sha256.New, secret, []byte("nip44-v2")), nil
-}
-
 var secp256k1OrderBytes = MustBytes("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141")
 var zeroBytes = make(B, secp256k1.SecKeyBytesLen)
 
-func GenerateConversationKeyFromBytes(pub, sk B) (key B, err E) {
-	if bytes.Compare(sk, secp256k1OrderBytes) >= 0 || bytes.Equal(sk, zeroBytes) {
-		err = errorf.E("invalid private key: x coordinate %s is not on the secp256k1 curve", sk)
+func GenerateConversationKeyFromBytes(pkb, skb B) (key B, err E) {
+	if bytes.Compare(skb, secp256k1OrderBytes) >= 0 || bytes.Equal(skb, zeroBytes) {
+		err = errorf.E("invalid private key: x coordinate %s is not on the secp256k1 curve", skb)
+		return
+	}
+	signer := &p256k.Signer{}
+	if err = signer.InitSec(skb); chk.E(err) {
 		return
 	}
 	var secret B
-	if secret, err = ComputeSharedSecretFromBytes(pub, sk); chk.E(err) {
+	if secret, err = signer.ECDH(pkb); chk.E(err) {
 		return
 	}
 	return hkdf.Extract(sha256.New, secret, []byte("nip44-v2")), nil
