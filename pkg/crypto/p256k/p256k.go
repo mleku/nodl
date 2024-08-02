@@ -102,6 +102,7 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 }
 
 func (s *Signer) Zero() { Zero(s.SecretKey) }
+
 func (s *Signer) ECDH(xkb B) (secret B, err error) {
 	var pubKey *btcec.PublicKey
 	k2 := append(B{2}, xkb...)

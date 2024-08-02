@@ -17,6 +17,18 @@ import (
 #include <secp256k1.h>
 #include <secp256k1_schnorrsig.h>
 #include <secp256k1_extrakeys.h>
+#include <secp256k1_ecdh.h>
+#include <string.h>
+
+typedef int (*hashfp) ();
+
+// ecdh_hash_function_x just returns the X coordinate after ECDH
+ int ecdh_hash_function_x(unsigned char *output, const unsigned char *x, const unsigned char *y, void *data) {
+    (void)data;
+    memcpy(output, x, 32);
+	memcpy(output+32, y, 32);
+	return 1;
+}
 */
 import "C"
 
@@ -27,11 +39,33 @@ type (
 	SecKey   = C.secp256k1_keypair
 	PubKey   = C.secp256k1_xonly_pubkey
 	ECPubKey = C.secp256k1_pubkey
+	HashFP   = C.secp256k1_ecdh_hash_function
 )
+
+// ECDH computes a shared secret based on a secret key and an x-only pubkey and returns only the X coordinate of the
+// product as done by the ECDH function in btcec.
+func ECDH(skb B, pkb B) (secret B, err E) {
+	secret = make(B, sha256.Size*2)
+	uSecret := ToUchar(secret)
+	uSec := ToUchar(skb)
+	var pub *ECPub
+	if pub, err = ECPubFromBytes(append(B{2}, pkb...)); chk.E(err) {
+		return
+	}
+	hf := (unsafe.Pointer)(C.hashfp(C.ecdh_hash_function_x))
+	// h := (*HashFP)(unsafe.Pointer(&hf))
+	if C.secp256k1_ecdh(ctx, uSecret, &pub.Key, uSec, nil, hf) != 1 {
+		err = errorf.E("failed to ecdh")
+		return
+	}
+	return
+}
 
 var (
 	ctx *Context
 )
+
+// func ToHashFP(b any) (u *HashFP) { return (*HashFP)(unsafe.Pointer(&b)) }
 
 func CreateContext() *Context {
 	return C.secp256k1_context_create(C.SECP256K1_CONTEXT_SIGN |
