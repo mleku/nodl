@@ -2,7 +2,10 @@
 
 package p256k
 
-import "git.replicatr.dev/pkg"
+import (
+	btcec "ec.mleku.dev/v2"
+	"git.replicatr.dev/pkg"
+)
 
 // Signer implements the pkg.Signer interface.
 //
@@ -15,7 +18,8 @@ type Signer struct {
 	SecretKey   *SecKey
 	PublicKey   *PubKey
 	ECPublicKey *ECPubKey // not sure what this is useful for yet.
-	skb, pkb    B
+	BTCECSec *btcec.SecretKey
+	skb, pkb B
 }
 
 var _ pkg.Signer = &Signer{}
@@ -30,6 +34,7 @@ func (s *Signer) Generate() (err E) {
 	s.SecretKey = &cs.Key
 	s.PublicKey = cx.Key
 	s.ECPublicKey = cp.Key
+	s.BTCECSec, _ = btcec.PrivKeyFromBytes(s.skb)
 	return
 }
 
@@ -47,6 +52,7 @@ func (s *Signer) InitSec(skb B) (err error) {
 	s.SecretKey = &cs.Key
 	s.PublicKey = cx.Key
 	s.ECPublicKey = cp.Key
+	s.BTCECSec, _ = btcec.PrivKeyFromBytes(s.skb)
 	return
 }
 
@@ -95,8 +101,17 @@ func (s *Signer) Verify(msg, sig B) (valid bool, err error) {
 	return
 }
 
-func (s *Signer) Zero()                            { Zero(s.SecretKey) }
-func (s *Signer) ECDH(xkb B) (secret B, err error) { return ECDH(s.skb, xkb) }
+func (s *Signer) Zero() { Zero(s.SecretKey) }
+func (s *Signer) ECDH(xkb B) (secret B, err error) {
+	var pubKey *btcec.PublicKey
+	k2 := append(B{2}, xkb...)
+	if pubKey, err = btcec.ParsePubKey(k2); chk.E(err) {
+		err = errorf.E("error parsing receiver public key '%0x': %w", k2, err)
+		return
+	}
+	secret = btcec.GenerateSharedSecret(s.BTCECSec, pubKey)
+	return
+}
 
 func (s *Signer) Negate() {
 	Negate(s.skb)

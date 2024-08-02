@@ -370,7 +370,8 @@ func TestConversationKeyFail003(t *testing.T) {
 	assertConversationKeyFail(t,
 		"fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364139",
 		"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-		"invalid public key: x >= field prime",
+		"error parsing receiver public key '02ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff': invalid public key: x >= field prime",
+		// "invalid public key: x >= field prime",
 	)
 }
 
@@ -388,7 +389,8 @@ func TestConversationKeyFail005(t *testing.T) {
 	assertConversationKeyFail(t,
 		"0000000000000000000000000000000000000000000000000000000000000002",
 		"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-		"invalid public key: x coordinate 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef is not on the secp256k1 curve",
+		"error parsing receiver public key '021234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef': invalid public key: x coordinate 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef is not on the secp256k1 curve",
+		// "invalid public key: x coordinate 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef is not on the secp256k1 curve",
 	)
 }
 
@@ -397,7 +399,8 @@ func TestConversationKeyFail006(t *testing.T) {
 	assertConversationKeyFail(t,
 		"0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
 		"0000000000000000000000000000000000000000000000000000000000000000",
-		"invalid public key: x coordinate 0000000000000000000000000000000000000000000000000000000000000000 is not on the secp256k1 curve",
+		"error parsing receiver public key '020000000000000000000000000000000000000000000000000000000000000000': invalid public key: x coordinate 0000000000000000000000000000000000000000000000000000000000000000 is not on the secp256k1 curve",
+		// "invalid public key: x coordinate 0000000000000000000000000000000000000000000000000000000000000000 is not on the secp256k1 curve",
 	)
 }
 
@@ -406,7 +409,8 @@ func TestConversationKeyFail007(t *testing.T) {
 	assertConversationKeyFail(t,
 		"0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
 		"eb1f7200aecaa86682376fb1c13cd12b732221e774f553b0a0857f88fa20f86d",
-		"invalid public key: x coordinate eb1f7200aecaa86682376fb1c13cd12b732221e774f553b0a0857f88fa20f86d is not on the secp256k1 curve",
+		"error parsing receiver public key '02eb1f7200aecaa86682376fb1c13cd12b732221e774f553b0a0857f88fa20f86d': invalid public key: x coordinate eb1f7200aecaa86682376fb1c13cd12b732221e774f553b0a0857f88fa20f86d is not on the secp256k1 curve",
+		// "invalid public key: x coordinate eb1f7200aecaa86682376fb1c13cd12b732221e774f553b0a0857f88fa20f86d is not on the secp256k1 curve",
 	)
 }
 
@@ -415,7 +419,8 @@ func TestConversationKeyFail008(t *testing.T) {
 	assertConversationKeyFail(t,
 		"0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
 		"709858a4c121e4a84eb59c0ded0261093c71e8ca29efeef21a6161c447bcaf9f",
-		"invalid public key: x coordinate 709858a4c121e4a84eb59c0ded0261093c71e8ca29efeef21a6161c447bcaf9f is not on the secp256k1 curve",
+		"error parsing receiver public key '02709858a4c121e4a84eb59c0ded0261093c71e8ca29efeef21a6161c447bcaf9f': invalid public key: x coordinate 709858a4c121e4a84eb59c0ded0261093c71e8ca29efeef21a6161c447bcaf9f is not on the secp256k1 curve",
+		// "invalid public key: x coordinate 709858a4c121e4a84eb59c0ded0261093c71e8ca29efeef21a6161c447bcaf9f is not on the secp256k1 curve",
 	)
 }
 

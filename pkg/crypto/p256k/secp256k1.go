@@ -17,7 +17,6 @@ import (
 #include <secp256k1.h>
 #include <secp256k1_schnorrsig.h>
 #include <secp256k1_extrakeys.h>
-#include <secp256k1_ecdh.h>
 */
 import "C"
 
@@ -155,6 +154,7 @@ func FromSecretBytes(skb B) (pkb B, sec *Sec, pub *XPublicKey, ecPub *PublicKey,
 		// 	err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
 	}
 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+	// log.I.S(sec, ecPub, pub)
 	pkb = ecpkb
 	return
 }
@@ -338,24 +338,6 @@ func Zero(sk *SecKey) {
 	for i := range b {
 		b[i] = 0
 	}
-}
-
-// ECDH computes a shared secret based on a secret key and an x-only pubkey assuming the pubkey is even. If the pubkey
-// is in fact a 3-prefix in its 33 byte form it will not work both ways. Odd keys are just invalid for taproot/nostr,
-// this is the tradeoff for an even length public key.
-func ECDH(skb B, pkb B) (secret B, err E) {
-	secret = make(B, sha256.Size)
-	uSecret := ToUchar(secret)
-	uSec := ToUchar(skb)
-	var pub *ECPub
-	if pub, err = ECPubFromSchnorrBytes(pkb); chk.E(err) {
-		return
-	}
-	if C.secp256k1_ecdh(ctx, uSecret, &pub.Key, uSec, nil, nil) != 1 {
-		err = errorf.E("failed to ecdh")
-		return
-	}
-	return
 }
 
 // Keygen is an implementation of a key miner designed to be used for vanity key generation with X-only BIP-340 keys.

@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"bytes"
 	"testing"
-	"time"
 
 	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg/codec/event"
@@ -86,36 +85,4 @@ func TestSign(t *testing.T) {
 		}
 	}
 	p256k.Zero(&sec1.Key)
-}
-
-func TestOnlyECDH(t *testing.T) {
-	var err error
-	var counter int
-	const total = 10000
-	var skb1, pkb1, skb2, pkb2 B
-	if skb1, pkb1, _, _, _, err = p256k.Generate(); chk.E(err) {
-		t.Fatal(err)
-	}
-	if skb2, pkb2, _, _, _, err = p256k.Generate(); chk.E(err) {
-		t.Fatal(err)
-	}
-	pk1, pk2 := pkb1[1:], pkb2[1:]
-	n := time.Now()
-	for _ = range total {
-		var secret1, secret2 B
-		if secret1, err = p256k.ECDH(skb1, pk2); chk.E(err) {
-			t.Fatal(err)
-		}
-		if secret2, err = p256k.ECDH(skb2, pk1); chk.E(err) {
-			t.Fatal(err)
-		}
-		if !equals(secret1, secret2) {
-			counter++
-			t.Errorf("ECDH generation failed to work in both directions, %x %x", secret1, secret2)
-		}
-	}
-	a := time.Now()
-	duration := a.Sub(n)
-	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op", int(duration/total),
-		"ops/sec", int(time.Second)/int(duration/total))
 }

@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"testing"
+	"time"
 
 	"ec.mleku.dev/v2/schnorr"
 	"git.replicatr.dev/pkg"
@@ -113,6 +114,7 @@ func TestSignerSign(t *testing.T) {
 }
 
 func TestECDH(t *testing.T) {
+	n := time.Now()
 	var err error
 	var s1, s2 pkg.Signer
 	var counter int
@@ -139,4 +141,8 @@ func TestECDH(t *testing.T) {
 			}
 		}
 	}
+	a := time.Now()
+	duration := a.Sub(n)
+	log.I.Ln("errors", counter, "total", total, "time", duration, "time/op", int(duration/total),
+		"ops/sec", int(time.Second)/int(duration/total))
 }
