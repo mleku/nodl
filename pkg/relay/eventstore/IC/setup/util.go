@@ -1,4 +1,4 @@
-package IConly
+package setup
 
 import (
 	"bytes"

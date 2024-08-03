@@ -123,25 +123,25 @@ func assertMessageKeyGeneration(t *testing.T, conversationKey string, salt strin
 		return false
 	}
 	expectedChaChaKey, err = hex.Dec(chachaKey)
-	if ok = assert.NoErrorf(t, err, "hex decode failed for chacha key: %v", err); !ok {
+	if ok = assert.NoErrorf(t, err, "hex decode failed for encrypt key: %v", err); !ok {
 		return false
 	}
 	expectedChaChaNonce, err = hex.Dec(chachaSalt)
-	if ok = assert.NoErrorf(t, err, "hex decode failed for chacha nonce: %v", err); !ok {
+	if ok = assert.NoErrorf(t, err, "hex decode failed for encrypt nonce: %v", err); !ok {
 		return false
 	}
 	expectedHmacKey, err = hex.Dec(hmacKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for hmac key: %v", err); !ok {
 		return false
 	}
-	actualChaChaKey, actualChaChaNonce, actualHmacKey, err = messageKeys(convKey, convSalt)
+	actualChaChaKey, actualChaChaNonce, actualHmacKey, err = getKeys(convKey, convSalt)
 	if ok = assert.NoErrorf(t, err, "message key generation failed: %v", err); !ok {
 		return false
 	}
-	if ok = assert.Equalf(t, expectedChaChaKey, actualChaChaKey, "wrong chacha key"); !ok {
+	if ok = assert.Equalf(t, expectedChaChaKey, actualChaChaKey, "wrong encrypt key"); !ok {
 		return false
 	}
-	if ok = assert.Equalf(t, expectedChaChaNonce, actualChaChaNonce, "wrong chacha nonce"); !ok {
+	if ok = assert.Equalf(t, expectedChaChaNonce, actualChaChaNonce, "wrong encrypt nonce"); !ok {
 		return false
 	}
 	if ok = assert.Equalf(t, expectedHmacKey, actualHmacKey, "wrong hmac key"); !ok {
@@ -450,7 +450,7 @@ func TestDecryptFail003(t *testing.T) {
 		// "daaea5ca345b268e5b62060ca72c870c48f713bc1e00ff3fc0ddb78e826f10db",
 		"n o s t r",
 		"Atфupco0WyaOW2IGDKcshwxI9xO8HgD/P8Ddt46CbxDbrhdG8VmJZE0UICD06CUvEvdnr1cp1fiMtlM/GrE92xAc1EwsVCQEgWEu2gsHUVf4JAa3TpgkmFc3TWsax0v6n/Wq",
-		"invalid base64",
+		"illegal base64 data at input byte 2",
 	)
 }
 

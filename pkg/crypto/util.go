@@ -1,16 +1,17 @@
-package main
+package crypto
 
 import (
 	"bytes"
 	"os"
 
-	"ec.mleku.dev/v2/lol"
+	"git.replicatr.dev/pkg/util/lol"
 )
 
 type (
 	B = []byte
 	S = string
 	E = error
+	N = int
 )
 
 var (

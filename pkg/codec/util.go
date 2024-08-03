@@ -11,6 +11,7 @@ type (
 	B = []byte
 	S = string
 	E = error
+	N = int
 )
 
 var (

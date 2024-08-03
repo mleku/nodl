@@ -139,20 +139,20 @@ func FromSecretBytes(skb B) (pkb B, sec *Sec, pub *XPublicKey, ecPub *PublicKey,
 	}
 	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
 	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
-	if ecpkb[0] != 2 {
-		log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
-		// 	Negate(skb)
-		// 	uskb = ToUchar(skb)
-		// 	res = C.secp256k1_keypair_create(ctx, &sec.Key, uskb)
-		// 	if res != 1 {
-		// 		err = errorf.E("failed to create secp256k1 keypair")
-		// 		return
-		// 	}
-		// 	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
-		// 	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
-		// 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
-		// 	err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
-	}
+	// if ecpkb[0] != 2 {
+	// log.W.F("odd pubkey from %0x -> %0x", skb, ecpkb)
+	// 	Negate(skb)
+	// 	uskb = ToUchar(skb)
+	// 	res = C.secp256k1_keypair_create(ctx, &sec.Key, uskb)
+	// 	if res != 1 {
+	// 		err = errorf.E("failed to create secp256k1 keypair")
+	// 		return
+	// 	}
+	// 	C.secp256k1_keypair_pub(ctx, ecPub.Key, &sec.Key)
+	// 	C.secp256k1_ec_pubkey_serialize(ctx, ToUchar(ecpkb), &clen, ecPub.Key, C.SECP256K1_EC_COMPRESSED)
+	// 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
+	// 	err = errors.New("provided secret generates a public key with odd Y coordinate, fixed version returned")
+	// }
 	C.secp256k1_keypair_xonly_pub(ctx, pub.Key, &parity, &sec.Key)
 	// log.I.S(sec, ecPub, pub)
 	pkb = ecpkb
