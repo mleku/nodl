@@ -13,15 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertCryptPriv(t *testing.T, sk1 string, sk2 string, conversationKey string, salt string, plaintext string,
-	expected string) {
+func assertCryptPriv(t *testing.T, sk1, sk2, conversationKey, salt, plaintext, expected S) {
 	var (
-		k1        []byte
-		s         []byte
-		actual    string
-		decrypted string
-		ok        bool
-		err       error
+		k1, s             B
+		actual, decrypted S
+		ok                bool
+		err               error
 	)
 	k1, err = hex.Dec(conversationKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for conversation key: %v", err); !ok {
@@ -48,9 +45,9 @@ func assertCryptPriv(t *testing.T, sk1 string, sk2 string, conversationKey strin
 	assert.Equal(t, decrypted, plaintext, "wrong decryption")
 }
 
-func assertDecryptFail(t *testing.T, conversationKey string, plaintext string, ciphertext string, msg string) {
+func assertDecryptFail(t *testing.T, conversationKey, plaintext, ciphertext, msg S) {
 	var (
-		k1  []byte
+		k1  B
 		ok  bool
 		err error
 	)
@@ -62,17 +59,17 @@ func assertDecryptFail(t *testing.T, conversationKey string, plaintext string, c
 	assert.ErrorContains(t, err, msg)
 }
 
-func assertConversationKeyFail(t *testing.T, priv string, pub string, msg string) {
+func assertConversationKeyFail(t *testing.T, priv S, pub S, msg S) {
 	_, err := GenerateConversationKey(pub, priv)
 	assert.ErrorContains(t, err, msg)
 }
 
-func assertConversationKeyGeneration(t *testing.T, priv string, pub string, conversationKey string) bool {
+func assertConversationKeyGeneration(t *testing.T, priv, pub, conversationKey S) bool {
 	var (
-		actualConversationKey   []byte
-		expectedConversationKey []byte
-		ok                      bool
-		err                     error
+		actualConversationKey,
+		expectedConversationKey B
+		ok  bool
+		err error
 	)
 	expectedConversationKey, err = hex.Dec(conversationKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for conversation key: %v", err); !ok {
@@ -88,7 +85,7 @@ func assertConversationKeyGeneration(t *testing.T, priv string, pub string, conv
 	return true
 }
 
-func assertConversationKeyGenerationSec(t *testing.T, sk1 string, sk2 string, conversationKey string) bool {
+func assertConversationKeyGenerationSec(t *testing.T, sk1, sk2, conversationKey S) bool {
 	pub2, err := keys.GetPublicKey(sk2)
 	if ok := assert.NoErrorf(t, err, "failed to derive pubkey from sk2: %v", err); !ok {
 		return false
@@ -96,23 +93,16 @@ func assertConversationKeyGenerationSec(t *testing.T, sk1 string, sk2 string, co
 	return assertConversationKeyGeneration(t, sk1, pub2, conversationKey)
 }
 
-func assertConversationKeyGenerationPub(t *testing.T, sk string, pub string, conversationKey string) bool {
+func assertConversationKeyGenerationPub(t *testing.T, sk, pub, conversationKey S) bool {
 	return assertConversationKeyGeneration(t, sk, pub, conversationKey)
 }
 
-func assertMessageKeyGeneration(t *testing.T, conversationKey string, salt string, chachaKey string, chachaSalt string,
-	hmacKey string) bool {
+func assertMessageKeyGeneration(t *testing.T, conversationKey, salt, chachaKey, chachaSalt, hmacKey S) bool {
 	var (
-		convKey             []byte
-		convSalt            []byte
-		actualChaChaKey     []byte
-		expectedChaChaKey   []byte
-		actualChaChaNonce   []byte
-		expectedChaChaNonce []byte
-		actualHmacKey       []byte
-		expectedHmacKey     []byte
-		ok                  bool
-		err                 error
+		convKey, convSalt, actualChaChaKey, expectedChaChaKey, actualChaChaNonce,
+		expectedChaChaNonce, actualHmacKey, expectedHmacKey B
+		ok  bool
+		err error
 	)
 	convKey, err = hex.Dec(conversationKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for convKey: %v", err); !ok {
@@ -150,18 +140,13 @@ func assertMessageKeyGeneration(t *testing.T, conversationKey string, salt strin
 	return true
 }
 
-func assertCryptLong(t *testing.T, conversationKey string, salt string, pattern string, repeat int,
-	plaintextSha256 string, payloadSha256 string) {
+func assertCryptLong(t *testing.T, conversationKey, salt, pattern S, repeat int, plaintextSha256, payloadSha256 S) {
 	var (
-		convKey               []byte
-		convSalt              []byte
-		plaintext             string
-		actualPlaintextSha256 string
-		actualPayload         string
-		actualPayloadSha256   string
-		h                     hash.Hash
-		ok                    bool
-		err                   error
+		convKey, convSalt                                                    B
+		plaintext, actualPlaintextSha256, actualPayload, actualPayloadSha256 S
+		h                                                                    hash.Hash
+		ok                                                                   bool
+		err                                                                  error
 	)
 	convKey, err = hex.Dec(conversationKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for convKey: %v", err); !ok {
@@ -176,7 +161,7 @@ func assertCryptLong(t *testing.T, conversationKey string, salt string, pattern 
 		plaintext += pattern
 	}
 	h = sha256.New()
-	h.Write([]byte(plaintext))
+	h.Write(B(plaintext))
 	actualPlaintextSha256 = hex.Enc(h.Sum(nil))
 	if ok = assert.Equalf(t, plaintextSha256, actualPlaintextSha256, "invalid plaintext sha256 hash: %v", err); !ok {
 		return
@@ -186,7 +171,7 @@ func assertCryptLong(t *testing.T, conversationKey string, salt string, pattern 
 		return
 	}
 	h.Reset()
-	h.Write([]byte(actualPayload))
+	h.Write(B(actualPayload))
 	actualPayloadSha256 = hex.Enc(h.Sum(nil))
 	if ok = assert.Equalf(t, payloadSha256, actualPayloadSha256, "invalid payload sha256 hash: %v", err); !ok {
 		return
@@ -1151,7 +1136,7 @@ func TestMaxLength(t *testing.T) {
 	sk1 := keys.GeneratePrivateKey()
 	sk2 := keys.GeneratePrivateKey()
 	pub2, _ := keys.GetPublicKey(S(sk2))
-	salt := make([]byte, 32)
+	salt := make(B, 32)
 	rand.Read(salt)
 	conversationKey, _ := GenerateConversationKey(pub2, S(sk1))
 	plaintext := strings.Repeat("a", MaxPlaintextSize)
@@ -1170,15 +1155,12 @@ func TestMaxLength(t *testing.T) {
 	)
 }
 
-func assertCryptPub(t *testing.T, sk1 string, pub2 string, conversationKey string, salt string, plaintext string,
-	expected string) {
+func assertCryptPub(t *testing.T, sk1, pub2, conversationKey, salt, plaintext, expected S) {
 	var (
-		k1        []byte
-		s         []byte
-		actual    string
-		decrypted string
-		ok        bool
-		err       error
+		k1, s             B
+		actual, decrypted S
+		ok                bool
+		err               error
 	)
 	k1, err = hex.Dec(conversationKey)
 	if ok = assert.NoErrorf(t, err, "hex decode failed for conversation key: %v", err); !ok {
