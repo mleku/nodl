@@ -10,5 +10,4 @@ import (
 func main() {
 	c, cancel := context.Cancel(context.Bg())
 	replicatr.Main(os.Args, c, cancel)
-
 }

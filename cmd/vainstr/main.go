@@ -116,7 +116,6 @@ out:
 			break out
 		case <-shutdown.Wait():
 			quit.Q()
-			log.I.Ln("\rinterrupt signal received")
 			os.Exit(0)
 		}
 	}

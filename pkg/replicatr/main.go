@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"ec.mleku.dev/v2/lol"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/crypto/p256k"
@@ -28,6 +27,7 @@ import (
 	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/hex"
 	"git.replicatr.dev/pkg/util/interrupt"
+	"git.replicatr.dev/pkg/util/lol"
 	"git.replicatr.dev/pkg/util/number"
 	"git.replicatr.dev/pkg/util/units"
 	arg "github.com/alexflint/go-arg"
@@ -103,6 +103,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	tmp := os.Args
 	os.Args = osArgs
 	arg.MustParse(&args)
+	lol.SetLogLevel(args.LogLevel)
 	os.Args = tmp
 	var wg sync.WaitGroup
 	if args.PProf {
@@ -163,8 +164,8 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		if err = signer.Generate(); chk.E(err) {
 			os.Exit(1)
 		}
-		sk=signer.Sec()
-		pk=signer.Pub()
+		sk = signer.Sec()
+		pk = signer.Pub()
 		args.SecKey, args.Pubkey = hex.Enc(sk), hex.Enc(pk)
 		// overlay what is present on the commandline
 		arg.MustParse(args)

@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 
 	"git.replicatr.dev/pkg/util/atomic"
 	"git.replicatr.dev/pkg/util/qu"
@@ -45,16 +44,10 @@ var (
 // and responds to custom shutdown signals as required
 func Listener() {
 	invokeCallbacks := func() {
-		log.D.Ln(
-			"running interrupt callbacks",
-			len(interruptCallbacks),
-			strings.Repeat(" ", 48),
-			interruptCallbackSources,
-		)
 		// run handlers in LIFO order.
 		for i := range interruptCallbacks {
 			idx := len(interruptCallbacks) - 1 - i
-			log.D.Ln("running callback", idx, interruptCallbackSources[idx])
+			log.D.Ln("running callback", idx, "from", interruptCallbackSources[idx])
 			interruptCallbacks[idx]()
 		}
 		log.D.Ln("interrupt handlers finished")
@@ -67,6 +60,7 @@ out:
 	for {
 		select {
 		case sig := <-ch:
+			fmt.Fprintf(os.Stderr, "\r")
 			log.D.Ln("received interrupt signal", sig)
 			requested.Store(true)
 			invokeCallbacks()

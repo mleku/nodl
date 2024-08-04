@@ -10,13 +10,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var l = GetStd()
-
-func GetStd() (ll *Log) {
-	ll, _, _ = New(os.Stdout)
-	return
-}
-
 const (
 	Off = iota
 	Fatal
@@ -26,6 +19,16 @@ const (
 	Debug
 	Trace
 )
+
+var LevelNames = []string{
+	"off",
+	"fatal",
+	"error",
+	"warn",
+	"info",
+	"debug",
+	"trace",
+}
 
 type (
 	// LevelPrinter defines a set of terminal printing primitives that output with
@@ -99,6 +102,32 @@ type Errorf struct {
 	F, E, W, I, D, T Err
 }
 
+type Logger struct {
+	*Log
+	*Check
+	*Errorf
+}
+
+var Main *Logger
+
+func init() {
+	Main = &Logger{}
+	SetLoggers(Info)
+}
+
+func SetLoggers(level int) {
+	Main.Log, Main.Check, Main.Errorf = New(level, os.Stderr)
+}
+
+func SetLogLevel(level string) {
+	for i := range LevelNames {
+		if level == LevelNames[i] {
+			SetLoggers(i)
+			return
+		}
+	}
+}
+
 func JoinStrings(a ...any) (s string) {
 	for i := range a {
 		s += fmt.Sprint(a[i])
@@ -114,7 +143,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		Ln: func(a ...interface{}) {
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixNanoAsFloat(),
+				UnixTimeAsFloat(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				JoinStrings(a...),
 				GetLoc(2),
@@ -123,7 +152,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		F: func(format string, a ...interface{}) {
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixNanoAsFloat(),
+				UnixTimeAsFloat(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				fmt.Sprintf(format, a...),
 				GetLoc(2),
@@ -132,7 +161,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		S: func(a ...interface{}) {
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixNanoAsFloat(),
+				UnixTimeAsFloat(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
 				GetLoc(2),
@@ -141,7 +170,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		C: func(closure func() string) {
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixNanoAsFloat(),
+				UnixTimeAsFloat(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				closure(),
 				GetLoc(2),
@@ -151,7 +180,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			if e != nil {
 				fmt.Fprintf(writer,
 					"%s %s %s %s\n",
-					UnixNanoAsFloat(),
+					UnixTimeAsFloat(),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
 					GetLoc(2),
@@ -163,7 +192,7 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 		Err: func(format string, a ...interface{}) error {
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixNanoAsFloat(),
+				UnixTimeAsFloat(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
 				fmt.Sprintf(format, a...),
 				GetLoc(2),
@@ -173,14 +202,46 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	}
 }
 
-func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
+func GetNullPrinter() LevelPrinter {
+	return LevelPrinter{
+		Ln:  func(a ...interface{}) {},
+		F:   func(format string, a ...interface{}) {},
+		S:   func(a ...interface{}) {},
+		C:   func(closure func() string) {},
+		Chk: func(e error) bool { return e != nil },
+		Err: func(format string, a ...interface{}) error { return fmt.Errorf(format, a...) },
+	}
+}
+
+func New(level int, writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	l = &Log{
-		F: GetPrinter(Fatal, writer),
-		E: GetPrinter(Error, writer),
-		W: GetPrinter(Warn, writer),
-		I: GetPrinter(Info, writer),
-		D: GetPrinter(Debug, writer),
-		T: GetPrinter(Trace, writer),
+		F: GetNullPrinter(),
+		E: GetNullPrinter(),
+		W: GetNullPrinter(),
+		I: GetNullPrinter(),
+		D: GetNullPrinter(),
+		T: GetNullPrinter(),
+	}
+	c = &Check{}
+	errorf = &Errorf{}
+	switch {
+	case level >= Trace:
+		l.T = GetPrinter(Trace, writer)
+		fallthrough
+	case level >= Debug:
+		l.D = GetPrinter(Debug, writer)
+		fallthrough
+	case level >= Info:
+		l.I = GetPrinter(Info, writer)
+		fallthrough
+	case level >= Warn:
+		l.W = GetPrinter(Warn, writer)
+		fallthrough
+	case level >= Error:
+		l.E = GetPrinter(Error, writer)
+		fallthrough
+	case level >= Fatal:
+		l.F = GetPrinter(Fatal, writer)
 	}
 	c = &Check{
 		F: l.F.Chk,
@@ -201,8 +262,8 @@ func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	return
 }
 
-// UnixNanoAsFloat e
-func UnixNanoAsFloat() (s string) {
+// UnixTimeAsFloat e
+func UnixTimeAsFloat() (s string) {
 	timeText := fmt.Sprint(time.Now().UnixNano())
 	lt := len(timeText)
 	lb := lt + 1

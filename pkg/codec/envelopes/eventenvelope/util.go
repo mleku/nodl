@@ -2,7 +2,6 @@ package eventenvelope
 
 import (
 	"bytes"
-	"os"
 
 	"git.replicatr.dev/pkg/util/lol"
 )
@@ -15,6 +14,6 @@ type (
 )
 
 var (
-	log, chk, errorf = lol.New(os.Stderr)
+	log, chk, errorf = lol.Main.Log, lol.Main.Check, lol.Main.Errorf
 	equals           = bytes.Equal
 )

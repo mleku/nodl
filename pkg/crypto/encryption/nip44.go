@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"io"
 	"math"
 
+	"github.com/minio/sha256-simd"
 	"golang.org/x/crypto/chacha20"
 	"golang.org/x/crypto/hkdf"
 )
