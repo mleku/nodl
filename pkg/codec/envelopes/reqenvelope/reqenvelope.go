@@ -34,6 +34,7 @@ func (en *T) MarshalJSON(dst B) (b B, err error) {
 			if o, err = en.Filters.MarshalJSON(o); chk.E(err) {
 				return
 			}
+			log.I.S(en.Filters)
 			return
 		})
 	return

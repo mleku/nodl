@@ -11,6 +11,7 @@ import (
 )
 
 func (h *Handle) wsProcessMessages(msg B) (err E) {
+	log.T.F("message received:\n%s\n", msg)
 	rl, c, ws, svcURL, _ := h.H()
 	if len(msg) == 0 {
 		err = log.E.Err("empty message, probably dropped connection")
@@ -45,7 +46,7 @@ func (h *Handle) wsProcessMessages(msg B) (err E) {
 	switch l {
 	case eventenvelope.L:
 		sub := eventenvelope.NewSubmission()
-		if msg, err = sub.MarshalJSON(msg); chk.E(err) {
+		if msg, err = sub.UnmarshalJSON(msg); chk.E(err) {
 			return
 		}
 		if err = h.processEventSubmission(msg, sub); chk.E(err) {
@@ -53,7 +54,7 @@ func (h *Handle) wsProcessMessages(msg B) (err E) {
 		}
 	case countenvelope.L:
 		count := countenvelope.New()
-		if msg, err = count.MarshalJSON(msg); chk.E(err) {
+		if msg, err = count.UnmarshalJSON(msg); chk.E(err) {
 			return
 		}
 		if err = rl.processCountEnvelope(msg, count, c, ws, svcURL); chk.E(err) {
@@ -61,7 +62,7 @@ func (h *Handle) wsProcessMessages(msg B) (err E) {
 		}
 	case reqenvelope.L:
 		req := reqenvelope.New()
-		if msg, err = req.MarshalJSON(msg); chk.E(err) {
+		if msg, err = req.UnmarshalJSON(msg); chk.E(err) {
 			return
 		}
 		if err = rl.processReqEnvelope(msg, req, c, ws, svcURL); chk.E(err) {

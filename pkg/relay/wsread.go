@@ -34,8 +34,7 @@ func (h *Handle) websocketReadMessages() (err E) {
 			chk.E(ws.Pong())
 			continue
 		}
-		log.T.Ln("received message", S(message), ws.Remote())
-		if err = h.wsProcessMessages(message); err != nil {
+		if err = h.wsProcessMessages(message); chk.E(err) {
 			return
 		}
 	}

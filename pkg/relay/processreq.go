@@ -13,6 +13,7 @@ import (
 
 func (rl *R) processReqEnvelope(msg B, env *reqenvelope.T, c Ctx, ws WS, svcURL S) (err error) {
 	if !rl.IsAuthed(c, reqenvelope.L) {
+		log.W.Ln("not authed")
 		return
 	}
 	wg := sync.WaitGroup{}

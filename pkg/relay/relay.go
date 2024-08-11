@@ -116,13 +116,13 @@ func NewRelay(c Ctx, cancel context.F, inf *relayinfo.T, conf *Config) (r *R) {
 	}
 	var err E
 	var pubKey S
-	pubKey, err = keys.GetPublicKey(conf.SecKey)
-	chk.E(err)
+	if pubKey, err = keys.GetPublicKey(conf.SecKey); chk.E(err) {
+		return
+	}
 	var npub B
 	if npub, err = bech32encoding.HexToNpub(B(pubKey)); chk.E(err) {
 		return
 	}
-	chk.E(err)
 	inf.Software = Software
 	inf.Version = Version
 	inf.PubKey = pubKey
@@ -161,7 +161,7 @@ func NewRelay(c Ctx, cancel context.F, inf *relayinfo.T, conf *Config) (r *R) {
 	return
 }
 
-func getServiceBaseURL(r Req) S {
+func getServiceBaseURL(r Req) (svcURL S) {
 	host := r.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = r.Host
@@ -181,5 +181,6 @@ func getServiceBaseURL(r Req) S {
 			proto = "https"
 		}
 	}
-	return proto + "://" + host
+	svcURL = proto + "://" + host
+	return
 }

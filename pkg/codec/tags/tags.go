@@ -142,8 +142,8 @@ func (t *T) Append(ttt ...*T) {
 	}
 }
 
-// Scan parses a string or raw bytes that should be a string and embeds the
-// values into the tags variable from which this method is invoked.
+// Scan parses a string or raw bytes that should be a string and embeds the values into the tags variable from which
+// this method is invoked.
 //
 // todo: wut is this?
 func (t *T) Scan(src any) (err error) {
@@ -161,8 +161,7 @@ func (t *T) Scan(src any) (err error) {
 	return
 }
 
-// ContainsAny returns true if any of the strings given in `values` matches any
-// of the tag elements.
+// ContainsAny returns true if any of the strings given in `values` matches any of the tag elements.
 func (t *T) ContainsAny(tagName B, values ...B) bool {
 	for _, v := range t.T {
 		if v.Len() < 2 {
@@ -180,8 +179,7 @@ func (t *T) ContainsAny(tagName B, values ...B) bool {
 	return false
 }
 
-// MarshalTo appends the JSON encoded byte of T as [][]string to dst. String
-// escaping is as described in RFC8259.
+// MarshalTo appends the JSON encoded byte of T as [][]string to dst. String escaping is as described in RFC8259.
 func (t *T) MarshalTo(dst B) []byte {
 	dst = append(dst, '[')
 	for i, tt := range t.T {

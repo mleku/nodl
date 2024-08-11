@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"git.replicatr.dev/pkg/codec/kinds"
-	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/util/number"
 )
@@ -216,9 +215,9 @@ type T struct {
 	Version        string      `json:"version"`
 	Limitation     Limits      `json:"limitation"`
 	Retention      any         `json:"retention"`
-	RelayCountries *tag.T      `json:"relay_countries"`
-	LanguageTags   *tag.T      `json:"language_tags"`
-	Tags           *tag.T      `json:"tags"`
+	RelayCountries []string    `json:"relay_countries"`
+	LanguageTags   []string    `json:"language_tags"`
+	Tags           []string    `json:"tags"`
 	PostingPolicy  string      `json:"posting_policy"`
 	PaymentsURL    string      `json:"payments_url"`
 	Fees           Fees        `json:"fees"`

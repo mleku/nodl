@@ -1,8 +1,8 @@
+//go:build badger
+
 package replicatr
 
 import (
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,17 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/relayinfo"
 	app "git.replicatr.dev/pkg/relay"
 	"git.replicatr.dev/pkg/relay/eventstore"
-	"git.replicatr.dev/pkg/relay/eventstore/IC"
-	"git.replicatr.dev/pkg/relay/eventstore/IC/agent"
-	"git.replicatr.dev/pkg/relay/eventstore/IConly"
 	"git.replicatr.dev/pkg/relay/eventstore/badger"
-	"git.replicatr.dev/pkg/relay/eventstore/badgerbadger"
 	"git.replicatr.dev/pkg/util/apputil"
 	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/hex"
@@ -31,8 +25,6 @@ import (
 	"git.replicatr.dev/pkg/util/number"
 	"git.replicatr.dev/pkg/util/units"
 	arg "github.com/alexflint/go-arg"
-	"github.com/aviate-labs/agent-go/identity"
-	sec "github.com/aviate-labs/secp256k1"
 )
 
 var (
@@ -85,11 +77,8 @@ func GetInfo(args *app.Config) *relayinfo.T {
 			RestrictedWrites: args.AuthRequired,
 			MaxSubscriptions: 50,
 		},
-		RelayCountries: tag.NewWithCap(0),
-		LanguageTags:   tag.NewWithCap(0),
-		Tags:           tag.NewWithCap(0),
-		PostingPolicy:  "",
-		PaymentsURL:    "https://gfy.mleku.dev",
+		PostingPolicy: "",
+		PaymentsURL:   "https://gfy.mleku.dev",
 		Fees: relayinfo.Fees{
 			Admission: []relayinfo.Admission{
 				{Amount: 100000000, Unit: "satoshi"},
@@ -100,10 +89,14 @@ func GetInfo(args *app.Config) *relayinfo.T {
 }
 
 func Main(osArgs []string, c context.T, cancel context.F) {
-	tmp := os.Args
+	var err E
+	tmp := make([]S, len(os.Args))
+	copy(tmp, os.Args)
 	os.Args = osArgs
-	arg.MustParse(&args)
-	lol.SetLogLevel(args.LogLevel)
+	arg.MustParse(args)
+	if args.LogLevel != "" {
+		lol.SetLogLevel(args.LogLevel)
+	}
 	os.Args = tmp
 	var wg sync.WaitGroup
 	if args.PProf {
@@ -128,17 +121,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 			}
 		}
 	}
-	// todo: restore log level filtering
-	// // set logging level if non-default was set in args
-	// if args.LogLevel != "" {
-	// 	for i := range lol.LevelSpecs {
-	// 		if lol.LevelSpecs[i].Name[:1] == strings.ToLower(args.LogLevel[:1]) {
-	// 			lol.SetLogLevel(i)
-	// 		}
-	// 	}
-	// }
 	inf := &relayinfo.T{Nips: nips}
-	var err error
 	var dataDirBase string
 	if dataDirBase, err = os.UserHomeDir(); chk.E(err) {
 		os.Exit(1)
@@ -189,7 +172,13 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		// if fields are empty, overwrite them with the cli args file
 		// versions
 		if len(args.Listen) > 0 {
-			conf.Listen = args.Listen
+			if args.Listen[0] != app.DefaultListener {
+				conf.Listen = args.Listen
+			}
+		}
+		log.I.Ln(args.LogLevel)
+		if args.LogLevel != "" {
+			lol.SetLogLevel(conf.LogLevel)
 		}
 		if args.Profile != "" {
 			conf.Profile = args.Profile
@@ -237,12 +226,6 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		if args.Whitelist != nil {
 			conf.Whitelist = args.Whitelist
 		}
-		if args.CanisterAddr != "" {
-			conf.CanisterAddr = args.CanisterAddr
-		}
-		if args.CanisterId != "" {
-			conf.CanisterId = args.CanisterId
-		}
 		if err = inf.Load(infoPath); chk.E(err) {
 			inf = GetInfo(&conf)
 			log.D.F("failed to load relay information document: '%s' "+
@@ -251,9 +234,6 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		if args.AuthRequired {
 			conf.AuthRequired = true
 			inf.Limitation.AuthRequired = true
-		}
-		if args.EventStore != "" {
-			conf.EventStore = args.EventStore
 		}
 		if args.MemLimit > 0 {
 			conf.MemLimit = args.MemLimit
@@ -264,14 +244,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		if args.MaxProcs > 0 {
 			conf.MaxProcs = args.MaxProcs
 		}
-		if args.PollFrequency > 0 {
-			conf.PollFrequency = args.PollFrequency
-		}
-		if args.PollOverlap > 0 {
-			conf.PollOverlap = args.PollOverlap
-		}
 	}
-	log.I.Ln(conf.SecKey)
 	_ = debug.SetGCPercent(conf.GCRatio)
 	runtime.GOMAXPROCS(conf.MaxProcs)
 	log.I.Ln("starting", AppName)
@@ -281,157 +254,31 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	rl := app.NewRelay(c, cancel, inf, &conf)
 	var db eventstore.Store
 	// if we are wiping we don't want to init db normally
-	switch {
-	case args.PubKeyCmd != nil:
-		secKeyBytes, err := hex.Dec(rl.Config.SecKey)
-		if err != nil {
-			log.E.F("Error decoding SecKey: %s\n", err)
-			return
-		}
-		privKey, _ := sec.PrivKeyFromBytes(sec.S256(), secKeyBytes)
-		id, err := identity.NewSecp256k1Identity(privKey)
-		if err != nil {
-			log.E.F("Error creating identity: %s\n", err)
-			os.Exit(1)
-		}
-		log.I.F("Your Canister-Facing Relay Pubkey is:\n")
-		publicKeyBase64 := base64.StdEncoding.EncodeToString(id.PublicKey())
 
-		fmt.Println(publicKeyBase64)
-		os.Exit(0)
-	case args.AddRelayCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
-			log.E.F("Error creating agent: %s\n", err)
-			os.Exit(1)
-		}
-		err = a.AddUser(args.AddRelayCmd.PubKey, args.AddRelayCmd.Admin)
-		if err != nil {
-			log.E.F("Error adding user: %s\n", err)
-			os.Exit(1)
-		}
-		perm := "user"
-		if args.AddRelayCmd.Admin {
-			perm = "admin"
-		}
-		log.I.F("User %s added with %s level access\n", args.AddRelayCmd.PubKey,
-			perm)
-		os.Exit(0)
-	case args.RemoveRelayCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
-			log.E.F("Error creating agent: %s\n", err)
-			os.Exit(1)
-		}
-		err = a.RemoveUser(args.RemoveRelayCmd.PubKey)
-		if err != nil {
-			log.E.F("Error removing user: %s\n", err)
-			os.Exit(1)
-		}
-		log.I.F("User %s removed\n", args.RemoveRelayCmd.PubKey)
-		os.Exit(0)
-	case args.GetPermissionCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
-			log.E.F("Error creating agent: %s\n", err)
-			os.Exit(1)
-		}
-		perm, err := a.GetPermission()
-		if err != nil {
-			log.E.F("%s\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("This relay has %s level access\n", perm)
-		os.Exit(0)
-
-	}
 	// add acl canister commands here
 
 	// create both structures in any case
 	var badgerDB *badger.Backend
-	var icDB *IConly.Backend
-	eso := rl.Config.EventStore
-	if eso == "ic" || eso == "iconly" {
-		icDB = &IConly.Backend{
-			Ctx:             c,
-			WG:              &wg,
-			CanisterAddr:    rl.Config.CanisterAddr,
-			CanisterId:      rl.Config.CanisterId,
-			PrivateCanister: false, // for future implementation
-			SecKey:          rl.Config.SecKey,
-		}
+	badgerDB = &badger.Backend{
+		Ctx:            c,
+		WG:             &wg,
+		Path:           dataDir,
+		MaxLimit:       inf.Limitation.MaxLimit,
+		DBSizeLimit:    conf.DBSizeLimit,
+		DBLowWater:     conf.DBLowWater,
+		DBHighWater:    conf.DBHighWater,
+		GCFrequency:    time.Duration(conf.GCFrequency) * time.Second,
+		BlockCacheSize: 8 * units.Gb,
+		InitLogLevel:   lol.Off,
+		// InitLogLevel:   lol.GetLogLevel(),
 	}
-	if eso == "ic" || eso == "badger" || eso == "badgerbadger" {
-		badgerDB = &badger.Backend{
-			Ctx:            c,
-			WG:             &wg,
-			Path:           dataDir,
-			MaxLimit:       inf.Limitation.MaxLimit,
-			DBSizeLimit:    conf.DBSizeLimit,
-			DBLowWater:     conf.DBLowWater,
-			DBHighWater:    conf.DBHighWater,
-			GCFrequency:    time.Duration(conf.GCFrequency) * time.Second,
-			BlockCacheSize: 8 * units.Gb,
-			InitLogLevel:   lol.Off,
-			// InitLogLevel:   lol.GetLogLevel(),
-		}
-	}
-	switch eso {
-	case "iconly":
-		db = icDB
-	case "ic":
-		wg.Add(1)
-		if conf.PollFrequency == 0 {
-			conf.PollFrequency = 5 * time.Second
-		}
-		var es event.C
-		db, es = IC.GetBackend(c, &wg, badgerDB, icDB,
-			conf.PollFrequency, conf.PollOverlap)
-		if es != nil {
-			// start up the event signal broadcast
-			go func() {
-				for {
-					select {
-					case <-rl.Ctx.Done():
-						return
-					case ev := <-es:
-						rl.BroadcastEvent(ev)
-					}
-				}
-			}()
-		}
-		interrupt.AddHandler(func() {
-			badgerDB.DB.Flatten(8)
-			badgerDB.DB.Close()
-			// wg.Done()
-		})
-	case "badger":
-		db = badgerDB
-		wg.Add(1)
-		interrupt.AddHandler(func() {
-			badgerDB.DB.Flatten(8)
-			badgerDB.DB.Close()
-			// wg.Done()
-		})
-	case "badgerbadger":
-		log.W.Ln("using badger testing L2")
-		wg.Add(1)
-		badgerDB.HasL2 = true
-		b2 := badger.GetBackend(c, &wg, filepath.Join(badgerDB.Path, "l2"),
-			false, 8*units.Gb, 0)
-		b2.InitLogLevel = badgerDB.InitLogLevel
-		db = badgerbadger.GetBackend(c, &wg, badgerDB, b2)
-		interrupt.AddHandler(func() {
-			badgerDB.DB.Flatten(8)
-			badgerDB.DB.Close()
-			b2.DB.Flatten(8)
-			b2.DB.Close()
-			// wg.Done()
-		})
-	}
+	db = badgerDB
+	wg.Add(1)
+	interrupt.AddHandler(func() {
+		badgerDB.DB.Flatten(8)
+		badgerDB.DB.Close()
+		// wg.Done()
+	})
 	if err = db.Init(); chk.E(err) {
 		log.E.F("unable to start database: '%s'", err)
 		os.Exit(1)
@@ -482,10 +329,10 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		servs = append(servs, serv)
 	}
 	// // this allows local access and works with nostrudel
-	servs = append(servs, http.Server{
-		Addr:    "127.0.0.1:4869",
-		Handler: rl,
-	})
+	// servs = append(servs, http.Server{
+	// 	Addr:    "127.0.0.1:4869",
+	// 	Handler: rl,
+	// })
 	for i := range servs {
 		log.I.Ln("listening on", servs[i].Addr)
 	}
@@ -503,6 +350,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	for i := range servs {
 		go func() {
 			wg.Add(1)
+			log.I.F("starting http server on %s", servs[i].Addr)
 			chk.E(servs[i].ListenAndServe())
 			wg.Done()
 		}()

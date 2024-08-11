@@ -48,7 +48,6 @@ var (
 	IDs     = B("ids")
 	Kinds   = B("kinds")
 	Authors = B("authors")
-	Tags    = B("tags")
 	Since   = B("since")
 	Until   = B("until")
 	Limit   = B("limit")
@@ -73,11 +72,6 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 	if f.Authors != nil && len(f.Authors.Field) > 0 {
 		dst = text.JSONKey(dst, Authors)
 		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
-		dst = append(dst, ',')
-	}
-	if f.Tags != nil && len(f.Tags.T) > 0 {
-		dst = text.JSONKey(dst, Tags)
-		dst, _ = f.Tags.MarshalJSON(dst)
 		dst = append(dst, ',')
 	}
 	if f.Since != nil && f.Since.U64() > 0 {
@@ -158,7 +152,33 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				state = inVal
 			}
 		case inVal:
+			if len(key)<1 {
+				err = errorf.E("filter key zero length: '%s'\n'%s", b, r)
+				return
+			}
 			switch key[0] {
+			case '#':
+				r = r[1:]
+				switch r[0] {
+				case 'e', 'p':
+					// the tags must all be 64 character hexadecimal
+					var ff []B
+					if ff, r, err = text.UnmarshalHexArray(r,
+						sha256.Size); chk.E(err) {
+						return
+					}
+					ff = append([]B{key}, ff...)
+					f.Tags.T = append(f.Tags.T, tag.New(ff...))
+				default:
+					// other types of tags can be anything
+					var ff []B
+					if ff, r, err = text.UnmarshalStringArray(r); chk.E(err) {
+						return
+					}
+					ff = append([]B{key}, ff...)
+					f.Tags.T = append(f.Tags.T, tag.New(ff...))
+				}
+				state = betweenKV
 			case IDs[0]:
 				if len(key) < len(IDs) {
 					goto invalid
@@ -170,7 +190,6 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				}
 				f.IDs = tag.New(ff...)
 				state = betweenKV
-				// // log.I.Ln("betweenKV")
 			case Kinds[0]:
 				if len(key) < len(Kinds) {
 					goto invalid
@@ -180,7 +199,6 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 					return
 				}
 				state = betweenKV
-				// log.I.Ln("betweenKV")
 			case Authors[0]:
 				if len(key) < len(Authors) {
 					goto invalid
@@ -191,17 +209,6 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				}
 				f.Authors = tag.New(ff...)
 				state = betweenKV
-				// log.I.Ln("betweenKV")
-			case Tags[0]:
-				if len(key) < len(Tags) {
-					goto invalid
-				}
-				f.Tags = tags.New()
-				if r, err = f.Tags.UnmarshalJSON(r); chk.E(err) {
-					return
-				}
-				state = betweenKV
-				// log.I.Ln("betweenKV")
 			case Until[0]:
 				if len(key) < len(Until) {
 					goto invalid
@@ -212,7 +219,6 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				}
 				f.Until = timestamp.FromUnix(int64(u.N))
 				state = betweenKV
-				// log.I.Ln("betweenKV")
 			case Limit[0]:
 				if len(key) < len(Limit) {
 					goto invalid
@@ -223,7 +229,6 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				}
 				f.Limit = int(l.N)
 				state = betweenKV
-				// log.I.Ln("betweenKV")
 			case Search[0]:
 				if len(key) < len(Since) {
 					goto invalid
@@ -273,14 +278,16 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				// log.I.Ln("inKey")
 			}
 		}
+		if len(r)==0{
+			return
+		}
 		if r[0] == '}' {
 			r = r[1:]
 			return
 		}
 	}
 invalid:
-	err = errorf.E("invalid key,\n'%s'\n'%s'\n'%s'", S(b), S(b[:len(r)]),
-		S(r))
+	err = errorf.E("invalid key,\n'%s'\n'%s'", S(b), S(r))
 	return
 }
 

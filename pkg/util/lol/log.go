@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"git.replicatr.dev/pkg/util/atomic"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -108,15 +109,19 @@ type Logger struct {
 	*Errorf
 }
 
-var Main *Logger
+var Level atomic.Int32
+var Main = &Logger{}
 
 func init() {
-	Main = &Logger{}
+	// Main = &Logger{}
+	Main.Log, Main.Check, Main.Errorf = New(os.Stderr)
 	SetLoggers(Info)
+	// SetLoggers(Trace)
 }
 
 func SetLoggers(level int) {
-	Main.Log, Main.Check, Main.Errorf = New(level, os.Stderr)
+	fmt.Fprintf(os.Stderr, "log level %d %s\n", level, GetLoc(1))
+	Level.Store(int32(level))
 }
 
 func SetLogLevel(level string) {
@@ -141,46 +146,61 @@ func JoinStrings(a ...any) (s string) {
 func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	return LevelPrinter{
 		Ln: func(a ...interface{}) {
+			if Level.Load() < l {
+				return
+			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixTimeAsFloat(),
+				Timestamper(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				JoinStrings(a...),
 				GetLoc(2),
 			)
 		},
 		F: func(format string, a ...interface{}) {
+			if Level.Load() < l {
+				return
+			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixTimeAsFloat(),
+				Timestamper(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				fmt.Sprintf(format, a...),
 				GetLoc(2),
 			)
 		},
 		S: func(a ...interface{}) {
+			if Level.Load() < l {
+				return
+			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixTimeAsFloat(),
+				Timestamper(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
 				GetLoc(2),
 			)
 		},
 		C: func(closure func() string) {
+			if Level.Load() < l {
+				return
+			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				UnixTimeAsFloat(),
+				Timestamper(),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				closure(),
 				GetLoc(2),
 			)
 		},
 		Chk: func(e error) bool {
+			if Level.Load() < l {
+				return e != nil
+			}
 			if e != nil {
 				fmt.Fprintf(writer,
 					"%s %s %s %s\n",
-					UnixTimeAsFloat(),
+					Timestamper(),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
 					GetLoc(2),
@@ -190,13 +210,15 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			return false
 		},
 		Err: func(format string, a ...interface{}) error {
-			fmt.Fprintf(writer,
-				"%s %s %s %s\n",
-				UnixTimeAsFloat(),
-				LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
-				fmt.Sprintf(format, a...),
-				GetLoc(2),
-			)
+			if Level.Load() < l {
+				fmt.Fprintf(writer,
+					"%s %s %s %s\n",
+					Timestamper(),
+					LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
+					fmt.Sprintf(format, a...),
+					GetLoc(2),
+				)
+			}
 			return fmt.Errorf(format, a...)
 		},
 	}
@@ -213,35 +235,14 @@ func GetNullPrinter() LevelPrinter {
 	}
 }
 
-func New(level int, writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
+func New(writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	l = &Log{
-		F: GetNullPrinter(),
-		E: GetNullPrinter(),
-		W: GetNullPrinter(),
-		I: GetNullPrinter(),
-		D: GetNullPrinter(),
-		T: GetNullPrinter(),
-	}
-	c = &Check{}
-	errorf = &Errorf{}
-	switch {
-	case level >= Trace:
-		l.T = GetPrinter(Trace, writer)
-		fallthrough
-	case level >= Debug:
-		l.D = GetPrinter(Debug, writer)
-		fallthrough
-	case level >= Info:
-		l.I = GetPrinter(Info, writer)
-		fallthrough
-	case level >= Warn:
-		l.W = GetPrinter(Warn, writer)
-		fallthrough
-	case level >= Error:
-		l.E = GetPrinter(Error, writer)
-		fallthrough
-	case level >= Fatal:
-		l.F = GetPrinter(Fatal, writer)
+		T: GetPrinter(Trace, writer),
+		D: GetPrinter(Debug, writer),
+		I: GetPrinter(Info, writer),
+		W: GetPrinter(Warn, writer),
+		E: GetPrinter(Error, writer),
+		F: GetPrinter(Fatal, writer),
 	}
 	c = &Check{
 		F: l.F.Chk,
@@ -262,8 +263,8 @@ func New(level int, writer io.Writer) (l *Log, c *Check, errorf *Errorf) {
 	return
 }
 
-// UnixTimeAsFloat e
-func UnixTimeAsFloat() (s string) {
+// Timestamper e
+func Timestamper() (s string) {
 	timeText := fmt.Sprint(time.Now().UnixNano())
 	lt := len(timeText)
 	lb := lt + 1

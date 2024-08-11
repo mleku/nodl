@@ -39,7 +39,6 @@ func TestMarshalJSONUnmarshalJSON(t *testing.T) {
 		if rem, err = req2.UnmarshalJSON(rb); chk.E(err) {
 			t.Fatal(err)
 		}
-		// log.I.Ln(req2.ID)
 		if len(rem) > 0 {
 			t.Fatalf("unmarshal failed, remainder\n%d %s",
 				len(rem), rem)

@@ -1,7 +1,6 @@
 package relay
 
 import (
-	"errors"
 	"sync"
 
 	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
@@ -31,9 +30,10 @@ func (rl *R) handleFilter(h handleFilterParams) (err error) {
 		ovw(h.c, h.f)
 	}
 	if h.f.Limit < 1 {
-		err = errors.New(S(Reason(Invalid, "filter with 0/empty limit ")))
-		log.E.Ln(err)
-		return
+		h.f.Limit = 50
+		// err = errors.New(S(Reason(Invalid, "filter with 0/empty limit ")))
+		// log.E.Ln(err)
+		// return
 	}
 	// then check if we'll reject this filter (we apply this after overwriting
 	// because we may, for example, remove some things from the incoming filters

@@ -53,6 +53,7 @@ func (rl *R) HandleWebsocket(svcURL S) func(w Responder, r Req) {
 			rr = r.RemoteAddr
 		}
 		ws := relayws.New(conn, r, qu.T())
+		log.I.F("%s", conn.RemoteAddr().String())
 		ws.SetRealRemote(rr)
 		// check if whitelist denies this connection
 		var deny bool

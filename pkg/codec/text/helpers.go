@@ -146,6 +146,35 @@ func UnmarshalHexArray(b B, size int) (t []B, rem B, err error) {
 	}
 	return
 }
+// UnmarshalStringArray unpacks a JSON array containing strings.
+func UnmarshalStringArray(b B) (t []B, rem B, err error) {
+	rem = b
+	var openBracket bool
+	for ; len(rem) > 0; rem = rem[1:] {
+		if rem[0] == '[' {
+			openBracket = true
+		} else if openBracket {
+			if rem[0] == ',' {
+				continue
+			} else if rem[0] == ']' {
+				rem = rem[1:]
+				return
+			} else if rem[0] == '"' {
+				var h B
+				if h, rem, err = UnmarshalQuoted(rem); chk.E(err) {
+					return
+				}
+				t = append(t, h)
+				if rem[0] == ']' {
+					rem = rem[1:]
+					// done
+					return
+				}
+			}
+		}
+	}
+	return
+}
 
 func MarshalKindsArray(dst B, ka *kinds.T) (b B) {
 	dst = append(dst, '[')
