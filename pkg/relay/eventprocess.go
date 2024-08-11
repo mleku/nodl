@@ -56,7 +56,7 @@ func (rl *R) processEventEnvelope(msg B, env *evEnv.Submission, c Ctx, ws WS, sv
 		err = rl.AddEvent(c, env.T)
 	}
 	var reason B
-	if err != nil {
+	if chk.E(err) {
 		reason = B(err.Error())
 		if bytes.HasPrefix(reason, reasons.AuthRequired) {
 			log.I.Ln("requesting auth")

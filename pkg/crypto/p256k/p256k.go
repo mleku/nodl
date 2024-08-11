@@ -42,7 +42,7 @@ func (s *Signer) InitSec(skb B) (err error) {
 	var cs *Sec
 	var cx *XPublicKey
 	var cp *PublicKey
-	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); err != nil {
+	if s.pkb, cs, cx, cp, err = FromSecretBytes(skb); chk.E(err) {
 		if err.Error() != "provided secret generates a public key with odd Y coordinate, fixed version returned" {
 			log.E.Ln(err)
 			return

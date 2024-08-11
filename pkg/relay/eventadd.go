@@ -33,7 +33,7 @@ func (rl *R) AddEvent(c Ctx, ev EV) (err E) {
 	if !ev.Kind.IsEphemeral() {
 		// log.I.Ln("adding event", ev.ToObject().String())
 		for _, store := range rl.StoreEvents {
-			if saveErr := store(c, ev); saveErr != nil {
+			if saveErr := store(c, ev); chk.E(saveErr) {
 				switch {
 				case errors.Is(saveErr, eventstore.ErrDupEvent):
 					return saveErr

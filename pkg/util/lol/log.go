@@ -9,6 +9,7 @@ import (
 
 	"git.replicatr.dev/pkg/util/atomic"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/fatih/color"
 )
 
 const (
@@ -81,15 +82,17 @@ var (
 	writer io.Writer = os.Stderr
 	// LevelSpecs specifies the id, string name and color-printing function
 	LevelSpecs = []LevelSpec{
-		{Off, "   ", fmt.Sprint},
-		{Fatal, "FTL", fmt.Sprint},
-		{Error, "ERR", fmt.Sprint},
-		{Warn, "WRN", fmt.Sprint},
-		{Info, "INF", fmt.Sprint},
-		{Debug, "DBG", fmt.Sprint},
-		{Trace, "TRC", fmt.Sprint},
+		{Off, "", NoSprint},
+		{Fatal, "FTL", color.New(color.BgRed,color.FgHiWhite).Sprint},
+		{Error, "ERR", color.New(color.FgHiRed).Sprint},
+		{Warn, "WRN", color.New(color.FgHiYellow).Sprint},
+		{Info, "INF", color.New(color.FgHiGreen).Sprint},
+		{Debug, "DBG", color.New(color.FgHiBlue).Sprint},
+		{Trace, "TRC", color.New(color.FgHiMagenta).Sprint},
 	}
 )
+
+func NoSprint(a ...any) string { return "" }
 
 // Log is a set of log printers for the various Level items.
 type Log struct {
@@ -120,7 +123,7 @@ func init() {
 }
 
 func SetLoggers(level int) {
-	fmt.Fprintf(os.Stderr, "log level %d %s\n", level, GetLoc(1))
+	Main.Log.T.F("log level %s", LevelSpecs[level].Colorizer(LevelNames[level]))
 	Level.Store(int32(level))
 }
 
@@ -143,6 +146,8 @@ func JoinStrings(a ...any) (s string) {
 	return
 }
 
+var msgCol = color.New(color.FgBlue).Sprint
+
 func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 	return LevelPrinter{
 		Ln: func(a ...interface{}) {
@@ -151,10 +156,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				Timestamper(),
+				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				JoinStrings(a...),
-				GetLoc(2),
+				msgCol(GetLoc(2)),
 			)
 		},
 		F: func(format string, a ...interface{}) {
@@ -163,10 +168,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				Timestamper(),
+				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				fmt.Sprintf(format, a...),
-				GetLoc(2),
+				msgCol(GetLoc(2)),
 			)
 		},
 		S: func(a ...interface{}) {
@@ -175,10 +180,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				Timestamper(),
+				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				spew.Sdump(a...),
-				GetLoc(2),
+				msgCol(GetLoc(2)),
 			)
 		},
 		C: func(closure func() string) {
@@ -187,10 +192,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			}
 			fmt.Fprintf(writer,
 				"%s %s %s %s\n",
-				Timestamper(),
+				msgCol(Timestamper()),
 				LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 				closure(),
-				GetLoc(2),
+				msgCol(GetLoc(2)),
 			)
 		},
 		Chk: func(e error) bool {
@@ -200,10 +205,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			if e != nil {
 				fmt.Fprintf(writer,
 					"%s %s %s %s\n",
-					Timestamper(),
+					msgCol(Timestamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name),
 					e.Error(),
-					GetLoc(2),
+					msgCol(GetLoc(2)),
 				)
 				return true
 			}
@@ -213,10 +218,10 @@ func GetPrinter(l int32, writer io.Writer) LevelPrinter {
 			if Level.Load() < l {
 				fmt.Fprintf(writer,
 					"%s %s %s %s\n",
-					Timestamper(),
+					msgCol(Timestamper()),
 					LevelSpecs[l].Colorizer(LevelSpecs[l].Name, " "),
 					fmt.Sprintf(format, a...),
-					GetLoc(2),
+					msgCol(GetLoc(2)),
 				)
 			}
 			return fmt.Errorf(format, a...)

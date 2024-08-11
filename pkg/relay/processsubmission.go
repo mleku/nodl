@@ -47,7 +47,7 @@ func (h *Handle) processEventSubmission(msg B, env *eventenvelope.Submission) (e
 	}
 	var reason B
 	ok = true
-	if err != nil {
+	if chk.E(err) {
 		reason = B(err.Error())
 		if bytes.HasPrefix(reason, AuthRequired) {
 			log.I.Ln("requesting auth")

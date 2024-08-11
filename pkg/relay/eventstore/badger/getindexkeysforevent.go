@@ -80,7 +80,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 		// get key prefix (with full length) and offset where to write the last
 		// parts
 		prf, elems := index.P(0), []keys.Element(nil)
-		if prf, elems, err = GetTagKeyElements(S(t.Field[1]), CA, ser); err != nil {
+		if prf, elems, err = GetTagKeyElements(S(t.Field[1]), CA, ser); chk.E(err) {
 			return
 		}
 		k := prf.Key(elems...)

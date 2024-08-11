@@ -86,8 +86,8 @@ func GetInfo(args *app.Config) *relayinfo.T {
 			RestrictedWrites: args.AuthRequired,
 			MaxSubscriptions: 50,
 		},
-		PostingPolicy:  "",
-		PaymentsURL:    "https://gfy.mleku.dev",
+		PostingPolicy: "",
+		PaymentsURL:   "https://gfy.mleku.dev",
 		Fees: relayinfo.Fees{
 			Admission: []relayinfo.Admission{
 				{Amount: 100000000, Unit: "satoshi"},
@@ -137,7 +137,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	log.D.F("using profile directory: %s", dataDir)
 	infoPath := filepath.Join(dataDir, "info.json")
 	configPath := filepath.Join(dataDir, "config.json")
-	if _, serr := os.Stat(configPath); serr != nil && args.InitCfgCmd == nil {
+	if _, serr := os.Stat(configPath); chk.E(serr) && args.InitCfgCmd == nil {
 		args.InitCfgCmd = &app.InitCfg{}
 		log.W.Ln("******* configuration missing, creating new one at",
 			configPath,
@@ -269,34 +269,30 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	}
 	rl := app.NewRelay(c, cancel, inf, &conf)
 	var db eventstore.Store
-	// if we are wiping we don't want to init db normally
+	var a *agent.Backend
 	switch {
 	case args.PubKeyCmd != nil:
-		secKeyBytes, err := hex.Dec(rl.Config.SecKey)
-		if err != nil {
-			log.E.F("Error decoding SecKey: %s\n", err)
+		var secKeyBytes B
+		if secKeyBytes, err = hex.Dec(rl.Config.SecKey); chk.E(err) {
+			log.E.F("Error decoding SecKey: %s", err)
 			return
 		}
 		privKey, _ := sec.PrivKeyFromBytes(sec.S256(), secKeyBytes)
-		id, err := identity.NewSecp256k1Identity(privKey)
-		if err != nil {
-			log.E.F("Error creating identity: %s\n", err)
+		var id B
+		if id, err = identity.NewSecp256k1Identity(privKey); chk.E(err) {
+			log.E.F("Error creating identity: %s", err)
 			os.Exit(1)
 		}
 		log.I.F("Your Canister-Facing Relay Pubkey is:\n")
 		publicKeyBase64 := base64.StdEncoding.EncodeToString(id.PublicKey())
-
 		fmt.Println(publicKeyBase64)
 		os.Exit(0)
 	case args.AddRelayCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
+		if a, err = agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr, rl.Config.SecKey); chk.E(err) {
 			log.E.F("Error creating agent: %s\n", err)
 			os.Exit(1)
 		}
-		err = a.AddUser(args.AddRelayCmd.PubKey, args.AddRelayCmd.Admin)
-		if err != nil {
+		if err = a.AddUser(args.AddRelayCmd.PubKey, args.AddRelayCmd.Admin); chk.E(err) {
 			log.E.F("Error adding user: %s\n", err)
 			os.Exit(1)
 		}
@@ -304,32 +300,26 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		if args.AddRelayCmd.Admin {
 			perm = "admin"
 		}
-		log.I.F("User %s added with %s level access\n", args.AddRelayCmd.PubKey,
-			perm)
+		log.I.F("User %s added with %s level access\n", args.AddRelayCmd.PubKey, perm)
 		os.Exit(0)
 	case args.RemoveRelayCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
+		if a, err = agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr, rl.Config.SecKey); chk.E(err) {
 			log.E.F("Error creating agent: %s\n", err)
 			os.Exit(1)
 		}
-		err = a.RemoveUser(args.RemoveRelayCmd.PubKey)
-		if err != nil {
+		if err = a.RemoveUser(args.RemoveRelayCmd.PubKey); chk.E(err) {
 			log.E.F("Error removing user: %s\n", err)
 			os.Exit(1)
 		}
 		log.I.F("User %s removed\n", args.RemoveRelayCmd.PubKey)
 		os.Exit(0)
 	case args.GetPermissionCmd != nil:
-		a, err := agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr,
-			rl.Config.SecKey)
-		if err != nil {
+		if a, err = agent.New(c, rl.Config.CanisterId, rl.Config.CanisterAddr, rl.Config.SecKey); chk.E(err) {
 			log.E.F("Error creating agent: %s\n", err)
 			os.Exit(1)
 		}
-		perm, err := a.GetPermission()
-		if err != nil {
+		var perm S
+		if perm, err = a.GetPermission();chk.E(err){
 			log.E.F("%s\n", err)
 			os.Exit(1)
 		}
@@ -337,8 +327,6 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 		os.Exit(0)
 
 	}
-	// add acl canister commands here
-
 	// create both structures in any case
 	var badgerDB *badger.Backend
 	var icDB *IConly.Backend

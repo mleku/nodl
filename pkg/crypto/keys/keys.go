@@ -25,14 +25,14 @@ func GenerateSecretKeyHex() (sks B) {
 
 func GetPublicKey(sk string) (string, error) {
 	b, err := hex.Dec(sk)
-	if err != nil {
+	if chk.E(err) {
 		return "", err
 	}
 
 	_, pk := btcec.PrivKeyFromBytes(b)
 	return hex.Enc(schnorr.SerializePubKey(pk)), nil
 }
-//
+
 // func GetPublicKey(sk S) (pk S, err E) {
 // 	if !IsValid32ByteHex(sk) {
 // 		err = errorf.E("invalid key %s", sk)

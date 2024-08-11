@@ -122,7 +122,7 @@ func TestBinaryEvents(t *testing.T) {
 			t.Fatalf("remainder after end of event: %s", orig)
 		}
 		// bytes should be identical to b3
-		if b2, err = ev2.MarshalBinary(b2); err != nil {
+		if b2, err = ev2.MarshalBinary(b2); chk.E(err) {
 			es := err.Error()
 			if strings.Contains(es, "invalid length event ID in `a` tag:") {
 				err = nil

@@ -24,7 +24,7 @@ func (rl *R) handleCountRequest(c Ctx, id SubID, ws WS, f *filter.T) (subtotal i
 	var err error
 	var res int
 	for _, count := range rl.CountEvents {
-		if res, err = count(c, f); err != nil {
+		if res, err = count(c, f); chk.E(err) {
 			if strings.HasSuffix(err.Error(), "No events found") {
 				log.E.Ln(err.Error())
 			}

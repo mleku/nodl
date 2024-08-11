@@ -17,8 +17,8 @@ func (h *Handle) websocketReadMessages() (err E) {
 	for {
 		var typ int
 		var message B
-		if typ, message, err = ws.Conn.ReadMessage(); err != nil {
-			// log.I.F("%s from %s, %d bytes message", err, ws.Remote(), len(message))
+		if typ, message, err = ws.Conn.ReadMessage(); chk.E(err) {
+			log.I.F("[%d] %s from %s, %d bytes message", typ, err, ws.Remote(), len(message))
 			if w.IsUnexpectedCloseError(
 				err,
 				w.CloseNormalClosure,    // 1000

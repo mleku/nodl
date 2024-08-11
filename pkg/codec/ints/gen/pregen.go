@@ -7,7 +7,7 @@ import (
 
 func main() {
 	fh, err := os.Create("pkg/ints/base10k.txt")
-	if err != nil {
+	if chk.E(err) {
 		panic(err)
 	}
 	for i := range 10000 {

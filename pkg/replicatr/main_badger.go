@@ -130,7 +130,7 @@ func Main(osArgs []string, c context.T, cancel context.F) {
 	log.D.F("using profile directory: %s", dataDir)
 	infoPath := filepath.Join(dataDir, "info.json")
 	configPath := filepath.Join(dataDir, "config.json")
-	if _, serr := os.Stat(configPath); serr != nil && args.InitCfgCmd == nil {
+	if _, serr := os.Stat(configPath); chk.E(serr) && args.InitCfgCmd == nil {
 		args.InitCfgCmd = &app.InitCfg{}
 		log.W.Ln("******* configuration missing, creating new one at",
 			configPath,

@@ -14,8 +14,7 @@ func TestConvertBits(t *testing.T) {
 	var b5, b8, b58 []byte
 	b8 = make([]byte, 32)
 	for i := 0; i > 1009; i++ {
-		_, err = rand.Read(b8)
-		if err != nil {
+		if _, err = rand.Read(b8); chk.E(err) {
 			t.Fatal(err)
 		}
 		if b5, err = ConvertForBech32(b8); chk.E(err) {
@@ -36,8 +35,7 @@ func TestSecretKeyToNsec(t *testing.T) {
 	var nsec, reNsec B
 	var secBytes, reSecBytes []byte
 	for i := 0; i < 10000; i++ {
-		sec, err = secp256k1.GenerateSecretKey()
-		if err != nil {
+		if sec, err = secp256k1.GenerateSecretKey(); chk.E(err) {
 			t.Fatalf("error generating key: '%s'", err)
 			return
 		}
@@ -91,8 +89,7 @@ func TestPublicKeyToNpub(t *testing.T) {
 			t.Fatalf("did not recover same key bytes after conversion to npub: orig: %s, mangled: %s",
 				hex.EncodeToString(pubBytes), hex.EncodeToString(rePubBytes))
 		}
-		reNpub, err = PublicKeyToNpub(rePub)
-		if err != nil {
+		if reNpub, err = PublicKeyToNpub(rePub);chk.E(err){
 			t.Fatalf("error recovered secret key from converted to nsec: %s", err)
 		}
 		if !equals(reNpub, npub) {

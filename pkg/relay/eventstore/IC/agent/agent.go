@@ -49,8 +49,8 @@ func New(c context.T, cid, canAddr, secKey string) (a *Backend, err error) {
 	a = &Backend{Ctx: c}
 	localReplicaURL, _ := url.Parse(canAddr)
 	secKeyBytes, err := hex.Dec(secKey)
-	if err != nil {
-		return nil, err
+	if chk.E(err) {
+		return
 	}
 	privKey, _ := sec.PrivKeyFromBytes(sec.S256(), secKeyBytes)
 	id, _ := identity.NewSecp256k1Identity(privKey)
@@ -98,9 +98,8 @@ func (b *Backend) GetCandidEvent(filter *Filter) (res []*Event, err E) {
 	methodName := "get_events"
 	args := []any{*filter, time.Now().UnixNano()}
 	var result []Event
-	err = b.Agent.Query(b.CanisterID, methodName, args, []any{&result})
-	if err != nil {
-		return nil, err
+	if err = b.Agent.Query(b.CanisterID, methodName, args, []any{&result});chk.E(err){
+		return
 	}
 	res = make([]*Event, len(result))
 	for i := range result {
@@ -114,7 +113,7 @@ func (b *Backend) CountCandidEvent(filter *Filter) (int, error) {
 	args := []any{*filter, time.Now().UnixNano()}
 	var result int
 	err := b.Agent.Query(b.CanisterID, methodName, args, []any{&result})
-	if err != nil {
+	if chk.E(err) {
 		return -1, err
 	}
 	return result, err

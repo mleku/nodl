@@ -6,8 +6,7 @@ func (b *Backend) AddUser(pubKey string, perm bool) (err error) {
 	methodName := "add_user"
 	args := []any{pubKey, perm, time.Now().UnixNano()}
 	var result *string
-	err = b.Agent.Call(b.CanisterID, methodName, args, []any{&result})
-	if err != nil {
+	if err = b.Agent.Call(b.CanisterID, methodName, args, []any{&result}); chk.E(err) {
 		return
 	} else if result != nil {
 		err = log.E.Err("failed to add user")
@@ -20,8 +19,7 @@ func (b *Backend) RemoveUser(pubKey string) (err error) {
 	methodName := "remove_user"
 	args := []any{pubKey, time.Now().UnixNano()}
 	var result *string
-	err = b.Agent.Call(b.CanisterID, methodName, args, []any{&result})
-	if err != nil {
+	if err = b.Agent.Call(b.CanisterID, methodName, args, []any{&result}); chk.E(err) {
 		return
 	} else if result != nil {
 		err = log.E.Err("failed to remove user")
@@ -33,9 +31,8 @@ func (b *Backend) RemoveUser(pubKey string) (err error) {
 func (b *Backend) GetPermission() (result string, err error) {
 	methodName := "get_permission"
 	args := []any{time.Now().UnixNano()}
-	err = b.Agent.Query(b.CanisterID, methodName, args, []any{&result})
-	if err != nil {
-		return "", err
+	if err = b.Agent.Query(b.CanisterID, methodName, args, []any{&result}); chk.E(err) {
+		return
 	}
-	return result, nil
+	return
 }

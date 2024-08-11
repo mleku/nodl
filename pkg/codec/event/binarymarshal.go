@@ -228,7 +228,7 @@ func (w *Writer) WriteEvent(ev *T) (err error) {
 	if err = w.WriteKind(ev.Kind); chk.E(err) {
 		return
 	}
-	if err = w.WriteTags(ev.Tags); err != nil {
+	if err = w.WriteTags(ev.Tags); chk.E(err) {
 		return
 	}
 	if err = w.WriteContent(ev.Content); chk.E(err) {

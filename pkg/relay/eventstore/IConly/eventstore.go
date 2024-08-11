@@ -63,7 +63,7 @@ func (b *Backend) DeleteEvent(c context.T, ev *event.T) (err error) {
 func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C,
 	err error) {
 	log.D.Ln("querying IC with filter", f.String())
-	if ch, err = b.IC.QueryEvents(f); err != nil {
+	if ch, err = b.IC.QueryEvents(f); chk.E(err) {
 		split := strings.Split(err.Error(), "Error:")
 		if len(split) == 3 {
 			log.E.Ln(split[2])

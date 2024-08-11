@@ -15,9 +15,9 @@ func (h *Handle) websocketWatcher(t *time.Ticker) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			if err = ws.Ping(); err != nil {
+			if err = ws.Ping(); chk.E(err) {
 				if !strings.HasSuffix(err.Error(), "use of closed network connection") {
-					// log.T.F("error writing ping: %v; closing websocket", err)
+					log.T.F("error writing ping: %v; closing websocket", err)
 				}
 				kill()
 				return

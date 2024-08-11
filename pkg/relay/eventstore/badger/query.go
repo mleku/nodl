@@ -149,7 +149,7 @@ func (b *Backend) QueryEventsSearch(c context.T, q2 query, since uint64,
 		}
 		return
 	})
-	if err != nil {
+	if chk.E(err) {
 		close(q2.results)
 		for _ = range q2.results {
 		}

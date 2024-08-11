@@ -65,8 +65,7 @@ Options:
 	if args.Threads == 0 {
 		args.Threads = runtime.NumCPU()
 	}
-	if err := Vanity(B(args.String), where, args.Threads); err != nil {
-		log.F.F("error: %s", err)
+	if err := Vanity(B(args.String), where, args.Threads); chk.F(err) {
 	}
 }
 
@@ -160,8 +159,7 @@ out:
 		}
 		counter.Inc()
 		pkb, err = s.Generate()
-		r.npub, err = bech32encoding.BinToNpub(pkb[1:])
-		if err != nil {
+		if r.npub, err = bech32encoding.BinToNpub(pkb[1:]); chk.E(err) {
 			log.F.Ln("fatal error generating npub: %s\n", err)
 			break out
 		}

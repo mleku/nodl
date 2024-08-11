@@ -64,8 +64,8 @@ func (w RelayWrapper) Publish(c Ctx, evt EV) (err E) {
 		// }
 		// }
 	}
-	if err = w.SaveEvent(c, evt); err != nil && !errors.Is(err, ErrDupEvent) {
-		return fmt.Errorf("failed to save: %w", err)
+	if err = w.SaveEvent(c, evt); chk.E(err) && !errors.Is(err, ErrDupEvent) {
+		return errorf.E("failed to save: %w", err)
 	}
 	return nil
 }
@@ -74,7 +74,7 @@ func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
 	opts ...subscriptionoption.I) ([]EV, E) {
 
 	ch, err := w.Store.QueryEvents(c, f)
-	if err != nil {
+	if chk.E(err) {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
 	n := f.Limit

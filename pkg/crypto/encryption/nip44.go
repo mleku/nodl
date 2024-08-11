@@ -42,7 +42,7 @@ func Encrypt(plaintext S, conversationKey B, applyOptions ...func(opts *Opts)) (
 	for _, apply := range applyOptions {
 		apply(&o)
 	}
-	if o.err != nil {
+	if chk.E(o.err) {
 		err = o.err
 		return
 	}

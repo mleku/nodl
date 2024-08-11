@@ -75,8 +75,7 @@ func URL(u B) (b B) {
 	}
 	var err error
 	var p *url.URL
-	p, err = url.Parse(string(u))
-	if err != nil {
+	if p, err = url.Parse(string(u));chk.E(err){
 		return
 	}
 	// convert http/s to ws/s
