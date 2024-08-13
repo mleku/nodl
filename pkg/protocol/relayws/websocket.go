@@ -93,7 +93,7 @@ func (ws *WS) WriteTextMessage(b B) (err E) {
 
 // WriteEnvelope writes a message with a given websocket type specifier. On nostr there is only
 // envelopes, ping and pong.
-func (ws *WS) WriteEnvelope(env enveloper.I) (err error) {
+func (ws *WS) WriteEnvelope(env enveloper.I) (err E) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
 	var b B

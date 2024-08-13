@@ -47,7 +47,7 @@ func Listener() {
 		// run handlers in LIFO order.
 		for i := range interruptCallbacks {
 			idx := len(interruptCallbacks) - 1 - i
-			log.D.F("running callback %d from %s\n", idx, interruptCallbackSources[idx])
+			log.D.F("running callback %d from %s", idx, interruptCallbackSources[idx])
 			interruptCallbacks[idx]()
 		}
 		log.D.Ln("interrupt handlers finished")

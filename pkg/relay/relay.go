@@ -8,10 +8,10 @@ import (
 
 	"git.replicatr.dev/pkg/protocol/relayws"
 	"git.replicatr.dev/pkg/util/atomic"
-	"git.replicatr.dev/pkg/util/context"
+	C "git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/interrupt"
 	"git.replicatr.dev/pkg/util/units"
-	"github.com/fasthttp/websocket"
+	W "github.com/fasthttp/websocket"
 	"github.com/puzpuzpuz/xsync/v2"
 	"github.com/rs/cors"
 )
@@ -23,24 +23,25 @@ const (
 	ReadBufferSize      = 4096
 	WriteBufferSize     = 4096
 	MaxMessageSize  int = 4 * units.Mb
+	DefaultLimit        = 50
 )
 
 type T struct {
-	Ctx             context.T
-	Cancel          context.F
+	Ctx             C.T
+	Cancel          C.F
 	ListenAddresses []S
 	serviceURL      atomic.String
-	upgrader        websocket.Upgrader
+	upgrader        W.Upgrader
 	serveMux        *http.ServeMux
 	clients         *xsync.MapOf[*relayws.WS, struct{}]
 }
 
 func (rl T) Init() *T {
-	rl.Ctx, rl.Cancel = context.Cancel(context.Bg())
+	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
 	interrupt.AddHandler(func() {
 		rl.Cancel()
 	})
-	rl.upgrader = websocket.Upgrader{
+	rl.upgrader = W.Upgrader{
 		ReadBufferSize:  ReadBufferSize,
 		WriteBufferSize: WriteBufferSize,
 		CheckOrigin:     func(r *http.Request) bool { return true },
@@ -66,8 +67,6 @@ func (rl *T) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		rl.HandleWebsocket(w, r)
 	} else if r.Header.Get("Accept") == "application/nostr+json" {
 		cors.AllowAll().Handler(http.HandlerFunc(rl.HandleRelayInfo)).ServeHTTP(w, r)
-	} else {
-		rl.serveMux.ServeHTTP(w, r)
 	}
 	return
 }
