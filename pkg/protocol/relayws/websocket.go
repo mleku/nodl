@@ -11,6 +11,7 @@ import (
 	"git.replicatr.dev/pkg/codec/bech32encoding"
 	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
 	"git.replicatr.dev/pkg/util/atomic"
+	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/qu"
 	w "github.com/fasthttp/websocket"
 )
@@ -53,9 +54,11 @@ type WS struct {
 	authPub      atomic.Value
 	Authed       qu.C
 	OffenseCount atomic.Uint32 // when client does dumb stuff, increment this
+	Ctx          context.T
+
 }
 
-func New(conn *w.Conn, r *http.Request) (ws *WS) {
+func New(c context.T, conn *w.Conn, r *http.Request, maxMsg int) (ws *WS) {
 	// authPubKey must be initialized with a zero length slice so it can be detected when it
 	// hasn't been loaded.
 	var authPubKey atomic.Value
@@ -63,6 +66,9 @@ func New(conn *w.Conn, r *http.Request) (ws *WS) {
 	ws = &WS{Conn: conn, Request: r, Authed: qu.T(), authPub: authPubKey}
 	ws.generateChallenge()
 	ws.setRemote(r)
+	conn.SetReadLimit(int64(maxMsg))
+	conn.EnableWriteCompression(true)
+	ws.Ctx = c
 	return
 }
 
