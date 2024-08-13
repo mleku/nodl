@@ -3,6 +3,7 @@ package relayws
 import (
 	"crypto/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -41,8 +42,7 @@ const (
 	PongMessage MessageType = w.PongMessage
 )
 
-// WS is a wrapper around a gorilla/websocket with mutex locking and
-// NIP-42 IsAuthed support
+// WS is a wrapper around a gorilla/websocket with mutex locking and NIP-42 IsAuthed support
 type WS struct {
 	Conn         *w.Conn
 	remote       atomic.String
@@ -50,28 +50,24 @@ type WS struct {
 	Request      *http.Request // original request
 	challenge    atomic.String // nip42
 	Pending      atomic.Value  // for DM CLI authentication
-	AuthPubKey   atomic.Value
-	AuthLock     sync.Mutex
+	authPub      atomic.Value
 	Authed       qu.C
 	OffenseCount atomic.Uint32 // when client does dumb stuff, increment this
 }
 
-func New(conn *w.Conn, req *http.Request) (ws *WS) {
+func New(conn *w.Conn, r *http.Request) (ws *WS) {
 	// authPubKey must be initialized with a zero length slice so it can be detected when it
 	// hasn't been loaded.
 	var authPubKey atomic.Value
 	authPubKey.Store(B{})
-	ws = &WS{Conn: conn, Request: req, Authed: qu.T(), AuthPubKey: authPubKey}
-	ws.GenerateChallenge()
+	ws = &WS{Conn: conn, Request: r, Authed: qu.T(), authPub: authPubKey}
+	ws.generateChallenge()
+	ws.setRemote(r)
 	return
 }
 
-func (ws *WS) Pong() (err E) {
-	return ws.write(w.PongMessage, nil)
-}
-func (ws *WS) Ping() (err E) {
-	return ws.write(w.PingMessage, nil)
-}
+func (ws *WS) Ping() (err E) { return ws.write(w.PingMessage, nil) }
+func (ws *WS) Pong() (err E) { return ws.write(w.PongMessage, nil) }
 
 // write writes a message with a given websocket type specifier
 func (ws *WS) write(t MessageType, b B) (err E) {
@@ -89,7 +85,8 @@ func (ws *WS) WriteTextMessage(b B) (err E) {
 	return ws.write(w.TextMessage, b)
 }
 
-// WriteEnvelope writes a message with a given websocket type specifier
+// WriteEnvelope writes a message with a given websocket type specifier. On nostr there is only
+// envelopes, ping and pong.
 func (ws *WS) WriteEnvelope(env enveloper.I) (err error) {
 	ws.mutex.Lock()
 	defer ws.mutex.Unlock()
@@ -105,10 +102,10 @@ func (ws *WS) WriteEnvelope(env enveloper.I) (err error) {
 }
 
 const ChallengeLength = 16
-const ChallengeHRP = "nch"
+const ChallengeHRP = "nchal"
 
-// GenerateChallenge gathers new entropy to generate a new challenge, stores it and returns it.
-func (ws *WS) GenerateChallenge() (challenge S) {
+// generateChallenge gathers new entropy to generate a new challenge, stores it and returns it.
+func (ws *WS) generateChallenge() (challenge S) {
 	var err error
 	// create a new challenge for this connection
 	cb := make([]byte, ChallengeLength)
@@ -133,22 +130,52 @@ func (ws *WS) GenerateChallenge() (challenge S) {
 func (ws *WS) Challenge() (challenge B) { return B(ws.challenge.Load()) }
 
 // Remote returns the current real remote.
-func (ws *WS) Remote() (remote S)     { return ws.remote.Load() }
-func (ws *WS) SetRealRemote(remote S) { ws.remote.Store(remote) }
+func (ws *WS) Remote() (remote S) { return ws.remote.Load() }
+func (ws *WS) SetRemote(remote S) { ws.remote.Store(remote) }
 
-// SetAuthPubKey loads the outhPubKey atomic of the websocket. Note that []byte is a reference so the caller should not
-// mutate it. Calls to access it are copied as above.
-func (ws *WS) SetAuthPubKey(a B) { ws.AuthPubKey.Store(a) }
+// SetAuthPub loads the authPubKey atomic of the websocket.
+func (ws *WS) SetAuthPub(a B) {
+	aa := make(B, 0, len(a))
+	copy(aa, a)
+	ws.authPub.Store(aa)
+}
 
 // AuthPub returns the current authed Pubkey.
 func (ws *WS) AuthPub() (a B) {
-	b := ws.AuthPubKey.Load().(B)
+	b := ws.authPub.Load().(B)
+	a = make(B, 0, len(b))
 	// make a copy because bytes are references
 	a = append(a, b...)
 	return
 }
 
 func (ws *WS) HasAuth() bool {
-	b := ws.AuthPubKey.Load().(B)
+	b := ws.authPub.Load().(B)
 	return len(b) > 0
+}
+
+func (ws *WS) setRemote(r *http.Request) {
+	var rr string
+	// reverse proxy should populate this field so we see the remote not the proxy
+	rem := r.Header.Get("X-Forwarded-For")
+	if rem != "" {
+		splitted := strings.Split(rem, " ")
+		if len(splitted) == 1 {
+			rr = splitted[0]
+		}
+		if len(splitted) == 2 {
+			rr = splitted[1]
+		}
+		// in case upstream doesn't set this or we are directly listening instead of
+		// via reverse proxy or just if the header field is missing, put the
+		// connection remote address into the websocket state data.
+		if rr == "" {
+			rr = r.RemoteAddr
+		}
+	} else {
+		// if that fails, fall back to the remote (probably the proxy, unless the relay is
+		// actually directly listening)
+		rr = ws.Conn.NetConn().RemoteAddr().String()
+	}
+	ws.SetRemote(rr)
 }

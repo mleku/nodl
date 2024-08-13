@@ -1,21 +1,13 @@
 package relay
 
 import (
-	"bytes"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"git.replicatr.dev/pkg/codec/event"
 )
 
-func isOlder(previous, next *event.T) bool {
-	return previous.CreatedAt.Int() < next.CreatedAt.Int() ||
-		(previous.CreatedAt == next.CreatedAt && bytes.Compare(previous.ID, next.ID) > 0)
-}
-
-func getServiceBaseURL(r *http.Request) string {
+func getServiceBaseURL(r *http.Request) S {
 	host := r.Header.Get("X-Forwarded-Host")
 	if host == "" {
 		host = r.Host
@@ -65,7 +57,7 @@ func isPrivate(ip net.IP) bool {
 	return false
 }
 
-func GetIPFromRequest(r *http.Request) string {
+func GetIPFromRequest(r *http.Request) S {
 	if xffh := r.Header.Get("X-Forwarded-For"); xffh != "" {
 		for _, v := range strings.Split(xffh, ",") {
 			if ip := net.ParseIP(strings.TrimSpace(v)); ip != nil && ip.IsGlobalUnicast() && !isPrivate(ip) {
