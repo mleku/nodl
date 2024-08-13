@@ -62,3 +62,9 @@ func IsValid32ByteHex(pk string) bool {
 	dec, _ := hex.Dec(pk)
 	return len(dec) == 32
 }
+
+func IsValidPublicKey(pk string) bool {
+	v, _ := hex.Dec(pk)
+	_, err := schnorr.ParsePubKey(v)
+	return err == nil
+}

@@ -12,7 +12,7 @@ import (
 	"github.com/dgraph-io/badger/v4"
 )
 
-func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, err E) {
+func (b *Backend) CountEvents(c context.T, f *filter.T) (count N, err E) {
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64

@@ -1,4 +1,4 @@
-package replicatr
+package main
 
 import (
 	"bytes"

@@ -16,8 +16,7 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
-func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C,
-	err error) {
+func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C, err E) {
 	ch = make(event.C, 1)
 
 	var queries []query

@@ -238,6 +238,18 @@ func NewInfo(inf *T) (info *T) {
 	return
 }
 
+func (ri *T) Clone() (r2 *T, err E) {
+	r2 = new(T)
+	var b []byte
+	if b, err = json.Marshal(ri); chk.E(err) {
+		return
+	}
+	if err = json.Unmarshal(b, r2); chk.E(err) {
+		return
+	}
+	return
+}
+
 // AddNIPs adds one or more numbers to the list of NIPs.
 func (ri *T) AddNIPs(n ...int) {
 	ri.Lock()

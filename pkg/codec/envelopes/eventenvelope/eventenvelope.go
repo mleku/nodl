@@ -54,9 +54,12 @@ type Result struct {
 
 var _ enveloper.I = (*Result)(nil)
 
-func NewResult() *Result                             { return &Result{} }
-func NewResultWith(s *sid.T, ev *event.T) *Result    { return &Result{Subscription: s, Event: ev} }
-func (en *Result) Label() string                     { return L }
+func NewResult() *Result { return &Result{} }
+func NewResultWith(s *sid.T, ev *event.T) *Result {
+	return &Result{Subscription: s,
+		Event: ev}
+}
+func (en *Result) Label() S                          { return L }
 func (en *Result) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *Result) MarshalJSON(dst B) (b B, err error) {

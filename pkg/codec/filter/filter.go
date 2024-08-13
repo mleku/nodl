@@ -55,47 +55,73 @@ var (
 )
 
 func (f *T) MarshalJSON(dst B) (b B, err error) {
+	var first bool
 	// open parentheses
 	dst = append(dst, '{')
 	if f.IDs != nil && len(f.IDs.Field) > 0 {
+		first = true
 		dst = text.JSONKey(dst, IDs)
 		dst = text.MarshalHexArray(dst, f.IDs.ToByteSlice())
-		dst = append(dst, ',')
 	}
 	if f.Kinds != nil && len(f.Kinds.K) > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Kinds)
 		if dst, err = f.Kinds.MarshalJSON(dst); chk.E(err) {
 			return
 		}
-		dst = append(dst, ',')
 	}
 	if f.Authors != nil && len(f.Authors.Field) > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Authors)
 		dst = text.MarshalHexArray(dst, f.Authors.ToByteSlice())
-		dst = append(dst, ',')
 	}
 	if f.Since != nil && f.Since.U64() > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Since)
 		if dst, err = f.Since.MarshalJSON(dst); chk.E(err) {
 			return
 		}
-		dst = append(dst, ',')
 	}
 	if f.Until != nil && f.Until.U64() > 0 {
+		if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Until)
 		if dst, err = f.Until.MarshalJSON(dst); chk.E(err) {
 			return
 		}
-		dst = append(dst, ',')
 	}
 	if f.Limit > 0 {
+			if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Limit)
 		if dst, err = ints.New(f.Limit).MarshalJSON(dst); chk.E(err) {
 			return
 		}
-		dst = append(dst, ',')
 	}
 	if len(f.Search) > 0 {
+			if first {
+			dst = append(dst, ',')
+		} else {
+			first = true
+		}
 		dst = text.JSONKey(dst, Search)
 		dst = text.AppendQuote(dst, f.Search, text.NostrEscape)
 	}
@@ -152,7 +178,7 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				state = inVal
 			}
 		case inVal:
-			if len(key)<1 {
+			if len(key) < 1 {
 				err = errorf.E("filter key zero length: '%s'\n'%s", b, r)
 				return
 			}
@@ -278,7 +304,7 @@ func (f *T) UnmarshalJSON(b B) (r B, err error) {
 				// log.I.Ln("inKey")
 			}
 		}
-		if len(r)==0{
+		if len(r) == 0 {
 			return
 		}
 		if r[0] == '}' {

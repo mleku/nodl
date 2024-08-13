@@ -20,20 +20,24 @@ type MessageType int
 //
 // Repeating here for shorter names.
 const (
-	// TextMessage denotes a text data message. The text message payload is interpreted as UTF-8 encoded text data.
+	// TextMessage denotes a text data message. The text message payload is interpreted as UTF-8
+	// encoded text data.
 	TextMessage MessageType = w.TextMessage
 
 	// BinaryMessage denotes a binary data message.
 	BinaryMessage MessageType = w.BinaryMessage
 
-	// CloseMessage denotes a close control message. The optional message payload contains a numeric code and text. Use
-	// the FormatCloseMessage function to format a close message payload.
+	// CloseMessage denotes a close control message. The optional message payload contains a
+	// numeric code and text. Use the FormatCloseMessage function to format a close message
+	// payload.
 	CloseMessage MessageType = w.CloseMessage
 
-	// PingMessage denotes a ping control message. The optional message payload is UTF-8 encoded text.
+	// PingMessage denotes a ping control message. The optional message payload is UTF-8 encoded
+	// text.
 	PingMessage MessageType = w.PingMessage
 
-	// PongMessage denotes a pong control message. The optional message payload is UTF-8 encoded text.
+	// PongMessage denotes a pong control message. The optional message payload is UTF-8 encoded
+	// text.
 	PongMessage MessageType = w.PongMessage
 )
 
@@ -46,16 +50,20 @@ type WS struct {
 	Request      *http.Request // original request
 	challenge    atomic.String // nip42
 	Pending      atomic.Value  // for DM CLI authentication
-	authPubKey   atomic.Value
-	Authed       chan struct{}
+	AuthPubKey   atomic.Value
+	AuthLock     sync.Mutex
+	Authed       qu.C
 	OffenseCount atomic.Uint32 // when client does dumb stuff, increment this
 }
 
-func New(conn *w.Conn, req *http.Request, authed qu.C) (ws *WS) {
-	// authPubKey must be initialized with a zero length slice so it can be detected when it hasn't been loaded.
+func New(conn *w.Conn, req *http.Request) (ws *WS) {
+	// authPubKey must be initialized with a zero length slice so it can be detected when it
+	// hasn't been loaded.
 	var authPubKey atomic.Value
 	authPubKey.Store(B{})
-	return &WS{Conn: conn, Request: req, Authed: authed, authPubKey: authPubKey}
+	ws = &WS{Conn: conn, Request: req, Authed: qu.T(), AuthPubKey: authPubKey}
+	ws.GenerateChallenge()
+	return
 }
 
 func (ws *WS) Pong() (err E) {
@@ -89,7 +97,10 @@ func (ws *WS) WriteEnvelope(env enveloper.I) (err error) {
 	if b, err = env.MarshalJSON(b); chk.E(err) {
 		return
 	}
-	chk.E(ws.Conn.SetWriteDeadline(time.Now().Add(time.Second * 5)))
+	if err = ws.Conn.SetWriteDeadline(time.Now().Add(time.Second * 5)); chk.E(err) {
+		return
+	}
+	log.T.F("sending message\n%s", string(b))
 	return ws.Conn.WriteMessage(int(TextMessage), b)
 }
 
@@ -127,17 +138,17 @@ func (ws *WS) SetRealRemote(remote S) { ws.remote.Store(remote) }
 
 // SetAuthPubKey loads the outhPubKey atomic of the websocket. Note that []byte is a reference so the caller should not
 // mutate it. Calls to access it are copied as above.
-func (ws *WS) SetAuthPubKey(a B) { ws.authPubKey.Store(a) }
+func (ws *WS) SetAuthPubKey(a B) { ws.AuthPubKey.Store(a) }
 
 // AuthPub returns the current authed Pubkey.
 func (ws *WS) AuthPub() (a B) {
-	b := ws.authPubKey.Load().(B)
+	b := ws.AuthPubKey.Load().(B)
 	// make a copy because bytes are references
 	a = append(a, b...)
 	return
 }
 
 func (ws *WS) HasAuth() bool {
-	b := ws.authPubKey.Load().(B)
+	b := ws.AuthPubKey.Load().(B)
 	return len(b) > 0
 }

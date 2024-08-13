@@ -1,17 +1,6 @@
 package envelopes
 
-var (
-	Event  = "EVENT"
-	OK     = "OK"
-	Notice = "NOTICE"
-	EOSE   = "EOSE"
-	Close  = "CLOSE"
-	Closed = "CLOSED"
-	Req    = "REQ"
-	Count  = "COUNT"
-)
-
-func Identify(b B) (t S, rem B, err error) {
+func Identify(b B) (t S, rem B, err E) {
 	var openBrackets, openQuotes, afterQuotes bool
 	var label B
 	rem = b
