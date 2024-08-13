@@ -47,7 +47,7 @@ func Listener() {
 		// run handlers in LIFO order.
 		for i := range interruptCallbacks {
 			idx := len(interruptCallbacks) - 1 - i
-			log.D.Ln("running callback", idx, "from", interruptCallbackSources[idx])
+			log.D.F("running callback %d from %s\n", idx, interruptCallbackSources[idx])
 			interruptCallbacks[idx]()
 		}
 		log.D.Ln("interrupt handlers finished")
@@ -59,9 +59,8 @@ func Listener() {
 out:
 	for {
 		select {
-		case sig := <-ch:
+		case _ = <-ch:
 			fmt.Fprintf(os.Stderr, "\r")
-			log.D.Ln("received interrupt signal", sig)
 			requested.Store(true)
 			invokeCallbacks()
 			break out

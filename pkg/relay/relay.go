@@ -26,18 +26,18 @@ const (
 )
 
 type T struct {
-	Ctx           context.T
-	Cancel        context.F
-	ListenAddress S
-	serviceURL    atomic.String
-	upgrader      websocket.Upgrader
-	serveMux      *http.ServeMux
-	clients       *xsync.MapOf[*relayws.WS, struct{}]
+	Ctx             context.T
+	Cancel          context.F
+	ListenAddresses []S
+	serviceURL      atomic.String
+	upgrader        websocket.Upgrader
+	serveMux        *http.ServeMux
+	clients         *xsync.MapOf[*relayws.WS, struct{}]
 }
 
 func (rl T) Init() *T {
 	rl.Ctx, rl.Cancel = context.Cancel(context.Bg())
-	interrupt.AddHandler(func(){
+	interrupt.AddHandler(func() {
 		rl.Cancel()
 	})
 	rl.upgrader = websocket.Upgrader{
