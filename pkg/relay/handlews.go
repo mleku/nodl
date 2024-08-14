@@ -90,7 +90,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 		if sentinel, rem, err = envelopes.Identify(msg); chk.E(err) {
 			continue
 		}
-		log.I.F("received %s envelope from %s\n%s", sentinel, ws.Remote(), rem)
+		log.T.F("received %s envelope from %s\n%s", sentinel, ws.Remote(), rem)
 		switch sentinel {
 		case authenvelope.L:
 			env := authenvelope.NewResponse()
@@ -127,7 +127,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			log.I.S(env)
+			rl.handleEvent(ws, env)
 		case noticeenvelope.L:
 			env := noticeenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {

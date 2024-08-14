@@ -2,6 +2,7 @@ package event
 
 import (
 	"git.replicatr.dev/pkg"
+	"git.replicatr.dev/pkg/codec/eventid"
 	"git.replicatr.dev/pkg/codec/kind"
 	"git.replicatr.dev/pkg/codec/tags"
 	"git.replicatr.dev/pkg/codec/text"
@@ -69,9 +70,10 @@ func (ev *T) ToCanonical() (b B) {
 
 // stringy functions for retarded other libraries
 
-func (ev *T) IDString() (s S)     { return hex.Enc(ev.ID) }
-func (ev *T) PubKeyString() (s S) { return hex.Enc(ev.PubKey) }
-func (ev *T) SigString() (s S)    { return hex.Enc(ev.Sig) }
+func (ev *T) IDString() (s S)           { return hex.Enc(ev.ID) }
+func (ev *T) EventID() (eid *eventid.T) { return eventid.NewWith(ev.ID) }
+func (ev *T) PubKeyString() (s S)       { return hex.Enc(ev.PubKey) }
+func (ev *T) SigString() (s S)          { return hex.Enc(ev.Sig) }
 func (ev *T) TagStrings() (s [][]S) {
 	return ev.Tags.ToStringSlice()
 }

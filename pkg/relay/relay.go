@@ -6,6 +6,7 @@ import (
 	"time"
 	"unsafe"
 
+	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/relayws"
 	"git.replicatr.dev/pkg/util/atomic"
 	C "git.replicatr.dev/pkg/util/context"
@@ -34,6 +35,7 @@ type T struct {
 	upgrader        W.Upgrader
 	serveMux        *http.ServeMux
 	clients         *xsync.MapOf[*relayws.WS, struct{}]
+	Identity        *p256k.Signer
 }
 
 func (rl T) Init() *T {
@@ -49,6 +51,9 @@ func (rl T) Init() *T {
 	if rl.clients == nil {
 		rl.clients = xsync.NewTypedMapOf[*relayws.WS,
 			struct{}](PointerHasher[relayws.WS])
+	}
+	rl.Identity = &p256k.Signer{}
+	if err := rl.Identity.Generate(); chk.E(err) {
 	}
 	return &rl
 }

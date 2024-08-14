@@ -86,7 +86,7 @@ func assertConversationKeyGeneration(t *testing.T, priv, pub, conversationKey S)
 }
 
 func assertConversationKeyGenerationSec(t *testing.T, sk1, sk2, conversationKey S) bool {
-	pub2, err := keys.GetPublicKey(sk2)
+	pub2, err := keys.GetPublicKeyHex(sk2)
 	if ok := assert.NoErrorf(t, err, "failed to derive pubkey from sk2: %v", err); !ok {
 		return false
 	}
@@ -1135,7 +1135,7 @@ func TestMessageKeyGeneration033(t *testing.T) {
 func TestMaxLength(t *testing.T) {
 	sk1 := keys.GeneratePrivateKey()
 	sk2 := keys.GeneratePrivateKey()
-	pub2, _ := keys.GetPublicKey(S(sk2))
+	pub2, _ := keys.GetPublicKeyHex(S(sk2))
 	salt := make(B, 32)
 	rand.Read(salt)
 	conversationKey, _ := GenerateConversationKey(pub2, S(sk1))

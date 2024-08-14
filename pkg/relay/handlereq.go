@@ -13,9 +13,6 @@ func (rl *T) handleReq(ws *relayws.WS, env *reqenvelope.T) {
 		return
 	}
 	for i, f := range env.Filters.F {
-		if f.Limit==0 {
-			f.Limit = DefaultLimit
-		}
 		log.I.F("%d: %s", i, f)
 	}
 	if err = ws.WriteEnvelope(eoseenvelope.NewFrom(env.Subscription));chk.E(err){
