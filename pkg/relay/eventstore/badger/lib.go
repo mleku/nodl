@@ -50,6 +50,11 @@ type Backend struct {
 	Threads int
 }
 
+func (b *Backend) Nuke() (err eventstore.E) {
+	// TODO implement me
+	panic("implement me")
+}
+
 const DefaultMaxLimit = 1024
 
 // GetBackend returns a reasonably configured badger.Backend.
@@ -130,10 +135,17 @@ func (b *Backend) Init() (err error) {
 	return nil
 }
 
-func (b *Backend) Close() {
-	chk.E(b.DB.Flatten(4))
-	chk.E(b.DB.Close())
-	chk.E(b.seq.Release())
+func (b *Backend) Close() (err error) {
+	if err = b.DB.Flatten(4); chk.E(err) {
+		return
+	}
+	if err = b.DB.Close(); chk.E(err) {
+		return
+	}
+	if err = b.seq.Release(); chk.E(err) {
+		return
+	}
+	return
 }
 
 // SerialKey returns a key used for storing events, and the raw serial counter

@@ -19,8 +19,8 @@ func (b *Backend) Wipe() (err error) {
 	}...); chk.E(err) {
 		return
 	}
-	// if err = b.DB.RunValueLogGC(0.8); chk.E(err) {
-	// 	return
-	// }
+	if err = b.DB.RunValueLogGC(0.8); chk.E(err) {
+		return
+	}
 	return
 }

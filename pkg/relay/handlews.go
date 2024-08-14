@@ -40,7 +40,7 @@ func (rl *T) wsWatcher(ws *relayws.WS, cancel C.F) {
 	for {
 		select {
 		case <-rl.Ctx.Done():
-			log.T.Ln("relay listener context done, closing websocket %s", ws.Remote())
+			log.T.F("relay listener context done, closing websocket %s", ws.Remote())
 			cancel()
 			return
 		case <-ws.Ctx.Done():

@@ -10,7 +10,7 @@ import (
 
 func (rl *T) handleReq(ws *relayws.WS, env *reqenvelope.T) {
 	var err E
-	log.I.S(env)
+	log.T.S(env)
 	if env.Filters == nil {
 		return
 	}

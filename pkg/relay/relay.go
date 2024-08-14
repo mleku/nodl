@@ -4,7 +4,6 @@ import (
 	"hash/maphash"
 	"net/http"
 	"os"
-	"runtime"
 	"sync"
 	"time"
 	"unsafe"
@@ -13,11 +12,10 @@ import (
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/relayws"
 	"git.replicatr.dev/pkg/relay/eventstore"
-	"git.replicatr.dev/pkg/relay/eventstore/badger"
+	"git.replicatr.dev/pkg/relay/eventstore/ratel"
 	"git.replicatr.dev/pkg/util/atomic"
 	C "git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/interrupt"
-	"git.replicatr.dev/pkg/util/lol"
 	"git.replicatr.dev/pkg/util/units"
 	W "github.com/fasthttp/websocket"
 	"github.com/puzpuzpuz/xsync/v2"
@@ -60,6 +58,7 @@ type T struct {
 }
 
 func (rl T) Init() (r *T) {
+	var err E
 	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
 	interrupt.AddHandler(func() {
 		rl.Cancel()
@@ -73,27 +72,31 @@ func (rl T) Init() (r *T) {
 		rl.clients = xsync.NewTypedMapOf[*relayws.WS, Subscriptions](PointerHasher[relayws.WS])
 	}
 	rl.Identity = &p256k.Signer{}
-	if err := rl.Identity.Generate(); chk.E(err) {
+	if err = rl.Identity.Generate(); chk.E(err) {
 	}
-	rl.Store = &badger.Backend{
-		Ctx:            rl.Ctx,
-		WG:             &rl.WG,
-		Path:           os.TempDir(),
-		MaxLimit:       MaxLimit,
-		DBSizeLimit:    DBSizeLimit,
-		DBLowWater:     DBLowWater,
-		DBHighWater:    DBHighWater,
-		GCFrequency:    time.Duration(GCFrequency) * time.Second,
-		BlockCacheSize: 8 * units.Gb,
-		InitLogLevel:   lol.Error,
-		Threads:        runtime.NumCPU() / 2,
+	var dir S
+	if dir, err = os.MkdirTemp("","ratel_eventstore"); chk.E(err) {
+		return
 	}
-	var err E
+	rl.Store = ratel.GetBackend(rl.Ctx, &rl.WG, dir, false, MaxMessageSize)
+	// rl.Store = &badger.Backend{
+	// 	Ctx:            rl.Ctx,
+	// 	WG:             &rl.WG,
+	// 	Path:           os.TempDir(),
+	// 	MaxLimit:       MaxLimit,
+	// 	DBSizeLimit:    DBSizeLimit,
+	// 	DBLowWater:     DBLowWater,
+	// 	DBHighWater:    DBHighWater,
+	// 	GCFrequency:    time.Duration(GCFrequency) * time.Second,
+	// 	BlockCacheSize: 8 * units.Gb,
+	// 	InitLogLevel:   lol.Error,
+	// 	Threads:        runtime.NumCPU() / 2,
+	// }
 	if err = rl.Store.Init(); chk.E(err) {
 		return
 	}
 	interrupt.AddHandler(func() {
-		rl.Store.Close()
+		chk.E(rl.Store.Close())
 	})
 	return &rl
 }
@@ -105,6 +108,7 @@ func PointerHasher[V any](_ maphash.Seed, k *V) uint64 {
 func (rl *T) ServiceURL() S { return rl.serviceURL.Load() }
 
 func (rl *T) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.T.Ln("ServeHTTP")
 	if rl.serviceURL.Load() == "" {
 		rl.serviceURL.Store(getServiceBaseURL(r))
 	}

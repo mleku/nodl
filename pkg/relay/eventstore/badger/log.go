@@ -10,7 +10,7 @@ import (
 )
 
 func NewLogger(logLevel int, label string) (l *logger) {
-	log.I.Ln("getting logger for", label)
+	log.T.Ln("getting logger for", label)
 	l = &logger{Label: label}
 	l.Level.Store(int32(logLevel))
 	return

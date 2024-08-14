@@ -40,7 +40,6 @@ func (rl *T) handleEvent(ws *relayws.WS, env *eventenvelope.Submission) {
 		return
 	}
 	// save event to event store.
-	log.I.F("saving event:\n%s", env.T)
 	if err = rl.Store.SaveEvent(rl.Ctx, env.T); chk.E(err) {
 		// if an error occurred, notify the
 		if err = ws.WriteEnvelope(noticeenvelope.NewFrom(

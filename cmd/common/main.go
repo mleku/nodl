@@ -27,7 +27,8 @@ func main() {
 				filepath.Base(path) == "common" ||
 				filepath.Base(path) == "lol" ||
 				filepath.Base(path) == "precomps" ||
-				filepath.Base(path) == "atomic" {
+				filepath.Base(path) == "atomic" ||
+				filepath.Base(path) == "context" {
 				return nil
 			}
 			if !strings.HasPrefix(path, "cmd"+S(filepath.Separator)) {

@@ -3,14 +3,16 @@ package countenvelope
 import (
 	"bytes"
 
+	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/lol"
 )
 
 type (
-	B = []byte
-	S = string
-	E = error
-	N = int
+	B   = []byte
+	S   = string
+	E   = error
+	N   = int
+	Ctx = context.T
 )
 
 var (

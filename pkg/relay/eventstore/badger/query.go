@@ -18,7 +18,7 @@ import (
 
 func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C, err E) {
 	ch = make(event.C, 1)
-
+	log.I.Ln("badger.Backend.QueryEvents")
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64

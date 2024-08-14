@@ -13,9 +13,9 @@ import (
 // RelayInterface is a wrapper thing that unifies Store and nostr.Relay under a
 // common API.
 type RelayInterface interface {
-	Publish(c Ctx, evt EV) E
+	Publish(c Ctx, evt *event.T) E
 	QuerySync(c Ctx, f *filter.T,
-		opts ...subscriptionoption.I) ([]EV, E)
+		opts ...subscriptionoption.I) ([]*event.T, E)
 }
 
 type RelayWrapper struct {
@@ -24,7 +24,7 @@ type RelayWrapper struct {
 
 var _ RelayInterface = (*RelayWrapper)(nil)
 
-func (w RelayWrapper) Publish(c Ctx, evt EV) (err E) {
+func (w RelayWrapper) Publish(c Ctx, evt *event.T) (err E) {
 	// var ch event.C
 	// defer close(ch)
 	if evt.Kind.IsEphemeral() {
@@ -71,7 +71,7 @@ func (w RelayWrapper) Publish(c Ctx, evt EV) (err E) {
 }
 
 func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
-	opts ...subscriptionoption.I) ([]EV, E) {
+	opts ...subscriptionoption.I) ([]*event.T, E) {
 
 	ch, err := w.I.QueryEvents(c, f)
 	if chk.E(err) {

@@ -7,10 +7,10 @@ import (
 )
 
 type (
-	B = []byte
-	S = string
-	E = error
-	N = int
+	B   = []byte
+	S   = string
+	E   = error
+	N   = int
 )
 
 var (
