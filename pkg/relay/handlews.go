@@ -31,7 +31,7 @@ func (rl *T) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	c, cancel := C.Cancel(C.Bg())
 	ws := relayws.New(c, conn, r, MaxMessageSize)
 	log.T.F("established websocket connection with %s", ws.Remote())
-	rl.clients.Store(ws, struct{}{})
+	rl.clients.Store(ws, make(Subscriptions))
 	go rl.wsReadMessages(ws, cancel)
 	rl.wsWatcher(ws, cancel)
 }

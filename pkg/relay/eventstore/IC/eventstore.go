@@ -29,12 +29,12 @@ type Backend struct {
 	*l2.Backend
 }
 
-var _ eventstore.Store = (*Backend)(nil)
+var _ eventstore.I = (*Backend)(nil)
 
 // GetBackend returns a l2.Backend that combines the two provided backends. It
 // is assumed both were
 func GetBackend(c context.T, wg *sync.WaitGroup, L1 *badger.Backend,
-	L2 *IConly.Backend, pf time.Duration, po timestamp.T) (es eventstore.Store,
+	L2 *IConly.Backend, pf time.Duration, po timestamp.T) (es eventstore.I,
 	signal event.C) {
 	signal = make(event.C)
 	es = &l2.Backend{

@@ -106,7 +106,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		}
 	}
 	if f.Limit > 0 {
-			if first {
+		if first {
 			dst = append(dst, ',')
 		} else {
 			first = true
@@ -117,7 +117,7 @@ func (f *T) MarshalJSON(dst B) (b B, err error) {
 		}
 	}
 	if len(f.Search) > 0 {
-			if first {
+		if first {
 			dst = append(dst, ',')
 		} else {
 			first = true
@@ -356,6 +356,18 @@ func (f *T) Matches(ev *event.T) bool {
 		return false
 	}
 	return true
+}
+
+// Fingerprint returns an 8 byte truncated sha256 hash of the filter in the canonical form
+// created by MarshalJSON.
+func (f *T) Fingerprint() (fp B, err E) {
+	var b B
+	if b, err = f.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	h := sha256.Sum256(b)
+	fp = h[:]
+	return
 }
 
 func arePointerValuesEqual[V comparable](a *V, b *V) bool {

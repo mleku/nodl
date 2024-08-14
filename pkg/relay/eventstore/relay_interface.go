@@ -19,7 +19,7 @@ type RelayInterface interface {
 }
 
 type RelayWrapper struct {
-	Store
+	I
 }
 
 var _ RelayInterface = (*RelayWrapper)(nil)
@@ -73,7 +73,7 @@ func (w RelayWrapper) Publish(c Ctx, evt EV) (err E) {
 func (w RelayWrapper) QuerySync(c Ctx, f *filter.T,
 	opts ...subscriptionoption.I) ([]EV, E) {
 
-	ch, err := w.Store.QueryEvents(c, f)
+	ch, err := w.I.QueryEvents(c, f)
 	if chk.E(err) {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}

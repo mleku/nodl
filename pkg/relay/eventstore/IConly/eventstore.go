@@ -25,7 +25,7 @@ type Backend struct {
 	SecKey          string
 }
 
-var _ eventstore.Store = (*Backend)(nil)
+var _ eventstore.I = (*Backend)(nil)
 
 // Init  connects to the configured IC canister.
 func (b *Backend) Init() (err error) {

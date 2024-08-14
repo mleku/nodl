@@ -28,7 +28,7 @@ type Backend struct {
 	// L2 is a secondary, possibly slower but bigger cache. It could be an IC
 	// canister, an IPFS based store with an indexing spider or indeed a giant
 	// spinning disk.
-	L2 eventstore.Store
+	L2 eventstore.I
 	// PollFrequency is how often the L2 is queried for recent events
 	PollFrequency time.Duration
 	// PollOverlap is the multiple of the PollFrequency within which polling the L2

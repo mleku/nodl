@@ -1,6 +1,8 @@
-# Replicatr
+# replica.tr
 
 ![logo](doc/logo.png)
+
+zap me to support my work ⚡️mleku@getalby.com
 
 `replicatr` is a relay for the [nostr protocol](https://github.com/nostr-protocol/nostr):
 

@@ -1,7 +1,10 @@
 package relay
 
 import (
+	"fmt"
+
 	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/noticeenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
 	"git.replicatr.dev/pkg/protocol/reasons"
 	"git.replicatr.dev/pkg/protocol/relayws"
@@ -38,4 +41,14 @@ func (rl *T) handleEvent(ws *relayws.WS, env *eventenvelope.Submission) {
 	}
 	// save event to event store.
 	log.I.F("saving event:\n%s", env.T)
+	if err = rl.Store.SaveEvent(rl.Ctx, env.T); chk.E(err) {
+		// if an error occurred, notify the
+		if err = ws.WriteEnvelope(noticeenvelope.NewFrom(
+			normalize.Reason(reasons.Error, fmt.Sprintf("failed saving event %0x: %s",
+				env.T.EventID(), err.Error()))),
+		); chk.E(err) {
+			return
+		}
+		return
+	}
 }

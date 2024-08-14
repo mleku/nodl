@@ -6,8 +6,8 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/badger/del"
 )
 
-// Store is a persistence layer for nostr events handled by a relay.
-type Store interface {
+// I is an interface for a persistence layer for nostr events handled by a relay.
+type I interface {
 	// Init is called at the very beginning by [Server.Start], after
 	// [Relay.Init], allowing a storage to initialize its internal resources.
 	// The parameters can be used by the database implementations to set custom
@@ -34,7 +34,7 @@ type Store interface {
 // Cache is a sketch of an expanded enveloper that might be used for a
 // size-constrained event store.
 type Cache interface {
-	Store
+	I
 	GCCount() (deleteItems del.Items, err E)
 	Delete(serials del.Items) (err E)
 }

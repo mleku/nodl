@@ -15,7 +15,7 @@ import (
 	"github.com/dgraph-io/badger/v4/options"
 )
 
-var _ eventstore.Store = (*Backend)(nil)
+var _ eventstore.I = (*Backend)(nil)
 
 type PruneFunc func(ifc any, deleteItems del.Items) (err error)
 
@@ -46,6 +46,8 @@ type Backend struct {
 	*badger.DB
 	// seq is the monotonic collision free index for raw event storage.
 	seq *badger.Sequence
+	// Threads is how many CPU threads we dedicate to concurrent actions, flatten and GC mark
+	Threads int
 }
 
 const DefaultMaxLimit = 1024
@@ -128,7 +130,11 @@ func (b *Backend) Init() (err error) {
 	return nil
 }
 
-func (b *Backend) Close() { _, _ = b.DB.Close(), b.seq.Release() }
+func (b *Backend) Close() {
+	chk.E(b.DB.Flatten(4))
+	chk.E(b.DB.Close())
+	chk.E(b.seq.Release())
+}
 
 // SerialKey returns a key used for storing events, and the raw serial counter
 // bytes to copy into index keys.

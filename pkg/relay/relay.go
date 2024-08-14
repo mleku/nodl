@@ -3,14 +3,21 @@ package relay
 import (
 	"hash/maphash"
 	"net/http"
+	"os"
+	"runtime"
+	"sync"
 	"time"
 	"unsafe"
 
+	"git.replicatr.dev/pkg/codec/filters"
 	"git.replicatr.dev/pkg/crypto/p256k"
 	"git.replicatr.dev/pkg/protocol/relayws"
+	"git.replicatr.dev/pkg/relay/eventstore"
+	"git.replicatr.dev/pkg/relay/eventstore/badger"
 	"git.replicatr.dev/pkg/util/atomic"
 	C "git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/interrupt"
+	"git.replicatr.dev/pkg/util/lol"
 	"git.replicatr.dev/pkg/util/units"
 	W "github.com/fasthttp/websocket"
 	"github.com/puzpuzpuz/xsync/v2"
@@ -25,20 +32,34 @@ const (
 	WriteBufferSize     = 4096
 	MaxMessageSize  int = 4 * units.Mb
 	DefaultLimit        = 50
+	MaxLimit            = 500
+	DBSizeLimit         = 0 // disables GC
+	DBLowWater          = 86
+	DBHighWater         = 92
+	GCFrequency         = 300
 )
+
+type Subscription struct {
+	Initiated time.Time
+	Filters   filters.T
+}
+
+type Subscriptions map[S]Subscription
 
 type T struct {
 	Ctx             C.T
 	Cancel          C.F
+	WG              sync.WaitGroup
 	ListenAddresses []S
 	serviceURL      atomic.String
 	upgrader        W.Upgrader
 	serveMux        *http.ServeMux
-	clients         *xsync.MapOf[*relayws.WS, struct{}]
+	clients         *xsync.MapOf[*relayws.WS, Subscriptions]
 	Identity        *p256k.Signer
+	Store           eventstore.I
 }
 
-func (rl T) Init() *T {
+func (rl T) Init() (r *T) {
 	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
 	interrupt.AddHandler(func() {
 		rl.Cancel()
@@ -49,12 +70,31 @@ func (rl T) Init() *T {
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
 	if rl.clients == nil {
-		rl.clients = xsync.NewTypedMapOf[*relayws.WS,
-			struct{}](PointerHasher[relayws.WS])
+		rl.clients = xsync.NewTypedMapOf[*relayws.WS, Subscriptions](PointerHasher[relayws.WS])
 	}
 	rl.Identity = &p256k.Signer{}
 	if err := rl.Identity.Generate(); chk.E(err) {
 	}
+	rl.Store = &badger.Backend{
+		Ctx:            rl.Ctx,
+		WG:             &rl.WG,
+		Path:           os.TempDir(),
+		MaxLimit:       MaxLimit,
+		DBSizeLimit:    DBSizeLimit,
+		DBLowWater:     DBLowWater,
+		DBHighWater:    DBHighWater,
+		GCFrequency:    time.Duration(GCFrequency) * time.Second,
+		BlockCacheSize: 8 * units.Gb,
+		InitLogLevel:   lol.Error,
+		Threads:        runtime.NumCPU() / 2,
+	}
+	var err E
+	if err = rl.Store.Init(); chk.E(err) {
+		return
+	}
+	interrupt.AddHandler(func() {
+		rl.Store.Close()
+	})
 	return &rl
 }
 
