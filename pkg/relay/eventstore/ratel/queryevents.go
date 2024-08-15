@@ -3,7 +3,6 @@ package ratel
 import (
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/serial"
@@ -11,9 +10,8 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
-func (r *T) QueryEvents(c Ctx, f *filter.T) (ch event.C, err E) {
+func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	log.I.F("query for events\n%s", f)
-	ch = make(event.C, 1)
 	var queries []query
 	var extraFilter *filter.T
 	var since uint64
@@ -53,22 +51,8 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (ch event.C, err E) {
 			// this can't actually happen because the View function above does not set err.
 		}
 		log.T.S(eventKeys)
-		go func() {
-			for {
-				select {
-				case res := <-q.results:
-					if res.Ev != nil {
-						log.I.S(res)
-						ch <- res.Ev
-					}
-				case <-c.Done():
-					return
-				}
-			}
-		}()
 		for _, eventKey := range eventKeys {
 			var v B
-			var ser *serial.T
 			err = r.View(func(txn *badger.Txn) (err E) {
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
@@ -78,14 +62,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (ch event.C, err E) {
 					if v, err = item.ValueCopy(nil); chk.E(err) {
 						continue
 					}
-					ser = serial.FromKey(item.KeyCopy(nil))
 					if r.HasL2 && len(v) == sha256.Size {
 						// this is a stub entry that indicates an L2 needs to be accessed for it, so
 						// we populate only the event.T.ID and return the result, the caller will
 						// expect this as a signal to query the L2 event store.
-						evt := &event.T{}
+						ev := &event.T{}
 						log.T.F("found event stub %0x must seek in L2", v)
-						evt.ID = v
+						ev.ID = v
 						select {
 						case <-c.Done():
 							return
@@ -94,8 +77,7 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (ch event.C, err E) {
 							return
 						default:
 						}
-						q.results <- Results{Ev: evt, TS: timestamp.Now(),
-							Ser: ser}
+						evs = append(evs, ev)
 						return
 					}
 				}
@@ -114,14 +96,12 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (ch event.C, err E) {
 			}
 			// check if this matches the other filters that were not part of the index
 			if extraFilter == nil || extraFilter.Matches(ev) {
-				res := Results{Ev: ev, TS: timestamp.Now(), Ser: ser}
 				// todo: this is getting stuck here and causing a major goroutine leak
 				log.T.F("sending back result %s", ev)
-				q.results <- res
+				evs = append(evs, ev)
 			}
 		}
 	}
 	log.I.Ln("query complete")
-	// ch <- nil
 	return
 }

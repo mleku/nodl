@@ -20,7 +20,7 @@ type I interface {
 	// QueryEvents is invoked upon a client's REQ as described in NIP-01. it should return a
 	// channel with the events as they're recovered from a database. the channel should be
 	// closed after the events are all delivered.
-	QueryEvents(c Ctx, f *filter.T) (ch event.C, err E)
+	QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E)
 	// CountEvents performs the same work as QueryEvents but instead of delivering the events
 	// that were found it just returns the count of events
 	CountEvents(c Ctx, f *filter.T) (count N, err E)
