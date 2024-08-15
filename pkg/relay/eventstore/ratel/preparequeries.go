@@ -31,17 +31,6 @@ type query struct {
 	skipTS       bool
 }
 
-// func (q query) String() string {
-// 	return fmt.Sprintf("%d %s prf %0x start %0x skipTS %v", q.index,
-// 		// text.Trunc(
-// 		q.queryFilter.Serialize(),
-// 		// ),
-// 		q.searchPrefix,
-// 		q.start,
-// 		q.skipTS,
-// 	)
-// }
-
 // PrepareQueries analyses a filter and generates a set of query specs that produce
 // key prefixes to search for in the badger key indexes.
 func PrepareQueries(f *filter.T) (

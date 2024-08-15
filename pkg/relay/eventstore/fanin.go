@@ -19,6 +19,7 @@ func FanIn(c context.T, in ...event.C) (out event.C) {
 					select {
 					case v := <-in[i]:
 						if v != nil {
+							log.T.S("draining results channel")
 							// drain channel
 							for range in[i] {
 							}
@@ -36,6 +37,7 @@ func FanIn(c context.T, in ...event.C) (out event.C) {
 			for {
 				select {
 				case v := <-in[i]:
+					log.T.S("forwarding result to main result channel")
 					out <- v
 				case <-c.Done():
 					return

@@ -2,6 +2,7 @@ package relay
 
 import (
 	"git.replicatr.dev/pkg/codec/envelopes/eoseenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/protocol/relayws"
@@ -26,23 +27,26 @@ func (rl *T) handleReq(ws *relayws.WS, env *reqenvelope.T) {
 	// funnel the query channels into one.
 	ch := eventstore.FanIn(ws.Ctx, chans...)
 	go func(ch event.C) {
+	out:
 		for {
 			select {
 			case <-rl.Ctx.Done():
-				return
+				break out
 			case ev := <-ch:
 				// when channel is closed, we get a nil (could be erroneous send but should not
 				// be).
 				if ev == nil {
-					return
+					break out
 				}
 				// process incoming event matches
 				log.I.S(ev)
+				if err = ws.WriteEnvelope(eventenvelope.NewResultWith(
+					env.Subscription, ev)); chk.E(err) {
+				}
 			}
+		}
+		if err = ws.WriteEnvelope(eoseenvelope.NewFrom(env.Subscription)); chk.E(err) {
 			return
 		}
 	}(ch)
-	if err = ws.WriteEnvelope(eoseenvelope.NewFrom(env.Subscription)); chk.E(err) {
-		return
-	}
 }

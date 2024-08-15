@@ -60,9 +60,7 @@ type T struct {
 func (rl T) Init(path S) (r *T) {
 	var err E
 	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
-	interrupt.AddHandler(func() {
-		rl.Cancel()
-	})
+	interrupt.AddHandler(func() { rl.Cancel() })
 	rl.upgrader = W.Upgrader{
 		ReadBufferSize:  ReadBufferSize,
 		WriteBufferSize: WriteBufferSize,
