@@ -5,6 +5,7 @@ import (
 	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
 	"git.replicatr.dev/pkg/codec/event"
 	sid "git.replicatr.dev/pkg/codec/subscriptionid"
+	"git.replicatr.dev/pkg/protocol/relayws"
 )
 
 const L = "EVENT"
@@ -16,10 +17,17 @@ type Submission struct {
 
 var _ enveloper.I = (*Submission)(nil)
 
-func NewSubmission() *Submission                         { return &Submission{T: &event.T{}} }
-func NewSubmissionWith(ev *event.T) *Submission          { return &Submission{T: ev} }
-func (en *Submission) Label() string                     { return L }
-func (en *Submission) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
+func NewSubmission() *Submission                { return &Submission{T: &event.T{}} }
+func NewSubmissionWith(ev *event.T) *Submission { return &Submission{T: ev} }
+func (en *Submission) Label() string            { return L }
+
+func (en *Submission) Write(ws *relayws.WS) (err E) {
+	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
+}
 
 func (en *Submission) MarshalJSON(dst B) (b B, err error) {
 	b = dst
@@ -54,13 +62,17 @@ type Result struct {
 
 var _ enveloper.I = (*Result)(nil)
 
-func NewResult() *Result { return &Result{} }
-func NewResultWith(s *sid.T, ev *event.T) *Result {
-	return &Result{Subscription: s,
-		Event: ev}
+func NewResult() *Result                          { return &Result{} }
+func NewResultWith(s *sid.T, ev *event.T) *Result { return &Result{Subscription: s, Event: ev} }
+func (en *Result) Label() S                       { return L }
+
+func (en *Result) Write(ws *relayws.WS) (err E) {
+	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
 }
-func (en *Result) Label() S                          { return L }
-func (en *Result) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
 
 func (en *Result) MarshalJSON(dst B) (b B, err error) {
 	b = dst

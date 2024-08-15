@@ -39,6 +39,7 @@ const (
 
 type Subscription struct {
 	Initiated time.Time
+	Hashes    []B
 	Filters   filters.T
 }
 

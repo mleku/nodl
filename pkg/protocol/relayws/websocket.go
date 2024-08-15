@@ -9,7 +9,6 @@ import (
 
 	"ec.mleku.dev/v2/bech32"
 	"git.replicatr.dev/pkg/codec/bech32encoding"
-	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
 	"git.replicatr.dev/pkg/util/atomic"
 	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/qu"
@@ -89,22 +88,6 @@ func (ws *WS) write(t MessageType, b B) (err E) {
 // WriteTextMessage writes a text (binary?) message
 func (ws *WS) WriteTextMessage(b B) (err E) {
 	return ws.write(w.TextMessage, b)
-}
-
-// WriteEnvelope writes a message with a given websocket type specifier. On nostr there is only
-// envelopes, ping and pong.
-func (ws *WS) WriteEnvelope(env enveloper.I) (err E) {
-	ws.mutex.Lock()
-	defer ws.mutex.Unlock()
-	var b B
-	if b, err = env.MarshalJSON(b); chk.E(err) {
-		return
-	}
-	if err = ws.Conn.SetWriteDeadline(time.Now().Add(time.Second * 5)); chk.E(err) {
-		return
-	}
-	log.T.F("sending message\n%s", string(b))
-	return ws.Conn.WriteMessage(int(TextMessage), b)
 }
 
 const ChallengeLength = 16

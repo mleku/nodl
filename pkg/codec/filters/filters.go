@@ -24,6 +24,15 @@ func (f *T) Match(event *event.T) bool {
 	return false
 }
 
+func (f *T) String() (s S) {
+	var b B
+	var err E
+	if b, err = f.MarshalJSON(nil); chk.E(err) {
+		return
+	}
+	return S(b)
+}
+
 func (f *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')

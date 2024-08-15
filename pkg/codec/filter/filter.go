@@ -360,13 +360,20 @@ func (f *T) Matches(ev *event.T) bool {
 
 // Fingerprint returns an 8 byte truncated sha256 hash of the filter in the canonical form
 // created by MarshalJSON.
+//
+// This hash is generated via the JSON encoded form of the filter, with the Limit field removed.
+// This value should be set to zero after all results from a query of stored events, as per
+// NIP-01.
 func (f *T) Fingerprint() (fp B, err E) {
+	lim := f.Limit
+	f.Limit = 0
 	var b B
 	if b, err = f.MarshalJSON(b); chk.E(err) {
 		return
 	}
 	h := sha256.Sum256(b)
 	fp = h[:]
+	f.Limit = lim
 	return
 }
 

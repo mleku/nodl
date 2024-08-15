@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"git.replicatr.dev/pkg/codec/ints"
-	"git.replicatr.dev/pkg/protocol/reasons"
 )
 
 var (
@@ -75,7 +74,7 @@ func URL(u B) (b B) {
 	}
 	var err error
 	var p *url.URL
-	if p, err = url.Parse(string(u));chk.E(err){
+	if p, err = url.Parse(string(u)); chk.E(err) {
 		return
 	}
 	// convert http/s to ws/s
@@ -90,10 +89,28 @@ func URL(u B) (b B) {
 	return B(p.String())
 }
 
-// Reason constructs a properly formatted message with a machine readable prefix for OK and CLOSED envelopes.
-func Reason(prefix reasons.Reason, format S, params ...any) B {
+// Msg constructs a properly formatted message with a machine readable prefix for OK and CLOSED envelopes.
+func Msg(prefix Reason, format S, params ...any) B {
 	if len(prefix) < 1 {
-		prefix = reasons.Error
+		prefix = Error
 	}
 	return B(fmt.Sprintf(prefix.S()+": "+format, params...))
 }
+
+type Reason B
+
+var (
+	AuthRequired = Reason("auth-required")
+	PoW          = Reason("pow")
+	Duplicate    = Reason("duplicate")
+	Blocked      = Reason("blocked")
+	RateLimited  = Reason("rate-limited")
+	Invalid      = Reason("invalid")
+	Error        = Reason("error")
+	Unsupported  = Reason("unsupported")
+)
+
+func (r Reason) S() S                              { return S(r) }
+func (r Reason) B() B                              { return B(r) }
+func (r Reason) IsPrefix(reason B) bool            { return bytes.HasPrefix(reason, r.B()) }
+func (r Reason) Message(format S, params ...any) B { return Msg(r, format, params...) }

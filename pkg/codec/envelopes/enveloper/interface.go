@@ -2,14 +2,11 @@ package enveloper
 
 import (
 	"git.replicatr.dev/pkg/codec"
+	"git.replicatr.dev/pkg/protocol/relayws"
 )
 
 type I interface {
 	Label() string
-	Write(ws Writer) (err E)
+	Write(ws *relayws.WS) (err E)
 	codec.JSON
-}
-
-type Writer interface {
-	WriteEnvelope(env I) (err error)
 }

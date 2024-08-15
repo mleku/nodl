@@ -6,6 +6,7 @@ import (
 	"git.replicatr.dev/pkg/codec/filters"
 	sid "git.replicatr.dev/pkg/codec/subscriptionid"
 	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/protocol/relayws"
 )
 
 const L = "REQ"
@@ -17,10 +18,18 @@ type T struct {
 
 var _ enveloper.I = (*T)(nil)
 
-func New() *T                                   { return &T{Subscription: sid.NewStd(), Filters: filters.New()} }
-func NewFrom(id *sid.T, filters *filters.T) *T  { return &T{Subscription: id, Filters: filters} }
-func (en *T) Label() string                     { return L }
-func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
+func New() *T {
+	return &T{Subscription: sid.NewStd(),
+		Filters: filters.New()}
+}
+func NewFrom(id *sid.T, filters *filters.T) *T { return &T{Subscription: id, Filters: filters} }
+func (en *T) Label() string                    { return L }
+func (en *T) Write(ws *relayws.WS) (err E)     { 	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
+}
 
 func (en *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst

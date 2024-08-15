@@ -5,6 +5,7 @@ import (
 	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/protocol/relayws"
 )
 
 const L = "AUTH"
@@ -13,10 +14,16 @@ type Challenge struct {
 	Challenge B
 }
 
-func NewChallenge() *Challenge                          { return &Challenge{} }
-func NewChallengeWith(challenge B) *Challenge           { return &Challenge{Challenge: challenge} }
-func (en *Challenge) Label() string                     { return L }
-func (en *Challenge) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
+func NewChallenge() *Challenge                { return &Challenge{} }
+func NewChallengeWith(challenge B) *Challenge { return &Challenge{Challenge: challenge} }
+func (en *Challenge) Label() string           { return L }
+func (en *Challenge) Write(ws *relayws.WS) (err E) {
+	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
+}
 
 func (en *Challenge) MarshalJSON(dst B) (b B, err E) {
 	b = dst
@@ -51,9 +58,16 @@ type Response struct {
 
 var _ enveloper.I = (*Response)(nil)
 
-func NewResponse() *Response                           { return &Response{} }
-func (en *Response) Label() string                     { return L }
-func (en *Response) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
+func NewResponse() *Response       { return &Response{} }
+func (en *Response) Label() string { return L }
+
+func (en *Response) Write(ws *relayws.WS) (err E) {
+	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
+}
 
 func (en *Response) MarshalJSON(dst B) (b B, err E) {
 	if en == nil {

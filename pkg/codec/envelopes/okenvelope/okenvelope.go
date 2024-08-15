@@ -5,6 +5,7 @@ import (
 	"git.replicatr.dev/pkg/codec/envelopes/enveloper"
 	"git.replicatr.dev/pkg/codec/eventid"
 	"git.replicatr.dev/pkg/codec/text"
+	"git.replicatr.dev/pkg/protocol/relayws"
 )
 
 const (
@@ -22,7 +23,14 @@ var _ enveloper.I = (*T)(nil)
 func New() *T                                   { return &T{} }
 func NewFrom(eid *eventid.T, ok bool, msg B) *T { return &T{EventID: eid, OK: ok, Reason: msg} }
 func (en *T) Label() string                     { return L }
-func (en *T) Write(ws enveloper.Writer) (err E) { return ws.WriteEnvelope(en) }
+
+func (en *T) Write(ws *relayws.WS) (err E) {
+	var b B
+	if b, err = en.MarshalJSON(b); chk.E(err) {
+		return
+	}
+	return ws.WriteTextMessage(b)
+}
 
 func (en *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst

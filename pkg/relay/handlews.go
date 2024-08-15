@@ -145,7 +145,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			rl.handleReq(ws, env)
+			rl.handleReq(ws, env.Filters, env.Subscription)
 		}
 	}
 }
