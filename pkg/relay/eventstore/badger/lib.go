@@ -67,7 +67,6 @@ const DefaultMaxLimit = 1024
 func GetBackend(
 	Ctx context.T,
 	WG *sync.WaitGroup,
-	path string,
 	hasL2 bool,
 	blockCacheSize int,
 	params ...int,
@@ -89,7 +88,6 @@ func GetBackend(
 	b = &Backend{
 		Ctx:            Ctx,
 		WG:             WG,
-		Path:           path,
 		MaxLimit:       DefaultMaxLimit,
 		DBSizeLimit:    sizeLimit,
 		DBLowWater:     lw,
@@ -101,7 +99,8 @@ func GetBackend(
 	return
 }
 
-func (b *Backend) Init() (err error) {
+func (b *Backend) Init(path S) (err error) {
+	b.Path = path
 	log.I.Ln("opening badger event store at", b.Path)
 	opts := badger.DefaultOptions(b.Path)
 	opts.Compression = options.None

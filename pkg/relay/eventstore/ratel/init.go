@@ -11,7 +11,8 @@ import (
 	"github.com/dgraph-io/badger/v4/options"
 )
 
-func (r *T) Init() (err E) {
+func (r *T) Init(path S) (err E) {
+	r.Path = path
 	log.I.Ln("opening ratel event store at", r.Path)
 	opts := badger.DefaultOptions(r.Path)
 	opts.BlockCacheSize = int64(r.BlockCacheSize)
@@ -76,10 +77,10 @@ func (r *T) runMigrations() (err error) {
 				break
 			}
 			if hasAnyEntries {
-				return fmt.Errorf("your database is at version %d, but in order to migrate up " +
-					"to version 1 you must manually export all the events and then import " +
+				return fmt.Errorf("your database is at version %d, but in order to migrate up "+
+					"to version 1 you must manually export all the events and then import "+
 					"again:\n"+
-					"run an old version of this software, export the data, then delete the " +
+					"run an old version of this software, export the data, then delete the "+
 					"database files, run the new version, import the data back it", version)
 			}
 			chk.E(r.bumpVersion(txn, Version))

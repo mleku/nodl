@@ -1,10 +1,13 @@
 package ratel
 
 import (
+	"encoding/binary"
 	"sync"
 	"time"
 
 	"git.replicatr.dev/pkg/relay/eventstore"
+	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/index"
+	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/serial"
 	"git.replicatr.dev/pkg/util/context"
 	"github.com/dgraph-io/badger/v4"
 )
@@ -46,9 +49,9 @@ var _ eventstore.I = (*T)(nil)
 func GetBackend(
 	Ctx context.T,
 	WG *sync.WaitGroup,
-	path string,
 	hasL2 bool,
 	blockCacheSize int,
+	logLevel int,
 	params ...int,
 ) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 86, 92, 60
@@ -68,13 +71,45 @@ func GetBackend(
 	b = &T{
 		Ctx:            Ctx,
 		WG:             WG,
-		Path:           path,
 		DBSizeLimit:    sizeLimit,
 		DBLowWater:     lw,
 		DBHighWater:    hw,
 		GCFrequency:    time.Duration(freq) * time.Second,
 		HasL2:          hasL2,
 		BlockCacheSize: blockCacheSize,
+		InitLogLevel:   logLevel,
 	}
+	return
+}
+
+// SerialKey returns a key used for storing events, and the raw serial counter
+// bytes to copy into index keys.
+func (r *T) SerialKey() (idx []byte, ser *serial.T) {
+	var err error
+	var s []byte
+	if s, err = r.SerialBytes(); chk.E(err) {
+		panic(err)
+	}
+	ser = serial.New(s)
+	return index.Event.Key(ser), ser
+}
+
+// Serial returns the next monotonic conflict free unique serial on the database.
+func (r *T) Serial() (ser uint64, err error) {
+	if ser, err = r.seq.Next(); chk.E(err) {
+	}
+	// log.T.F("serial %x", ser)
+	return
+}
+
+// SerialBytes returns a new serial value, used to store an event record with a
+// conflict-free unique code (it is a monotonic, atomic, ascending counter).
+func (r *T) SerialBytes() (ser []byte, err error) {
+	var serU64 uint64
+	if serU64, err = r.Serial(); chk.E(err) {
+		panic(err)
+	}
+	ser = make([]byte, serial.Len)
+	binary.BigEndian.PutUint64(ser, serU64)
 	return
 }

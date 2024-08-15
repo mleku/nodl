@@ -3,7 +3,6 @@ package relay
 import (
 	"hash/maphash"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 	"unsafe"
@@ -16,6 +15,7 @@ import (
 	"git.replicatr.dev/pkg/util/atomic"
 	C "git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/interrupt"
+	"git.replicatr.dev/pkg/util/lol"
 	"git.replicatr.dev/pkg/util/units"
 	W "github.com/fasthttp/websocket"
 	"github.com/puzpuzpuz/xsync/v2"
@@ -53,11 +53,11 @@ type T struct {
 	upgrader        W.Upgrader
 	serveMux        *http.ServeMux
 	clients         *xsync.MapOf[*relayws.WS, Subscriptions]
-	Identity        *p256k.Signer
+	identity        *p256k.Signer
 	Store           eventstore.I
 }
 
-func (rl T) Init() (r *T) {
+func (rl T) Init(path S) (r *T) {
 	var err E
 	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
 	interrupt.AddHandler(func() {
@@ -71,28 +71,11 @@ func (rl T) Init() (r *T) {
 	if rl.clients == nil {
 		rl.clients = xsync.NewTypedMapOf[*relayws.WS, Subscriptions](PointerHasher[relayws.WS])
 	}
-	rl.Identity = &p256k.Signer{}
-	if err = rl.Identity.Generate(); chk.E(err) {
+	rl.identity = &p256k.Signer{}
+	if err = rl.identity.Generate(); chk.E(err) {
 	}
-	var dir S
-	if dir, err = os.MkdirTemp("","ratel_eventstore"); chk.E(err) {
-		return
-	}
-	rl.Store = ratel.GetBackend(rl.Ctx, &rl.WG, dir, false, MaxMessageSize)
-	// rl.Store = &badger.Backend{
-	// 	Ctx:            rl.Ctx,
-	// 	WG:             &rl.WG,
-	// 	Path:           os.TempDir(),
-	// 	MaxLimit:       MaxLimit,
-	// 	DBSizeLimit:    DBSizeLimit,
-	// 	DBLowWater:     DBLowWater,
-	// 	DBHighWater:    DBHighWater,
-	// 	GCFrequency:    time.Duration(GCFrequency) * time.Second,
-	// 	BlockCacheSize: 8 * units.Gb,
-	// 	InitLogLevel:   lol.Error,
-	// 	Threads:        runtime.NumCPU() / 2,
-	// }
-	if err = rl.Store.Init(); chk.E(err) {
+	rl.Store = ratel.GetBackend(rl.Ctx, &rl.WG, false, MaxMessageSize, N(lol.Level.Load()))
+	if err = rl.Store.Init(path); chk.E(err) {
 		return
 	}
 	interrupt.AddHandler(func() {
@@ -108,7 +91,6 @@ func PointerHasher[V any](_ maphash.Seed, k *V) uint64 {
 func (rl *T) ServiceURL() S { return rl.serviceURL.Load() }
 
 func (rl *T) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.T.Ln("ServeHTTP")
 	if rl.serviceURL.Load() == "" {
 		rl.serviceURL.Store(getServiceBaseURL(r))
 	}
