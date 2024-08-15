@@ -37,9 +37,11 @@ func (c *T) Len() int { return Len }
 // FromKey expects to find a datestamp in the 8 bytes before a serial in a key.
 func FromKey(k []byte) (p *T) {
 	if len(k) < Len+serial.Len {
-		panic("cannot get a serial without at least 16 bytes")
+		err := errorf.F("cannot get a serial without at least %d bytes", Len+serial.Len)
+		panic(err)
 	}
-	key := make([]byte, Len)
-	copy(key, k[len(k)-serial.Len:len(k)-Len+serial.Len])
+	log.I.S(k)
+	key := make([]byte, 0, Len)
+	key=append(key, k[len(k)-Len-serial.Len : len(k)-serial.Len]...)
 	return &T{Val: timestamp.FromBytes(key)}
 }

@@ -7,16 +7,13 @@ import (
 
 // FanIn listens to a provided group of channels and forwards anything from them to a returned
 // "out" channel.
-//
-// Cancel the context to close all in and the out channel.
-//
-// Will automatically close the out channel if all in channels are closed.
 func FanIn(c context.T, in ...event.C) (out event.C) {
+	out = make(event.C)
 	go func() {
 		for {
 			select {
 			case <-c.Done():
-				close(out)
+				// close(out)
 				for i := range in {
 					// ensure the channel is emptied first, let the senders terminate.
 					select {
@@ -28,8 +25,8 @@ func FanIn(c context.T, in ...event.C) (out event.C) {
 							close(in[i])
 						}
 					default:
+						close(in[i])
 					}
-					close(in[i])
 				}
 			}
 		}
@@ -41,7 +38,7 @@ func FanIn(c context.T, in ...event.C) (out event.C) {
 				case v := <-in[i]:
 					out <- v
 				case <-c.Done():
-					close(out)
+					return
 				}
 			}
 		}()
