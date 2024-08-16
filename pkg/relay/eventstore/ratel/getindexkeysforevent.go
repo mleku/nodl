@@ -3,6 +3,7 @@ package ratel
 import (
 	"git.replicatr.dev/pkg/codec/event"
 	"git.replicatr.dev/pkg/codec/eventid"
+	"git.replicatr.dev/pkg/codec/tag"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/id"
@@ -61,10 +62,9 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 			continue
 		}
 		var firstIndex int
-		for firstIndex = range ev.Tags.T {
-			if len(t.Field) >= 2 &&
-				len(ev.Tags.T[firstIndex].Field) >= 2 &&
-				equals(t.Field[1], ev.Tags.T[1].Value()) {
+		var tt *tag.T
+		for firstIndex, tt = range ev.Tags.T {
+			if len(tt.Field) >= 2 && equals(tt.Field[1], t.Field[1]) {
 				break
 			}
 		}

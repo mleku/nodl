@@ -28,11 +28,17 @@ type Tracker struct {
 	WsMap
 }
 
-func (tr *Tracker) Init() {
+func (tr *Tracker) Do(fn func()) {
+	log.W.Ln("locking tracker")
 	tr.Lock()
+	fn()
+	log.W.Ln("unlocking tracker")
+	tr.Unlock()
+}
+
+func (tr *Tracker) Init() {
 	tr.FilterMap = make(FilterMap)
 	tr.WsMap = make(WsMap)
-	tr.Unlock()
 }
 
 // IterateFilters takes a closure that iterates the WsMap, and then scans the FilterMap for the
@@ -43,7 +49,6 @@ func (tr *Tracker) Init() {
 // constructed with the correct subscriptionid.T and sent via the correct websocket to the
 // client.
 func (tr *Tracker) IterateFilters(iter func(ws WS, sub subId, f *filter.T)) {
-	tr.Lock()
 	for w, sock := range tr.WsMap {
 		for s, sub := range sock {
 			for idx := range sub {
@@ -57,14 +62,12 @@ func (tr *Tracker) IterateFilters(iter func(ws WS, sub subId, f *filter.T)) {
 			}
 		}
 	}
-	tr.Unlock()
 }
 
 // IterateByFilterId works like IterateFilters except in the opposite direction, based on a
 // filter fingerprint. The provided closure will be given the websocket, subscription ID and
 // full filter of every current filter that matches.
 func (tr *Tracker) IterateByFilterId(fid filterId, iter func(ws WS, sub subId, f *filter.T)) {
-	tr.Lock()
 	for w, sock := range tr.WsMap {
 		for s, sub := range sock {
 			for idx := range sub {
@@ -80,36 +83,32 @@ func (tr *Tracker) IterateByFilterId(fid filterId, iter func(ws WS, sub subId, f
 			}
 		}
 	}
-	tr.Unlock()
 }
 
 func (tr *Tracker) AddWS(ws WS) {
-	tr.Lock()
 	var ok bool
 	if _, ok = tr.WsMap[ws]; !ok {
+		log.W.Ln("adding submap")
 		// allocate a new SubMap for possible incoming subscriptions.
 		tr.WsMap[ws] = SubMap{}
 	}
-	tr.Unlock()
 }
 
 func (tr *Tracker) RemoveWS(ws WS) {
-	tr.Lock()
 	var sid subId
 	var err E
+	log.T.F("removing websocket %s", ws.Remote())
 	for sub := range tr.WsMap[ws] {
 		if sid, err = subscriptionid.New(sub); chk.E(err) {
 			continue
 		}
 		tr.RemoveSub(ws, sid)
 	}
-	tr.Unlock()
 }
 
 func (tr *Tracker) AddSub(ws WS, sub subId, ff *filters.T) {
 	tr.AddWS(ws)
 	var err E
-	tr.Lock()
 	var ok bool
 	s := sub.String()
 	if _, ok = tr.WsMap[ws][s]; !ok {
@@ -135,11 +134,10 @@ func (tr *Tracker) AddSub(ws WS, sub subId, ff *filters.T) {
 		// add the filter fingerprint to the subscription.
 		tr.WsMap[ws][s][fp] = struct{}{}
 	}
-	tr.Unlock()
 }
 
 func (tr *Tracker) RemoveSub(ws *relayws.WS, sub *subscriptionid.T) {
-	tr.Lock()
+	log.T.F("removing subscription %s", sub.String())
 	s := sub.String()
 	if _, ok := tr.WsMap[ws][s]; ok {
 		// first decrement the FilterMap limit counter
@@ -156,5 +154,4 @@ func (tr *Tracker) RemoveSub(ws *relayws.WS, sub *subscriptionid.T) {
 		// with all references decremented or deleted we can now remove the subscription.
 		delete(tr.WsMap[ws], sub.String())
 	}
-	tr.Unlock()
 }

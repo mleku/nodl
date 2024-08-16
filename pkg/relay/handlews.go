@@ -26,9 +26,9 @@ func (rl *T) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	c, cancel := C.Cancel(C.Bg())
 	ws := relayws.New(c, conn, r, MaxMessageSize)
-	rl.AddWS(ws)
+	log.T.Ln("upgraded websocket", ws.Remote())
+	rl.Tracker.Do(func() { rl.AddWS(ws) })
 	log.T.F("established websocket connection with %s", ws.Remote())
-	rl.Tracker.AddWS(ws)
 	go rl.wsReadMessages(ws, cancel)
 	rl.wsWatcher(ws, cancel)
 }
@@ -39,10 +39,12 @@ func (rl *T) wsWatcher(ws *relayws.WS, cancel C.F) {
 		case <-rl.Ctx.Done():
 			log.T.F("relay listener context done, closing websocket %s", ws.Remote())
 			cancel()
+			log.W.Ln("removing ws")
 			rl.RemoveWS(ws)
 			return
 		case <-ws.Ctx.Done():
 			log.T.Ln("websocket %s context done", ws.Remote())
+			log.W.Ln("removing ws")
 			rl.RemoveWS(ws)
 			return
 		}
@@ -77,7 +79,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			) {
 				log.E.F("unexpected close error from %s: %v", ws.Remote(), err)
 			}
-			rl.Tracker.RemoveWS(ws)
+			rl.Tracker.Do(func() { rl.Tracker.RemoveWS(ws) })
 			return
 		}
 		if typ == W.PingMessage {
@@ -109,7 +111,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			rl.RemoveSub(ws, env.ID)
+			rl.Tracker.Do(func() { rl.RemoveSub(ws, env.ID) })
 		case countenvelope.L:
 			env := countenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
@@ -145,7 +147,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			rl.AddSub(ws, env.Subscription, env.Filters)
+			rl.Tracker.Do(func() { rl.AddSub(ws, env.Subscription, env.Filters) })
 			rl.handleReq(ws, env.Filters, env.Subscription)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.replicatr.dev/pkg/crypto/p256k"
+	"git.replicatr.dev/pkg/protocol/relayinfo"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel"
 	"git.replicatr.dev/pkg/util/atomic"
@@ -46,14 +47,14 @@ type T struct {
 	ListenAddresses []S
 	serviceURL      atomic.String
 	upgrader        websocket.Upgrader
+	relayInfo       *relayinfo.T
 	serveMux        *http.ServeMux
 	identity        *p256k.Signer
 	Store           eventstore.I
 	Tracker
 }
 
-func (rl T) Init(path S) (r *T) {
-	var err E
+func (rl T) Init(path S) (r *T, err E) {
 	rl.Ctx, rl.Cancel = context.Cancel(context.Bg())
 	interrupt.AddHandler(func() { rl.Cancel() })
 	rl.upgrader = websocket.Upgrader{
@@ -61,7 +62,7 @@ func (rl T) Init(path S) (r *T) {
 		WriteBufferSize: WriteBufferSize,
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
-
+	rl.Tracker.Do(func() { rl.Tracker.Init() })
 	rl.identity = &p256k.Signer{}
 	if err = rl.identity.Generate(); chk.E(err) {
 	}
@@ -72,7 +73,8 @@ func (rl T) Init(path S) (r *T) {
 	interrupt.AddHandler(func() {
 		chk.E(rl.Store.Close())
 	})
-	return &rl
+	r = &rl
+	return
 }
 
 func (rl *T) ServiceURL() S { return rl.serviceURL.Load() }

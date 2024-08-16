@@ -10,6 +10,7 @@ import (
 )
 
 const DefaultListener = "0.0.0.0:3334"
+const Path = ".replicatr"
 
 func main() {
 	lol.SetLogLevel("trace")
@@ -19,11 +20,13 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	var path S
-	if path, err = os.MkdirTemp("", "replicatr"); chk.E(err) {
-		return
-	}
-	rl := relay.T{ListenAddresses: []S{DefaultListener},}.Init(path)
+	// var path S
+	// if path, err = os.MkdirTemp("", "replicatr"); chk.E(err) {
+	// 	return
+	// }
+	path := Path
+	var rl *relay.T
+	rl, err = relay.T{ListenAddresses: []S{DefaultListener}}.Init(path)
 	rl.WG.Add(1)
 	for _, l := range rl.ListenAddresses {
 		rl.WG.Add(1)

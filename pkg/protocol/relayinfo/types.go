@@ -49,10 +49,10 @@ var (
 	CommandResults                 = NIP{"Command Results", 20}
 	NIP20                          = CommandResults
 	NostrURIScheme                 = NIP{"nostr: URI scheme", 21}
-	NIP21                          = NostrURIScheme
-	SomethingSomething             = NIP{"Something Something", 22}
-	NIP22                          = SomethingSomething
-	LongFormContent                = NIP{"Long-form Content", 23}
+	NIP21           = NostrURIScheme
+	CreatedAtLimits = NIP{"Something Something", 22}
+	NIP22           = CreatedAtLimits
+	LongFormContent = NIP{"Long-form Content", 23}
 	NIP23                          = LongFormContent
 	ExtraMetadata                  = NIP{"Extra metadata fields and tags", 24}
 	NIP24                          = ExtraMetadata
