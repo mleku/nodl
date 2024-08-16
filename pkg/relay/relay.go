@@ -1,24 +1,19 @@
 package relay
 
 import (
-	"hash/maphash"
 	"net/http"
 	"sync"
 	"time"
-	"unsafe"
 
-	"git.replicatr.dev/pkg/codec/filters"
 	"git.replicatr.dev/pkg/crypto/p256k"
-	"git.replicatr.dev/pkg/protocol/relayws"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel"
 	"git.replicatr.dev/pkg/util/atomic"
-	C "git.replicatr.dev/pkg/util/context"
+	"git.replicatr.dev/pkg/util/context"
 	"git.replicatr.dev/pkg/util/interrupt"
 	"git.replicatr.dev/pkg/util/lol"
 	"git.replicatr.dev/pkg/util/units"
-	W "github.com/fasthttp/websocket"
-	"github.com/puzpuzpuz/xsync/v2"
+	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
 )
 
@@ -37,39 +32,36 @@ const (
 	GCFrequency         = 300
 )
 
-type Subscription struct {
-	Initiated time.Time
-	Hashes    []B
-	Filters   filters.T
-}
-
-type Subscriptions map[S]Subscription
-
+// T is the state and configuration data of a relay.
+//
+// ClientMap keeps track of current websocket connections that are open. Access only with Mutex
+// locked.
+//
+// subMap keeps track of distinctive filters for which each associates with a websocket
+// connection. Access only with Mutex// locked.
 type T struct {
-	Ctx             C.T
-	Cancel          C.F
+	Ctx             context.T
+	Cancel          context.F
 	WG              sync.WaitGroup
 	ListenAddresses []S
 	serviceURL      atomic.String
-	upgrader        W.Upgrader
+	upgrader        websocket.Upgrader
 	serveMux        *http.ServeMux
-	clients         *xsync.MapOf[*relayws.WS, Subscriptions]
 	identity        *p256k.Signer
 	Store           eventstore.I
+	Tracker
 }
 
 func (rl T) Init(path S) (r *T) {
 	var err E
-	rl.Ctx, rl.Cancel = C.Cancel(C.Bg())
+	rl.Ctx, rl.Cancel = context.Cancel(context.Bg())
 	interrupt.AddHandler(func() { rl.Cancel() })
-	rl.upgrader = W.Upgrader{
+	rl.upgrader = websocket.Upgrader{
 		ReadBufferSize:  ReadBufferSize,
 		WriteBufferSize: WriteBufferSize,
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
-	if rl.clients == nil {
-		rl.clients = xsync.NewTypedMapOf[*relayws.WS, Subscriptions](PointerHasher[relayws.WS])
-	}
+
 	rl.identity = &p256k.Signer{}
 	if err = rl.identity.Generate(); chk.E(err) {
 	}
@@ -81,10 +73,6 @@ func (rl T) Init(path S) (r *T) {
 		chk.E(rl.Store.Close())
 	})
 	return &rl
-}
-
-func PointerHasher[V any](_ maphash.Seed, k *V) uint64 {
-	return uint64(uintptr(unsafe.Pointer(k)))
 }
 
 func (rl *T) ServiceURL() S { return rl.serviceURL.Load() }

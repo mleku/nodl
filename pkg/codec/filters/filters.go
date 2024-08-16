@@ -11,6 +11,17 @@ type T struct {
 
 func Make(l int) *T { return &T{F: make([]*filter.T, l)} }
 
+func (f *T) GetFingerprints() (fps []uint64, err E) {
+	for _, ff := range f.F {
+		var fp uint64
+		if fp, err = ff.Fingerprint(); chk.E(err) {
+			continue
+		}
+		fps = append(fps, fp)
+	}
+	return
+}
+
 func (f *T) Len() int { return len(f.F) }
 
 func New() (f *T) { return &T{} }

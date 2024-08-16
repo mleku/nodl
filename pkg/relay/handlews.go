@@ -6,13 +6,9 @@ import (
 
 	"git.replicatr.dev/pkg/codec/envelopes"
 	"git.replicatr.dev/pkg/codec/envelopes/authenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/closedenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/closeenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/countenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/eoseenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/noticeenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
 	"git.replicatr.dev/pkg/protocol/relayws"
 	C "git.replicatr.dev/pkg/util/context"
@@ -30,8 +26,9 @@ func (rl *T) HandleWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	c, cancel := C.Cancel(C.Bg())
 	ws := relayws.New(c, conn, r, MaxMessageSize)
+	rl.AddWS(ws)
 	log.T.F("established websocket connection with %s", ws.Remote())
-	rl.clients.Store(ws, make(Subscriptions))
+	rl.Tracker.AddWS(ws)
 	go rl.wsReadMessages(ws, cancel)
 	rl.wsWatcher(ws, cancel)
 }
@@ -42,9 +39,11 @@ func (rl *T) wsWatcher(ws *relayws.WS, cancel C.F) {
 		case <-rl.Ctx.Done():
 			log.T.F("relay listener context done, closing websocket %s", ws.Remote())
 			cancel()
+			rl.RemoveWS(ws)
 			return
 		case <-ws.Ctx.Done():
 			log.T.Ln("websocket %s context done", ws.Remote())
+			rl.RemoveWS(ws)
 			return
 		}
 	}
@@ -78,6 +77,7 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 			) {
 				log.E.F("unexpected close error from %s: %v", ws.Remote(), err)
 			}
+			rl.Tracker.RemoveWS(ws)
 			return
 		}
 		if typ == W.PingMessage {
@@ -98,53 +98,54 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 				return
 			}
 			log.I.S(env)
-		case closedenvelope.L:
-			env := closedenvelope.New()
-			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
-				return
-			}
-			log.I.S(env)
+		// case closedenvelope.L:
+		// 	env := closedenvelope.New()
+		// 	if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
+		// 		return
+		// 	}
+		// 	log.I.S(env)
 		case closeenvelope.L:
 			env := closeenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
-			log.I.S(env)
+			rl.RemoveSub(ws, env.ID)
 		case countenvelope.L:
 			env := countenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
 			log.I.S(env)
-		case eoseenvelope.L:
-			env := eoseenvelope.New()
-			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
-				return
-			}
-			log.I.S(env)
+		// case eoseenvelope.L:
+		// 	env := eoseenvelope.New()
+		// 	if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
+		// 		return
+		// 	}
+		// 	log.I.S(env)
 		case eventenvelope.L:
 			env := eventenvelope.NewSubmission()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
 			rl.handleEvent(ws, env)
-		case noticeenvelope.L:
-			env := noticeenvelope.New()
-			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
-				return
-			}
-			log.I.S(env)
-		case okenvelope.L:
-			env := okenvelope.New()
-			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
-				return
-			}
-			log.I.S(env)
+		// case noticeenvelope.L:
+		// 	env := noticeenvelope.New()
+		// 	if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
+		// 		return
+		// 	}
+		// 	log.I.S(env)
+		// case okenvelope.L:
+		// 	env := okenvelope.New()
+		// 	if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
+		// 		return
+		// 	}
+		// 	log.I.S(env)
 		case reqenvelope.L:
 			env := reqenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
 				return
 			}
+			rl.AddSub(ws, env.Subscription, env.Filters)
 			rl.handleReq(ws, env.Filters, env.Subscription)
 		}
 	}

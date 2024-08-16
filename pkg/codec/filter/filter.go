@@ -2,6 +2,7 @@ package filter
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 
 	"ec.mleku.dev/v2/schnorr"
@@ -41,6 +42,23 @@ func New() (f *T) {
 		Until:   timestamp.New(),
 		Limit:   0,
 		Search:  nil,
+	}
+}
+
+// Clone creates a new filter with all the same elements in them, because they are immutable,
+// basically, except setting the Limit field as 1, because it is used in the subscription
+// management code to act as a reference counter, and making a clone implicitly means 1
+// reference.
+func (f *T) Clone() (clone *T) {
+	return &T{
+		IDs:     f.IDs,
+		Kinds:   f.Kinds,
+		Authors: f.Authors,
+		Tags:    f.Tags,
+		Since:   f.Since,
+		Until:   f.Until,
+		Limit:   1,
+		Search:  f.Search,
 	}
 }
 
@@ -364,7 +382,7 @@ func (f *T) Matches(ev *event.T) bool {
 // This hash is generated via the JSON encoded form of the filter, with the Limit field removed.
 // This value should be set to zero after all results from a query of stored events, as per
 // NIP-01.
-func (f *T) Fingerprint() (fp B, err E) {
+func (f *T) Fingerprint() (fp uint64, err E) {
 	lim := f.Limit
 	f.Limit = 0
 	var b B
@@ -372,7 +390,8 @@ func (f *T) Fingerprint() (fp B, err E) {
 		return
 	}
 	h := sha256.Sum256(b)
-	fp = h[:]
+	hb := h[:]
+	fp = binary.LittleEndian.Uint64(hb)
 	f.Limit = lim
 	return
 }
