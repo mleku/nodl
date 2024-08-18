@@ -35,6 +35,12 @@ type T struct {
 	Sig B `json:"sig"`
 }
 
+type Ts []*T
+
+func (ev Ts) Len() int           { return len(ev) }
+func (ev Ts) Less(i, j int) bool { return *ev[i].CreatedAt > *ev[j].CreatedAt }
+func (ev Ts) Swap(i, j int)      { ev[i], ev[j] = ev[j], ev[i] }
+
 type C chan *T
 
 func New() (ev *T) { return &T{} }

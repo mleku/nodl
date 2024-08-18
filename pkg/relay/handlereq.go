@@ -1,6 +1,8 @@
 package relay
 
 import (
+	"sort"
+
 	"git.replicatr.dev/pkg/codec/envelopes/eoseenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
 	"git.replicatr.dev/pkg/codec/event"
@@ -16,14 +18,17 @@ func (rl *T) handleReq(ws *relayws.WS, ff *filters.T, sub *subscriptionid.T) {
 		return
 	}
 	var evs []*event.T
+	var events event.Ts
 	for i, f := range ff.F {
 		log.I.F("%d: %s", i, f)
 		if evs, err = rl.Store.QueryEvents(rl.Ctx, f); chk.E(err) {
 			continue
 		}
-		for _, ev := range evs {
-			if err = eventenvelope.NewResultWith(sub, ev).Write(ws); chk.E(err) {
-			}
+		events=append(events, evs...)
+	}
+	sort.Sort(events)
+	for _, ev := range events {
+		if err = eventenvelope.NewResultWith(sub, ev).Write(ws); chk.E(err) {
 		}
 	}
 	if err = eoseenvelope.NewFrom(sub).Write(ws); chk.E(err) {

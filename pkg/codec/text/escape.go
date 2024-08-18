@@ -28,7 +28,8 @@ func NostrEscape(dst, src B) B {
 		case c == '"':
 			dst = append(dst, '\\', '"')
 		case c == '\\':
-			if i+1 < l && src[i+1] == 'u' || i+1 < l && src[i+1] == '/' {
+			// if i+1 < l && src[i+1] == 'u' || i+1 < l && src[i+1] == '/' {
+			if i+1 < l && src[i+1] == 'u' {
 				dst = append(dst, '\\')
 			} else {
 				dst = append(dst, '\\', '\\')
