@@ -2,7 +2,6 @@ package tag
 
 import (
 	"bytes"
-	"unsafe"
 
 	"git.replicatr.dev/pkg/codec/text"
 	"git.replicatr.dev/pkg/util/normalize"
@@ -141,6 +140,7 @@ func (t *T) MarshalJSON(dst B) (b B, err error) {
 func (t *T) UnmarshalJSON(b B) (r B, err error) {
 	var inQuotes, openedBracket bool
 	var quoteStart int
+	// t.Field = []BS[B]{}
 	for i := 0; i < len(b); i++ {
 		if !openedBracket && b[i] == '[' {
 			openedBracket = true
@@ -161,13 +161,14 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 		log.I.F("\n%v\n%s", t, r)
 		return nil, errorf.E("tag: failed to parse tag")
 	}
+	log.I.S(t.Field)
 	return
 }
 
-func (t *T) String() string {
-	b, _ := t.MarshalJSON(nil)
-	return unsafe.String(&b[0], len(b))
-}
+// func (t *T) String() string {
+// 	b, _ := t.MarshalJSON(nil)
+// 	return unsafe.String(&b[0], len(b))
+// }
 
 // Contains returns true if the provided element is found in the tag slice.
 func (t *T) Contains(s B) bool {

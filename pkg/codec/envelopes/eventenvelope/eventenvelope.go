@@ -44,10 +44,14 @@ func (en *Submission) MarshalJSON(dst B) (b B, err error) {
 
 func (en *Submission) UnmarshalJSON(b B) (r B, err error) {
 	r = b
+	log.W.F("%s", r)
 	en.T = event.New()
 	if r, err = en.T.UnmarshalJSON(r); chk.E(err) {
 		return
 	}
+	var bb B
+	bb, err = en.T.MarshalJSON(nil)
+	log.I.F("%s", bb)
 	if r, err = envelopes.SkipToTheEnd(r); chk.E(err) {
 		return
 	}

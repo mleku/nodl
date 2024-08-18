@@ -18,7 +18,7 @@ import (
 
 func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	log.T.C(func() S {
-		evs := ev.String()
+		evs, _ := ev.MarshalJSON(nil)
 		return fmt.Sprintf("saving event\n%d %s", len(evs), evs)
 	})
 	// make sure Close waits for this to complete
@@ -90,7 +90,6 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if bin, err = ev.MarshalBinary(bin); chk.E(err) {
 		return
 	}
-	log.T.S(bin)
 	log.I.F("saving event to badger %s", ev)
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err error) {

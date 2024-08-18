@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sort"
 
 	"git.replicatr.dev/pkg/codec/tag"
@@ -17,9 +16,10 @@ type T struct {
 }
 
 func New(fields ...*tag.T) (t *T) {
-	t = &T{T: make([]*tag.T, len(fields))}
-	for i, field := range fields {
-		t.T[i] = field
+	// t = &T{T: make([]*tag.T, 0, len(fields))}
+	t = &T{}
+	for _, field := range fields {
+		t.T = append(t.T, field)
 	}
 	return
 }
@@ -192,26 +192,29 @@ func (t *T) MarshalTo(dst B) []byte {
 	return dst
 }
 
-func (t *T) String() string {
-	buf := new(bytes.Buffer)
-	buf.WriteByte('[')
-	last := len(t.T) - 1
-	for i := range t.T {
-		_, _ = fmt.Fprint(buf, t.T[i])
-		if i < last {
-			buf.WriteByte(',')
-		}
-	}
-	buf.WriteByte(']')
-	return buf.String()
-}
+// func (t *T) String() string {
+// 	buf := new(bytes.Buffer)
+// 	buf.WriteByte('[')
+// 	last := len(t.T) - 1
+// 	for i := range t.T {
+// 		_, _ = fmt.Fprint(buf, t.T[i])
+// 		if i < last {
+// 			buf.WriteByte(',')
+// 		}
+// 	}
+// 	buf.WriteByte(']')
+// 	return buf.String()
+// }
 
 func (t *T) MarshalJSON(dst B) (b B, err error) {
 	b = dst
 	b = append(b, '[')
-	if t == nil {
+	if t.T == nil {
 		b = append(b, ']')
 		return
+	}
+	if len(t.T) == 0 {
+		b = append(b, '[', ']')
 	}
 	for i, s := range t.T {
 		if i > 0 {
@@ -228,19 +231,8 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 	for len(r) > 0 {
 		switch r[0] {
 		case '[':
-			if r[1] == '[' {
-				r = r[1:]
-				continue
-			} else if r[1] == ']' {
-				r = r[1:]
-				return
-			}
-			tt := tag.NewWithCap(4) // most tags are 4 or less fields
-			if r, err = tt.UnmarshalJSON(r); chk.E(err) {
-				return
-			}
-			t.T = append(t.T, tt)
-			// continue
+			r = r[1:]
+			goto inTags
 		case ',':
 			r = r[1:]
 			// next
@@ -248,6 +240,28 @@ func (t *T) UnmarshalJSON(b B) (r B, err error) {
 			r = r[1:]
 			// the end
 			return
+		default:
+			r = r[1:]
+		}
+	inTags:
+		for len(r) > 0 {
+			switch r[0] {
+			case '[':
+				tt := &tag.T{}
+				if r, err = tt.UnmarshalJSON(r); chk.E(err) {
+					return
+				}
+				t.T = append(t.T, tt)
+			case ',':
+				r = r[1:]
+				// next
+			case ']':
+				r = r[1:]
+				// the end
+				return
+			default:
+				r = r[1:]
+			}
 		}
 	}
 	return

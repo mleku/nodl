@@ -9,9 +9,11 @@ import (
 	"git.replicatr.dev/pkg/codec/envelopes/closeenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/countenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
+	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
 	"git.replicatr.dev/pkg/codec/envelopes/reqenvelope"
 	"git.replicatr.dev/pkg/protocol/relayws"
 	C "git.replicatr.dev/pkg/util/context"
+	"git.replicatr.dev/pkg/util/normalize"
 	W "github.com/fasthttp/websocket"
 )
 
@@ -127,9 +129,13 @@ func (rl *T) wsReadMessages(ws *relayws.WS, cancel C.F) {
 		case eventenvelope.L:
 			env := eventenvelope.NewSubmission()
 			if rem, err = env.UnmarshalJSON(rem); chk.E(err) {
-				return
+				if err = okenvelope.NewFrom(env.T.EventID(), false,
+					normalize.Error.Message(err.Error())).Write(ws); chk.E(err) {
+					continue
+				}
+				continue
 			}
-			rl.handleEvent(ws, env)
+ 			rl.handleEvent(ws, env)
 		// case noticeenvelope.L:
 		// 	env := noticeenvelope.New()
 		// 	if rem, err = env.UnmarshalJSON(rem); chk.E(err) {

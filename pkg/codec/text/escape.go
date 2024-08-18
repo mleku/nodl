@@ -18,6 +18,7 @@ package text
 //	- A tab character, 0x09, as \t
 //	- A backspace, 0x08, as \b
 //	- A form feed, 0x0C, as \f
+//
 //	UTF-8 should be used for encoding.
 func NostrEscape(dst, src B) B {
 	l := len(src)
@@ -27,7 +28,11 @@ func NostrEscape(dst, src B) B {
 		case c == '"':
 			dst = append(dst, '\\', '"')
 		case c == '\\':
-			dst = append(dst, '\\', '\\')
+			if i+1 < l && src[i+1] == 'u' || i+1 < l && src[i+1] == '/' {
+				dst = append(dst, '\\')
+			} else {
+				dst = append(dst, '\\', '\\')
+			}
 		case c == '\b':
 			dst = append(dst, '\\', 'b')
 		case c == '\t':
@@ -56,6 +61,12 @@ func NostrUnescape(dst B) (b B) {
 			r++
 			c := dst[r]
 			switch {
+
+			// nip-01 specifies the following single letter C-style escapes for control
+			// codes under 0x20.
+			//
+			// no others are specified but must be preserved, so only these ones can be
+			// safely decoded at runtime as they must be re-encoded when marshalled.
 			case c == '"':
 				dst[w] = '"'
 				w++
@@ -77,10 +88,33 @@ func NostrUnescape(dst B) (b B) {
 			case c == 'r':
 				dst[w] = '\r'
 				w++
+
+				// special cases for non-nip-01 specified json escapes (must be preserved for ID
+				// generation).
+			case c == 'u':
+				dst[w] = '\\'
+				w++
+				dst[w] = 'u'
+				w++
+			case c == '/':
+				dst[w] = '\\'
+				w++
+				dst[w] = '/'
+				w++
+
+			// special case for octal escapes (must be preserved for ID generation).
+			case c >= '0' && c <= '9':
+				dst[w] = '\\'
+				w++
+				dst[w] = c
+				w++
+
+				// anything else after a reverse solidus just preserve it.
 			default:
 				dst[w] = dst[r]
 				w++
 				dst[w] = c
+				w++
 			}
 		} else {
 			dst[w] = dst[r]

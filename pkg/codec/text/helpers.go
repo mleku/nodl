@@ -90,6 +90,15 @@ func UnmarshalQuoted(b B) (content, rem B, err error) {
 			escaping = false
 		} else {
 			escaping = false
+			switch rem[0] {
+			// none of these characters are allowed inside a JSON string:
+			//
+			// backspace, tab, newline, form feed or carriage return.
+			case '\b', '\t', '\n', '\f', '\r':
+				err = errorf.E("invalid character '%s' in quoted string",
+					NostrEscape(nil, rem[:1]))
+				return
+			}
 			contentLen++
 			rem = rem[1:]
 		}
@@ -146,6 +155,7 @@ func UnmarshalHexArray(b B, size int) (t []B, rem B, err error) {
 	}
 	return
 }
+
 // UnmarshalStringArray unpacks a JSON array containing strings.
 func UnmarshalStringArray(b B) (t []B, rem B, err error) {
 	rem = b

@@ -13,6 +13,17 @@ import (
 func (rl *T) handleEvent(ws *relayws.WS, env *eventenvelope.Submission) {
 	var err E
 	var ok bool
+	// verify the event ID
+	actualId := env.T.GetIDBytes()
+	if !equals(actualId, env.T.ID) {
+		if err = okenvelope.NewFrom(env.T.EventID(), false,
+			normalize.Error.Message(fmt.Sprintf("event ID %0x is incorrect, should be %0x",
+				env.T.ID, actualId))).Write(ws); chk.E(err) {
+			return
+		}
+		return
+	}
+	// verify the signature
 	if ok, err = env.T.Verify(); chk.E(err) {
 		// some error occurred while verifying signature
 		if err = okenvelope.NewFrom(env.T.EventID(), false,

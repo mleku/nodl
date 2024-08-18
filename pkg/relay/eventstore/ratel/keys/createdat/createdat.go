@@ -40,7 +40,6 @@ func FromKey(k []byte) (p *T) {
 		err := errorf.F("cannot get a serial without at least %d bytes", Len+serial.Len)
 		panic(err)
 	}
-	log.I.S(k)
 	key := make([]byte, 0, Len)
 	key=append(key, k[len(k)-Len-serial.Len : len(k)-serial.Len]...)
 	return &T{Val: timestamp.FromBytes(key)}

@@ -18,11 +18,10 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); chk.E(err) {
 		return
 	}
-	log.T.S(queries, extraFilter, since)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
-		log.I.S(q)
+		// log.I.S(q)
 		err = r.View(func(txn *badger.Txn) (err E) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
@@ -33,7 +32,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 				item := it.Item()
 				k := item.KeyCopy(nil)
-				log.I.S(q.skipTS, k)
 				if !q.skipTS {
 					createdAt := createdat.FromKey(k)
 					log.T.F("%d > %d", createdAt.Val.U64(), since)
@@ -42,7 +40,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					}
 				}
 				ser := serial.FromKey(k)
-				log.I.S(ser)
 				eventKeys = append(eventKeys, index.Event.Key(ser))
 			}
 			return
@@ -50,7 +47,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 		if chk.E(err) {
 			// this can't actually happen because the View function above does not set err.
 		}
-		log.T.S(eventKeys)
 		for _, eventKey := range eventKeys {
 			var v B
 			err = r.View(func(txn *badger.Txn) (err E) {
