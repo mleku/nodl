@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"git.replicatr.dev/pkg/relay"
-	"git.replicatr.dev/pkg/util/interrupt"
-	"git.replicatr.dev/pkg/util/lol"
+	"util.mleku.dev/interrupt"
+	"util.mleku.dev/lol"
 )
 
 const DefaultListener = "0.0.0.0:3334"
@@ -26,7 +26,10 @@ func main() {
 	// }
 	path := Path
 	var rl *relay.T
-	rl, err = relay.T{ListenAddresses: []S{DefaultListener}}.Init(path)
+	rl, err = relay.T{ListenAddresses: []S{
+		DefaultListener,
+		// "10.0.0.2:4869",
+	}}.Init(path)
 	rl.WG.Add(1)
 	for _, l := range rl.ListenAddresses {
 		rl.WG.Add(1)

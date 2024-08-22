@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"ec.mleku.dev/v2/schnorr"
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/kind"
-	"git.replicatr.dev/pkg/codec/timestamp"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/kind"
+	"nostr.mleku.dev/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/id"

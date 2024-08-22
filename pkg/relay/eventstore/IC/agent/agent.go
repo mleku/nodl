@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"time"
 
-	"git.replicatr.dev/pkg/util/context"
-	"git.replicatr.dev/pkg/util/hex"
+	"util.mleku.dev/context"
+	"util.mleku.dev/hex"
 	agent_go "github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"

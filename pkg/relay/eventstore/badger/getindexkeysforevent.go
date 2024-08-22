@@ -1,8 +1,8 @@
 package badger
 
 import (
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/eventid"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/eventid"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/id"

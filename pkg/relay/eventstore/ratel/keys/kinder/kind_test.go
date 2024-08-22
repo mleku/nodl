@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"git.replicatr.dev/pkg/codec/kind"
+	"nostr.mleku.dev/codec/kind"
 )
 
 func TestT(t *testing.T) {

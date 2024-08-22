@@ -3,37 +3,34 @@ package agent
 import (
 	"strings"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/filter"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filter"
 )
 
-func (b *Backend) QueryEvents(f *filter.T) (ch event.C, err error) {
-	ch = make(event.C)
-	go func() {
-		if f == nil {
-			err = log.E.Err("nil filter for query")
+func (b *Backend) QueryEvents(f *filter.T) (ch []*event.T, err error) {
+	if f == nil {
+		err = log.E.Err("nil filter for query")
+		return
+	}
+	var candidEvents []*Event
+	if candidEvents, err = b.GetCandidEvent(FilterToCandid(f)); chk.E(err) {
+		split := strings.Split(err.Error(), "Error: ")
+		if len(split) == 2 && split[1] != "No events found" {
+			log.E.F("IC error: %s", split[1])
+		}
+		return
+	}
+	log.I.Ln("got", len(candidEvents), "events")
+	for i, e := range candidEvents {
+		select {
+		case <-b.Ctx.Done():
 			return
+		default:
 		}
-		var candidEvents []*Event
-		if candidEvents, err = b.GetCandidEvent(FilterToCandid(f)); chk.E(err) {
-			split := strings.Split(err.Error(), "Error: ")
-			if len(split) == 2 && split[1] != "No events found" {
-				log.E.F("IC error: %s", split[1])
-			}
-			return
-		}
-		log.I.Ln("got", len(candidEvents), "events")
-		for i, e := range candidEvents {
-			select {
-			case <-b.Ctx.Done():
-				return
-			default:
-			}
-			log.T.Ln("sending event", i)
-			ch <- e.ToEvent()
-		}
-		log.T.Ln("done sending events")
-	}()
+		log.T.Ln("sending event", i)
+		ch = append(ch, e.ToEvent())
+	}
+	log.T.Ln("done sending events")
 	return
 }
 

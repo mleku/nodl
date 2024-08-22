@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"git.replicatr.dev/pkg/codec/tag"
-	"git.replicatr.dev/pkg/util/hex"
+	"nostr.mleku.dev/codec/tag"
+	"util.mleku.dev/hex"
 )
 
 func GetAddrTagElements(tagValue S) (k uint16, pkb B, d S) {

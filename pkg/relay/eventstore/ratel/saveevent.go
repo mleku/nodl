@@ -3,9 +3,9 @@ package ratel
 import (
 	"fmt"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/timestamp"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/createdat"

@@ -1,13 +1,13 @@
 package agent
 
 import (
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/kind"
-	"git.replicatr.dev/pkg/codec/tag"
-	"git.replicatr.dev/pkg/codec/tags"
-	"git.replicatr.dev/pkg/codec/timestamp"
-	"git.replicatr.dev/pkg/util/hex"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filter"
+	"nostr.mleku.dev/codec/kind"
+	"nostr.mleku.dev/codec/tag"
+	"nostr.mleku.dev/codec/tags"
+	"nostr.mleku.dev/codec/timestamp"
+	"util.mleku.dev/hex"
 )
 
 func TagsToKV(t *tags.T) (keys []KeyValuePair) {

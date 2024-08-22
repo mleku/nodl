@@ -5,8 +5,8 @@ package eventstore
 // 	"fmt"
 // 	"sort"
 //
-// 	"git.replicatr.dev/pkg/codec/event"
-// 	"git.replicatr.dev/pkg/codec/filter"
+// 	"nostr.mleku.dev/codec/event"
+// 	"nostr.mleku.dev/codec/filter"
 // 	"git.replicatr.dev/pkg/relay/subscriptionoption"
 // )
 //

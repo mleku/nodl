@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"ec.mleku.dev/v2/bech32"
-	"git.replicatr.dev/pkg/codec/bech32encoding"
-	"git.replicatr.dev/pkg/crypto/p256k"
-	"git.replicatr.dev/pkg/util/atomic"
-	"git.replicatr.dev/pkg/util/interrupt"
-	"git.replicatr.dev/pkg/util/qu"
 	"github.com/alexflint/go-arg"
+	"nostr.mleku.dev/codec/bech32encoding"
+	"nostr.mleku.dev/crypto/p256k"
+	"util.mleku.dev/atomic"
+	"util.mleku.dev/interrupt"
+	"util.mleku.dev/qu"
 )
 
 type Result struct {
@@ -130,7 +130,8 @@ out:
 	return
 }
 
-func mine(str B, where int, quit qu.C, resC chan Result, wg *sync.WaitGroup, counter *atomic.Int64) {
+func mine(str B, where int, quit qu.C, resC chan Result, wg *sync.WaitGroup,
+	counter *atomic.Int64) {
 
 	wg.Add(1)
 	var r Result

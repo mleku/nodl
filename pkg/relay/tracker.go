@@ -3,10 +3,10 @@ package relay
 import (
 	"sync"
 
-	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/filters"
-	"git.replicatr.dev/pkg/codec/subscriptionid"
-	"git.replicatr.dev/pkg/protocol/relayws"
+	"nostr.mleku.dev/codec/filter"
+	"nostr.mleku.dev/codec/filters"
+	"nostr.mleku.dev/codec/subscriptionid"
+	"nostr.mleku.dev/protocol/relayws"
 )
 
 type WS = *relayws.WS

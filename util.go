@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 
-	"git.replicatr.dev/pkg/util/lol"
+	"util.mleku.dev/lol"
 )
 
 type (

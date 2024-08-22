@@ -8,7 +8,7 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/serial"
-	"git.replicatr.dev/pkg/util/context"
+	"util.mleku.dev/context"
 	"github.com/dgraph-io/badger/v4"
 )
 

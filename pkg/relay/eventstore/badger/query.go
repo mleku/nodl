@@ -3,21 +3,20 @@ package badger
 import (
 	"container/heap"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/priority"
-	"git.replicatr.dev/pkg/util/context"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/minio/sha256-simd"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/filter"
+	"nostr.mleku.dev/codec/timestamp"
+	"util.mleku.dev/context"
 )
 
-func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C, err E) {
-	ch = make(event.C, 1)
+func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch []*event.T, err E) {
 	log.I.Ln("badger.Backend.QueryEvents")
 	var queries []query
 	var extraFilter *filter.T
@@ -34,13 +33,20 @@ func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C, err E) {
 	if f.Limit > 0 && f.Limit < limit {
 		limit = f.Limit
 	}
-	go b.QueryEventsLoop(c, ch, accessChan, queries, limit, extraFilter, since)
+	var evC event.C
+	go b.QueryEventsLoop(c, evC, accessChan, queries, limit, extraFilter, since)
+	for ev := range evC {
+		if ev == nil {
+			break
+		}
+		ch = append(ch, ev)
+	}
 	return ch, nil
 }
 
 func (b *Backend) QueryEventsLoop(c context.T, ch event.C,
-	accessChan chan *AccessEvent,
-	queries []query, limit int, extraFilter *filter.T, since uint64) {
+	accessChan chan *AccessEvent, queries []query, limit int, extraFilter *filter.T,
+	since uint64) {
 
 	var err error
 	defer func() {

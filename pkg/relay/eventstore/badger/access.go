@@ -3,10 +3,10 @@ package badger
 import (
 	"fmt"
 
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/timestamp"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
-	"git.replicatr.dev/pkg/util/context"
+	"util.mleku.dev/context"
 	"github.com/dgraph-io/badger/v4"
 )
 

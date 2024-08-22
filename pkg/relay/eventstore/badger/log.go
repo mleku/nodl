@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"strings"
 
-	"git.replicatr.dev/pkg/util/atomic"
-	"git.replicatr.dev/pkg/util/lol"
+	"util.mleku.dev/atomic"
+	"util.mleku.dev/lol"
 )
 
 func NewLogger(logLevel int, label string) (l *logger) {

@@ -3,8 +3,8 @@ package count
 import (
 	"bytes"
 
-	"git.replicatr.dev/pkg/util/context"
-	"git.replicatr.dev/pkg/util/lol"
+	"util.mleku.dev/context"
+	"util.mleku.dev/lol"
 )
 
 type (

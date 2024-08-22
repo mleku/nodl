@@ -3,7 +3,7 @@ package badger
 import (
 	"time"
 
-	"git.replicatr.dev/pkg/codec/event"
+	"nostr.mleku.dev/codec/event"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 	"github.com/dgraph-io/badger/v4"

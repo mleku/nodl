@@ -4,14 +4,14 @@ import (
 	"sync"
 	"time"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/IConly"
 	"git.replicatr.dev/pkg/relay/eventstore/badger"
 	"git.replicatr.dev/pkg/relay/eventstore/l2"
-	"git.replicatr.dev/pkg/util/context"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filter"
+	"nostr.mleku.dev/codec/timestamp"
+	"util.mleku.dev/context"
 )
 
 // Backend is a hybrid badger/Internet Computer based event store.
@@ -54,14 +54,16 @@ func GetBackend(c context.T, wg *sync.WaitGroup, L1 *badger.Backend,
 //
 // required params are address, canister ID and the badger event store size
 // limit (which can be 0)
-func (b *Backend) Init() (err error) {
+func (b *Backend) Init(_ S) (err error) {
 	log.I.Ln("initializing badger/IC hybrid event store")
-	return b.Backend.Init()
+	return b.Backend.Init("")
 }
+
+func (b *Backend) Nuke() (err E) { return }
 
 // Close the connection to the database.
 // IC is a request/response API authing at each request.
-func (b *Backend) Close() { b.Backend.Close() }
+func (b *Backend) Close() (err E) { b.Backend.Close(); return }
 
 // CountEvents returns the number of events found matching the filter.
 func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, err error) {
@@ -75,7 +77,7 @@ func (b *Backend) DeleteEvent(c context.T, ev *event.T) (err error) {
 
 // QueryEvents searches for events that match a filter and returns them
 // asynchronously over a provided channel.
-func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C,
+func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch []*event.T,
 	err error) {
 	return b.Backend.QueryEvents(c, f)
 }

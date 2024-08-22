@@ -9,10 +9,10 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/badger/del"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
-	"git.replicatr.dev/pkg/util/context"
-	"git.replicatr.dev/pkg/util/units"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
+	"util.mleku.dev/context"
+	"util.mleku.dev/units"
 )
 
 var _ eventstore.I = (*Backend)(nil)

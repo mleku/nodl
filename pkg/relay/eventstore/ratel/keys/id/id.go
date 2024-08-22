@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"git.replicatr.dev/pkg/codec/eventid"
+	"nostr.mleku.dev/codec/eventid"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys"
-	"git.replicatr.dev/pkg/util/hex"
+	"util.mleku.dev/hex"
 )
 
 const Len = 8

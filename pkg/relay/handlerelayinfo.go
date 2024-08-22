@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"git.replicatr.dev/pkg/protocol/relayinfo"
-	"git.replicatr.dev/pkg/util/number"
+	"nostr.mleku.dev/protocol/relayinfo"
+	"util.mleku.dev/number"
 )
 
 var nips = number.List{

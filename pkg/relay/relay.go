@@ -5,17 +5,17 @@ import (
 	"sync"
 	"time"
 
-	"git.replicatr.dev/pkg/crypto/p256k"
-	"git.replicatr.dev/pkg/protocol/relayinfo"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel"
-	"git.replicatr.dev/pkg/util/atomic"
-	"git.replicatr.dev/pkg/util/context"
-	"git.replicatr.dev/pkg/util/interrupt"
-	"git.replicatr.dev/pkg/util/lol"
-	"git.replicatr.dev/pkg/util/units"
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
+	"nostr.mleku.dev/crypto/p256k"
+	"nostr.mleku.dev/protocol/relayinfo"
+	"util.mleku.dev/atomic"
+	"util.mleku.dev/context"
+	"util.mleku.dev/interrupt"
+	"util.mleku.dev/lol"
+	"util.mleku.dev/units"
 )
 
 const (

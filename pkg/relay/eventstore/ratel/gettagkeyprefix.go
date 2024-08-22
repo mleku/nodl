@@ -7,7 +7,7 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/index"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/kinder"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/pubkey"
-	"git.replicatr.dev/pkg/util/hex"
+	"util.mleku.dev/hex"
 )
 
 // GetTagKeyPrefix returns tag index prefixes based on the initial field of a

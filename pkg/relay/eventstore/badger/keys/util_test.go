@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"os"
 
-	"git.replicatr.dev/pkg/util/lol"
+	"util.mleku.dev/lol"
 )
 
 type (

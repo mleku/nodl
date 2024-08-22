@@ -15,8 +15,8 @@ package badger
 // 	"git.replicatr.dev/pkg/relay/tag"
 // 	"git.replicatr.dev/pkg/relay/tests"
 // 	"lukechampine.com/frand"
-// 	"git.replicatr.dev/pkg/util/interrupt"
-// 	"git.replicatr.dev/pkg/util/qu"
+// 	"util.mleku.dev/interrupt"
+// 	"util.mleku.dev/qu"
 // )
 
 // type Counter struct {

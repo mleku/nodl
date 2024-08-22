@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/index"
-	"git.replicatr.dev/pkg/util/units"
+	"util.mleku.dev/units"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/badger/v4/options"
 )

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"git.replicatr.dev/pkg/codec/eventid"
+	"nostr.mleku.dev/codec/eventid"
 	"github.com/minio/sha256-simd"
 	"lukechampine.com/frand"
 )

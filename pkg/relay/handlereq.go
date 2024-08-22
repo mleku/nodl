@@ -3,12 +3,12 @@ package relay
 import (
 	"sort"
 
-	"git.replicatr.dev/pkg/codec/envelopes/eoseenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/filters"
-	"git.replicatr.dev/pkg/codec/subscriptionid"
-	"git.replicatr.dev/pkg/protocol/relayws"
+	"nostr.mleku.dev/codec/envelopes/eoseenvelope"
+	"nostr.mleku.dev/codec/envelopes/eventenvelope"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filters"
+	"nostr.mleku.dev/codec/subscriptionid"
+	"nostr.mleku.dev/protocol/relayws"
 )
 
 func (rl *T) handleReq(ws *relayws.WS, ff *filters.T, sub *subscriptionid.T) {

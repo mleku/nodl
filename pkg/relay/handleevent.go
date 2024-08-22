@@ -3,11 +3,11 @@ package relay
 import (
 	"fmt"
 
-	"git.replicatr.dev/pkg/codec/envelopes/eventenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/noticeenvelope"
-	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
-	"git.replicatr.dev/pkg/protocol/relayws"
-	"git.replicatr.dev/pkg/util/normalize"
+	"nostr.mleku.dev/codec/envelopes/eventenvelope"
+	"nostr.mleku.dev/codec/envelopes/noticeenvelope"
+	"nostr.mleku.dev/codec/envelopes/okenvelope"
+	"nostr.mleku.dev/protocol/relayws"
+	"util.mleku.dev/normalize"
 )
 
 func (rl *T) handleEvent(ws *relayws.WS, env *eventenvelope.Submission) {

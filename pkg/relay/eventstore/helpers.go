@@ -3,7 +3,7 @@ package eventstore
 import (
 	"bytes"
 
-	"git.replicatr.dev/pkg/codec/event"
+	"nostr.mleku.dev/codec/event"
 )
 
 func isOlder(prev, next *event.T) bool {

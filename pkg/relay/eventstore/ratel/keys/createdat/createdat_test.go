@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"git.replicatr.dev/pkg/codec/timestamp"
+	"nostr.mleku.dev/codec/timestamp"
 	"lukechampine.com/frand"
 )
 

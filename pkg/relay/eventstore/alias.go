@@ -3,9 +3,9 @@ package eventstore
 import (
 	"net/http"
 
-	"git.replicatr.dev/pkg/codec/envelopes/okenvelope"
-	"git.replicatr.dev/pkg/codec/subscriptionid"
-	"git.replicatr.dev/pkg/protocol/relayws"
+	"nostr.mleku.dev/codec/envelopes/okenvelope"
+	"nostr.mleku.dev/codec/subscriptionid"
+	"nostr.mleku.dev/protocol/relayws"
 )
 
 type SubID = subscriptionid.T

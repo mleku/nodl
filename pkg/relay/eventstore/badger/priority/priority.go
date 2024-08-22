@@ -1,7 +1,7 @@
 package priority
 
 import (
-	"git.replicatr.dev/pkg/codec/event"
+	"nostr.mleku.dev/codec/event"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )
 

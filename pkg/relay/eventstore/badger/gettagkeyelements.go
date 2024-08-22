@@ -12,7 +12,7 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/kinder"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/pubkey"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
-	"git.replicatr.dev/pkg/util/hex"
+	"util.mleku.dev/hex"
 )
 
 func GetTagKeyElements(tagValue string, CA *createdat.T,

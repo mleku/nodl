@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"git.replicatr.dev/pkg/codec/timestamp"
+	"nostr.mleku.dev/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/badger/keys/serial"
 )

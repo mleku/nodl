@@ -9,14 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/filter"
-	"git.replicatr.dev/pkg/codec/tag"
-	"git.replicatr.dev/pkg/codec/timestamp"
 	"git.replicatr.dev/pkg/relay/eventstore"
 	"git.replicatr.dev/pkg/relay/eventstore/badger"
-	"git.replicatr.dev/pkg/util/context"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/filter"
+	"nostr.mleku.dev/codec/timestamp"
+	"util.mleku.dev/context"
 )
 
 type Backend struct {
@@ -40,11 +38,11 @@ type Backend struct {
 	EventSignal event.C
 }
 
-func (b *Backend) Init() (err error) {
-	if err = b.L1.Init(); chk.E(err) {
+func (b *Backend) Init(_ S) (err error) {
+	if err = b.L1.Init(""); chk.E(err) {
 		return
 	}
-	if err = b.L2.Init(); chk.E(err) {
+	if err = b.L2.Init(""); chk.E(err) {
 		return
 	}
 	// if poll syncing is disabled don't start the ticker
@@ -68,40 +66,48 @@ func (b *Backend) Init() (err error) {
 				return
 			case <-ticker.C:
 				until := timestamp.Now()
-				var ch event.C
+				var ch []*event.T
 				if ch, err = b.L2.QueryEvents(b.Ctx,
 					&filter.T{Since: last, Until: until}); chk.E(err) {
 					continue out
 				}
 				last.FromInt(until.Int() - b.PollOverlap.Int()*int(b.PollFrequency)/int(time.Second))
-				go func() {
-					for {
-						select {
-						case <-b.Ctx.Done():
-							b.Close()
-							return
-						case ev := <-ch:
-							if ev == nil {
-								return
-							} else {
-								chk.T(b.L1.SaveEvent(b.Ctx, ev))
-								// trigger the event signal so the client triggers broadcast
-								if b.EventSignal != nil {
-									b.EventSignal <- ev
-								}
-							}
-						}
+				// go func() {
+				// 	for {
+				// 		select {
+				// 		case <-b.Ctx.Done():
+				// 			b.Close()
+				// 			return
+				// 		case ev := <-ch:
+				// 			if ev == nil {
+				// 				return
+				// 			} else {
+				for _, ev := range ch {
+					chk.T(b.L1.SaveEvent(b.Ctx, ev))
+					// trigger the event signal so the client triggers broadcast
+					if b.EventSignal != nil {
+						b.EventSignal <- ev
 					}
-				}()
+				}
+				// 			}
+				// 		}
+				// 	}
+				// }()
 			}
 		}
 	}()
 	return
 }
 
-func (b *Backend) Close() {
-	b.L1.Close()
-	b.L2.Close()
+func (b *Backend) Nuke() (err E) { return }
+
+func (b *Backend) Close() (err E) {
+	if err = b.L1.Close(); chk.E(err) {
+		return
+	}
+	if err = b.L2.Close(); chk.E(err) {
+		return
+	}
 	return
 }
 
@@ -124,110 +130,109 @@ func (b *Backend) SaveLoop(c context.T, saveChan event.C) {
 	}
 }
 
-func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch event.C,
-	err error) {
-	ch = make(event.C)
-	// Both calls are async so fire them off at the same time
-	ch1, err1 := b.L1.QueryEvents(c, f)
-	ch2, err2 := b.L2.QueryEvents(c, f)
-	// Start up a goroutine to catch evMap that need to be synced back after being
-	// pruned and then match a search and pulled from the L2.
-	//
-	// It is necessary to use a second goroutine for this because handling the
-	// returns to the caller are more important. Thus the save operation is done
-	// after the query context is canceled.
-	saveChan := make(event.C)
-	evMap := make(map[*eventid.T]struct{})
-	go b.SaveLoop(c, saveChan)
-	// Events should not be duplicated in the return to the client, so a
-	// mutex and eventid.T map will indicate if an event has already been returned.
-	errs := []error{err1, err2}
-	go func() {
-		defer close(ch)
-		// get results from the first, first.
-	out1:
-		for {
-			select {
-			case <-c.Done():
-				// if context is closed, break out
-				return
-			case <-b.Ctx.Done():
-				// if backend shutting down quit
-				return
-			case ev1 := <-ch1:
-				if ev1 == nil {
-					// log.W.Ln("nil event")
-					break out1
-				}
-				// no point in storing it if it is already found.
-				// log.I.Ln(evMap)
-				_, ok := evMap[eventid.NewWith(ev1.ID)]
-				if ok {
-					continue
-				}
-				evMap[eventid.NewWith(ev1.ID)] = struct{}{}
-				// if the event is missing a signature, we can ascertain that the L1 has found a
-				// reference to an event but does not have possession of the event.
-				if len(ev1.Sig) == 0 && len(ev1.ID) != 0 {
-					// spawn a query to fetch the event ID from the L2
-					b.Revive(ev1, c, ch, saveChan)
-				} else {
-					// first to find should send
-					ch <- ev1
-				}
-			}
-		}
-		// anything that comes from the second, that we already got from the first,
-		// don't return it as it already has been.
-	out2:
-		for {
-			select {
-			case <-c.Done():
-				// if context is closed, break out
-				return
-			case <-b.Ctx.Done():
-				// if backend shutting down quit
-				return
-			case ev2 := <-ch2:
-				if ev2 == nil {
-					// log.W.Ln("nil event")
-					break out2
-				}
-				// no point in storing it if it is already found.
-				// log.I.Ln(evMap)
-				_, ok := evMap[eventid.NewWith(ev2.ID)]
-				if ok {
-					log.I.Ln("L1 already found", ev2.ID)
-					continue
-				}
-				evMap[eventid.NewWith(ev2.ID)] = struct{}{}
-				// first to find should send
-				ch <- ev2
-			}
-		}
-	}()
-	err = errors.Join(errs...)
+func (b *Backend) QueryEvents(c context.T, f *filter.T) (ch []*event.T, err error) {
+	// ch = make(event.C)
+	// // Both calls are async so fire them off at the same time
+	// ch1, err1 := b.L1.QueryEvents(c, f)
+	// ch2, err2 := b.L2.QueryEvents(c, f)
+	// // Start up a goroutine to catch evMap that need to be synced back after being
+	// // pruned and then match a search and pulled from the L2.
+	// //
+	// // It is necessary to use a second goroutine for this because handling the
+	// // returns to the caller are more important. Thus the save operation is done
+	// // after the query context is canceled.
+	// saveChan := make(event.C)
+	// evMap := make(map[*eventid.T]struct{})
+	// go b.SaveLoop(c, saveChan)
+	// // Events should not be duplicated in the return to the client, so a
+	// // mutex and eventid.T map will indicate if an event has already been returned.
+	// errs := []error{err1, err2}
+	// go func() {
+	// 	defer close(ch)
+	// 	// get results from the first, first.
+	// 	// out1:
+	// 	for {
+	// 		select {
+	// 		case <-c.Done():
+	// 			// if context is closed, break out
+	// 			return
+	// 		case <-b.Ctx.Done():
+	// 			// if backend shutting down quit
+	// 			return
+	// 			// case ev1 := <-ch1:
+	// 			// 	if ev1 == nil {
+	// 			// 		// log.W.Ln("nil event")
+	// 			// 		break out1
+	// 			// 	}
+	// 			// 	// no point in storing it if it is already found.
+	// 			// 	// log.I.Ln(evMap)
+	// 			// 	_, ok := evMap[eventid.NewWith(ev1.ID)]
+	// 			// 	if ok {
+	// 			// 		continue
+	// 			// 	}
+	// 			// 	evMap[eventid.NewWith(ev1.ID)] = struct{}{}
+	// 			// 	// if the event is missing a signature, we can ascertain that the L1 has found a
+	// 			// 	// reference to an event but does not have possession of the event.
+	// 			// 	if len(ev1.Sig) == 0 && len(ev1.ID) != 0 {
+	// 			// 		// spawn a query to fetch the event ID from the L2
+	// 			// 		b.Revive(ev1, c, ch, saveChan)
+	// 			// 	} else {
+	// 			// 		// first to find should send
+	// 			// 		ch <- ev1
+	// 			// 	}
+	// 			// }
+	// 		}
+	// 		// anything that comes from the second, that we already got from the first,
+	// 		// don't return it as it already has been.
+	// 		// out2:
+	// 		// 	for {
+	// 		// 		select {
+	// 		// 		case <-c.Done():
+	// 		// 			// if context is closed, break out
+	// 		// 			return
+	// 		// 		case <-b.Ctx.Done():
+	// 		// 			// if backend shutting down quit
+	// 		// 			return
+	// 		// 		case ev2 := <-ch2:
+	// 		// 			if ev2 == nil {
+	// 		// 				// log.W.Ln("nil event")
+	// 		// 				break out2
+	// 		// 			}
+	// 		// 			// no point in storing it if it is already found.
+	// 		// 			// log.I.Ln(evMap)
+	// 		// 			_, ok := evMap[eventid.NewWith(ev2.ID)]
+	// 		// 			if ok {
+	// 		// 				log.I.Ln("L1 already found", ev2.ID)
+	// 		// 				continue
+	// 		// 			}
+	// 		// 			evMap[eventid.NewWith(ev2.ID)] = struct{}{}
+	// 		// 			// first to find should send
+	// 		// 			ch <- ev2
+	// 		// 		}
+	// 	}
+	// }()
+	// err = errors.Join(errs...)
 	return
 }
 
 func (b *Backend) Revive(ev1 *event.T, c context.T, ch, saveChan event.C) {
 	log.T.F("retrieving event %s from L2", ev1.ID)
-	ch3, err3 := b.L2.QueryEvents(c,
-		&filter.T{IDs: tag.New(ev1.ID)})
-	chk.E(err3)
-	for {
-		select {
-		case <-c.Done():
-			// if context is closed, break out
-			return
-		case ev3 := <-ch3:
-			ch <- ev3
-			// need to queue up the event to restore the event and counter records
-			saveChan <- ev3
-			// there can only be one
-			return
-		}
-	}
+	// ch3, err3 := b.L2.QueryEvents(c,
+	// 	&filter.T{IDs: tag.New(ev1.ID)})
+	// chk.E(err3)
+	// for {
+	// 	select {
+	// 	case <-c.Done():
+	// 		// if context is closed, break out
+	// 		return
+	// 	case ev3 := <-ch3:
+	// 		ch <- ev3
+	// 		// need to queue up the event to restore the event and counter records
+	// 		saveChan <- ev3
+	// 		// there can only be one
+	// 		return
+	// 	}
+	// }
 }
 
 func (b *Backend) CountEvents(c context.T, f *filter.T) (count int, err error) {

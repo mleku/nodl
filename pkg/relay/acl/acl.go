@@ -6,13 +6,13 @@ import (
 	"sync"
 
 	"ec.mleku.dev/v2/schnorr"
-	"git.replicatr.dev/pkg/codec/event"
-	"git.replicatr.dev/pkg/codec/eventid"
-	"git.replicatr.dev/pkg/codec/kind"
-	"git.replicatr.dev/pkg/codec/tag"
-	"git.replicatr.dev/pkg/codec/tags"
-	"git.replicatr.dev/pkg/codec/timestamp"
-	"git.replicatr.dev/pkg/util/hex"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/kind"
+	"nostr.mleku.dev/codec/tag"
+	"nostr.mleku.dev/codec/tags"
+	"nostr.mleku.dev/codec/timestamp"
+	"util.mleku.dev/hex"
 )
 
 type Role int
