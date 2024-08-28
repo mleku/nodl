@@ -1,9 +1,6 @@
 package ratel
 
 import (
-	"nostr.mleku.dev/codec/event"
-	"nostr.mleku.dev/codec/eventid"
-	"nostr.mleku.dev/codec/tag"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/createdat"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/id"
@@ -11,6 +8,9 @@ import (
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/kinder"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/pubkey"
 	"git.replicatr.dev/pkg/relay/eventstore/ratel/keys/serial"
+	"nostr.mleku.dev/codec/event"
+	"nostr.mleku.dev/codec/eventid"
+	"nostr.mleku.dev/codec/tag"
 )
 
 // GetIndexKeysForEvent generates all the index keys required to filter for
