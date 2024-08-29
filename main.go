@@ -1,10 +1,11 @@
 package main
 
 import (
+	"git.replicatr.dev/relay"
 	"net/http"
+	. "nostr.mleku.dev"
 	"os"
 
-	"git.replicatr.dev/pkg/relay"
 	"util.mleku.dev/interrupt"
 	"util.mleku.dev/lol"
 )
@@ -21,7 +22,7 @@ func main() {
 		}
 	}()
 	// var path S
-	// if path, err = os.MkdirTemp("", "replicatr"); chk.E(err) {
+	// if path, err = os.MkdirTemp("", "replicatr"); Chk.E(err) {
 	// 	return
 	// }
 	path := Path
@@ -34,9 +35,9 @@ func main() {
 	for _, l := range rl.ListenAddresses {
 		rl.WG.Add(1)
 		go func(l S) {
-			log.I.F("listening on %s", l)
+			Log.I.F("listening on %s", l)
 			srv := http.Server{Addr: l, Handler: rl}
-			interrupt.AddHandler(func() { chk.E(srv.Close()) })
+			interrupt.AddHandler(func() { Chk.E(srv.Close()) })
 			_ = srv.ListenAndServe()
 			rl.WG.Done()
 		}(l)
@@ -44,7 +45,7 @@ func main() {
 	interrupt.AddHandler(func() {
 		rl.Cancel()
 		rl.WG.Done()
-		if err = os.RemoveAll(path); chk.E(err) {
+		if err = os.RemoveAll(path); Chk.E(err) {
 			return
 		}
 	})

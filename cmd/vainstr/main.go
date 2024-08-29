@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	. "nostr.mleku.dev"
 	"os"
 	"runtime"
 	"strings"
@@ -65,7 +66,7 @@ Options:
 	if args.Threads == 0 {
 		args.Threads = runtime.NumCPU()
 	}
-	if err := Vanity(B(args.String), where, args.Threads); chk.F(err) {
+	if err := Vanity(B(args.String), where, args.Threads); Chk.F(err) {
 	}
 }
 
@@ -105,7 +106,7 @@ out:
 			workingFor := time.Now().Sub(started)
 			wm := workingFor % time.Second
 			workingFor -= wm
-			log.I.F("working for %v, attempts %d",
+			Log.I.F("working for %v, attempts %d",
 				workingFor, counter.Load())
 		case r := <-resC:
 			// one of the workers found the solution
@@ -160,8 +161,8 @@ out:
 		}
 		counter.Inc()
 		pkb, err = s.Generate()
-		if r.npub, err = bech32encoding.BinToNpub(pkb[1:]); chk.E(err) {
-			log.F.Ln("fatal error generating npub: %s\n", err)
+		if r.npub, err = bech32encoding.BinToNpub(pkb[1:]); Chk.E(err) {
+			Log.F.Ln("fatal error generating npub: %s\n", err)
 			break out
 		}
 		switch where {

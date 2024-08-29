@@ -10,7 +10,7 @@ require (
 	github.com/minio/sha256-simd v1.0.1
 	github.com/rs/cors v1.11.0
 	lukechampine.com/frand v1.4.2
-	nostr.mleku.dev v0.1.3
+	nostr.mleku.dev v0.1.5
 	util.mleku.dev v1.0.0
 )
 
