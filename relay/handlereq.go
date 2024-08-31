@@ -1,8 +1,9 @@
 package relay
 
 import (
-	. "nostr.mleku.dev"
 	"sort"
+
+	. "nostr.mleku.dev"
 
 	"nostr.mleku.dev/codec/envelopes/eoseenvelope"
 	"nostr.mleku.dev/codec/envelopes/eventenvelope"
@@ -12,7 +13,7 @@ import (
 	"nostr.mleku.dev/protocol/ws"
 )
 
-func (rl *T) handleReq(ws *ws.Serv, ff *filters.T, sub *subscriptionid.T) {
+func (rl *T) handleReq(ws *ws.Serv, sub *subscriptionid.T, ff *filters.T) {
 	var err E
 	Log.T.S(ff)
 	if ff == nil {

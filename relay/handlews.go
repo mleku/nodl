@@ -2,9 +2,10 @@ package relay
 
 import (
 	"net/http"
+	"time"
+
 	. "nostr.mleku.dev"
 	"nostr.mleku.dev/protocol/ws"
-	"time"
 
 	W "github.com/fasthttp/websocket"
 	"nostr.mleku.dev/codec/envelopes"
@@ -103,12 +104,6 @@ func (rl *T) wsReadMessages(ws *ws.Serv, cancel C.F) {
 				return
 			}
 			Log.I.S(env)
-		// case closedenvelope.L:
-		// 	env := closedenvelope.New()
-		// 	if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
-		// 		return
-		// 	}
-		// 	Log.I.S(env)
 		case closeenvelope.L:
 			env := closeenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
@@ -121,12 +116,6 @@ func (rl *T) wsReadMessages(ws *ws.Serv, cancel C.F) {
 				return
 			}
 			Log.I.S(env)
-		// case eoseenvelope.L:
-		// 	env := eoseenvelope.New()
-		// 	if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
-		// 		return
-		// 	}
-		// 	Log.I.S(env)
 		case eventenvelope.L:
 			env := eventenvelope.NewSubmission()
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
@@ -137,25 +126,13 @@ func (rl *T) wsReadMessages(ws *ws.Serv, cancel C.F) {
 				continue
 			}
 			rl.handleEvent(ws, env)
-		// case noticeenvelope.L:
-		// 	env := noticeenvelope.New()
-		// 	if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
-		// 		return
-		// 	}
-		// 	Log.I.S(env)
-		// case okenvelope.L:
-		// 	env := okenvelope.New()
-		// 	if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
-		// 		return
-		// 	}
-		// 	Log.I.S(env)
 		case reqenvelope.L:
 			env := reqenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
 				return
 			}
 			rl.Tracker.Do(func() { rl.AddSub(ws, env.Subscription, env.Filters) })
-			rl.handleReq(ws, env.Filters, env.Subscription)
+			rl.handleReq(ws, env.Subscription, env.Filters)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package ratel
 
 import (
 	"fmt"
+
 	"git.replicatr.dev/eventstore"
 	"git.replicatr.dev/eventstore/ratel/keys"
 	"git.replicatr.dev/eventstore/ratel/keys/createdat"
@@ -18,6 +19,10 @@ import (
 )
 
 func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
+	if ev.Kind.IsEphemeral() {
+		Log.I.F("not saving ephemeral event\n%s", ev.Serialize())
+		return
+	}
 	Log.T.C(func() S {
 		evs, _ := ev.MarshalJSON(nil)
 		return fmt.Sprintf("saving event\n%d %s", len(evs), evs)

@@ -19,10 +19,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); Chk.E(err) {
 		return
 	}
+	Log.I.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
 	for _, q := range queries {
-		// Log.I.S(q)
+		Log.I.S(q, extraFilter)
 		err = r.View(func(txn *badger.Txn) (err E) {
 			// iterate only through keys and in reverse order
 			opts := badger.IteratorOptions{
@@ -30,12 +31,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			}
 			it := txn.NewIterator(opts)
 			defer it.Close()
+			// for it.Rewind(); it.Valid(); it.Next() {
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 				item := it.Item()
 				k := item.KeyCopy(nil)
 				if !q.skipTS {
 					createdAt := createdat.FromKey(k)
-					Log.T.F("%d > %d", createdAt.Val.U64(), since)
+					Log.T.F("%d < %d", createdAt.Val.U64(), since)
 					if createdAt.Val.U64() < since {
 						break
 					}
@@ -49,13 +51,23 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			// this can't actually happen because the View function above does not set err.
 		}
 		for _, eventKey := range eventKeys {
+			// Log.I.S(eventKey)
 			var v B
 			err = r.View(func(txn *badger.Txn) (err E) {
 				opts := badger.IteratorOptions{Reverse: true}
 				it := txn.NewIterator(opts)
 				defer it.Close()
+				// for it.Rewind(); it.Valid(); it.Next() {
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
+					k := item.KeyCopy(nil)
+					// if len(k) < len(q.searchPrefix) {
+					// 	continue
+					// }
+					// if !bytes.HasPrefix(k, eventKey) {
+					// 	continue
+					// }
+					Log.I.S(k)
 					if v, err = item.ValueCopy(nil); Chk.E(err) {
 						continue
 					}
@@ -91,14 +103,19 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if len(rem) > 0 {
 				Log.T.S(rem)
 			}
+			Log.I.S(ev)
 			// check if this matches the other filters that were not part of the index
 			if extraFilter == nil || extraFilter.Matches(ev) {
 				// todo: this is getting stuck here and causing a major goroutine leak
 				Log.T.F("sending back result %s", ev)
 				evs = append(evs, ev)
-			}
+				f.Limit--
+				if f.Limit==0 {
+					return
+				}			}
 		}
 	}
+	Log.I.S(evs)
 	Log.I.Ln("query complete")
 	return
 }

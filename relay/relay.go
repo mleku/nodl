@@ -1,12 +1,13 @@
 package relay
 
 import (
-	"git.replicatr.dev/eventstore"
-	"git.replicatr.dev/eventstore/ratel"
 	"net/http"
-	. "nostr.mleku.dev"
 	"sync"
 	"time"
+
+	"git.replicatr.dev/eventstore"
+	"git.replicatr.dev/eventstore/ratel"
+	. "nostr.mleku.dev"
 
 	"github.com/fasthttp/websocket"
 	"github.com/rs/cors"
@@ -40,7 +41,7 @@ const (
 // locked.
 //
 // subMap keeps track of distinctive filters for which each associates with a websocket
-// connection. Access only with Mutex// locked.
+// connection. Access only with Mutex locked, using Tracker.Do.
 type T struct {
 	Ctx             context.T
 	Cancel          context.F
@@ -50,8 +51,8 @@ type T struct {
 	upgrader        websocket.Upgrader
 	relayInfo       *relayinfo.T
 	serveMux        *http.ServeMux
-	identity *p256k.Signer
-	Store    eventstore.I
+	identity        *p256k.Signer
+	Store           eventstore.I
 	Tracker
 }
 
@@ -63,7 +64,7 @@ func (rl T) Init(path S) (r *T, err E) {
 		WriteBufferSize: WriteBufferSize,
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
-	rl.Tracker.Do(func() { rl.Tracker.Init() })
+	rl.Tracker.Do(func() { rl.Tracker.Init(rl.Ctx) })
 	rl.identity = &p256k.Signer{}
 	if err = rl.identity.Generate(); Chk.E(err) {
 	}

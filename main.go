@@ -1,10 +1,11 @@
 package main
 
 import (
-	"git.replicatr.dev/relay"
 	"net/http"
-	. "nostr.mleku.dev"
 	"os"
+
+	"git.replicatr.dev/relay"
+	. "nostr.mleku.dev"
 
 	"util.mleku.dev/interrupt"
 	"util.mleku.dev/lol"
@@ -27,10 +28,15 @@ func main() {
 	// }
 	path := Path
 	var rl *relay.T
-	rl, err = relay.T{ListenAddresses: []S{
-		DefaultListener,
-		// "10.0.0.2:4869",
-	}}.Init(path)
+	rl, err = relay.T{
+		ListenAddresses: []S{
+			DefaultListener,
+			// "10.0.0.2:4869",
+		},
+		Tracker: relay.Tracker{
+
+		},
+	}.Init(path)
 	rl.WG.Add(1)
 	for _, l := range rl.ListenAddresses {
 		rl.WG.Add(1)
