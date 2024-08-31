@@ -3,12 +3,13 @@ package ratel
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
+
 	"git.replicatr.dev/eventstore/ratel/keys/id"
 	"git.replicatr.dev/eventstore/ratel/keys/index"
 	"git.replicatr.dev/eventstore/ratel/keys/kinder"
 	"git.replicatr.dev/eventstore/ratel/keys/pubkey"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
-	"math"
 	. "nostr.mleku.dev"
 
 	"nostr.mleku.dev/codec/event"
@@ -102,7 +103,7 @@ func PrepareQueries(f *filter.T) (
 			}
 			// Log.T.S("authors/kinds", qs)
 		}
-		if f.Tags != nil || f.Tags.Len() > 0 {
+		if f.Tags != nil && f.Tags.T != nil || f.Tags.Len() > 0 {
 			ext = &filter.T{Tags: f.Tags}
 			// Log.T.S("extra filter", ext)
 		}

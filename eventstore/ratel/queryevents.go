@@ -19,6 +19,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 	if queries, extraFilter, since, err = PrepareQueries(f); Chk.E(err) {
 		return
 	}
+	var limit bool
+	if f.Limit != 0 {
+		Log.W.S("query has a limit")
+		limit = true
+	}
 	Log.I.S(queries, extraFilter)
 	// search for the keys generated from the filter
 	var eventKeys [][]byte
@@ -60,17 +65,18 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				// for it.Rewind(); it.Valid(); it.Next() {
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
-					k := item.KeyCopy(nil)
+					// k := item.KeyCopy(nil)
 					// if len(k) < len(q.searchPrefix) {
 					// 	continue
 					// }
 					// if !bytes.HasPrefix(k, eventKey) {
 					// 	continue
 					// }
-					Log.I.S(k)
+					// Log.I.S(k)
 					if v, err = item.ValueCopy(nil); Chk.E(err) {
 						continue
 					}
+					// Log.W.S(v)
 					if r.HasL2 && len(v) == sha256.Size {
 						// this is a stub entry that indicates an L2 needs to be accessed for it, so
 						// we populate only the event.T.ID and return the result, the caller will
@@ -100,19 +106,27 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			if rem, err = ev.UnmarshalBinary(v); Chk.E(err) {
 				return
 			}
+			Log.I.S(ev)
 			if len(rem) > 0 {
 				Log.T.S(rem)
 			}
-			Log.I.S(ev)
+			Log.W.Ln(extraFilter == nil)
+			if extraFilter != nil {
+				Log.W.Ln(extraFilter.Matches(ev))
+			}
+			// Log.I.S(ev)
 			// check if this matches the other filters that were not part of the index
 			if extraFilter == nil || extraFilter.Matches(ev) {
 				// todo: this is getting stuck here and causing a major goroutine leak
-				Log.T.F("sending back result %s", ev)
+				Log.T.F("sending back result\n%s\n", ev)
 				evs = append(evs, ev)
-				f.Limit--
-				if f.Limit==0 {
-					return
-				}			}
+				if limit {
+					f.Limit--
+					if f.Limit == 0 {
+						return
+					}
+				}
+			}
 		}
 	}
 	Log.I.S(evs)
