@@ -46,10 +46,10 @@ type Tracker struct {
 }
 
 func (tr *Tracker) Do(fn func()) {
-	Log.W.Ln("locking tracker")
+	Log.T.Ln("locking tracker")
 	tr.Lock()
 	fn()
-	Log.W.Ln("unlocking tracker")
+	Log.T.Ln("unlocking tracker")
 	tr.Unlock()
 }
 
@@ -172,7 +172,7 @@ func (tr *Tracker) IterateByFilterId(fid filterFingerpint,
 func (tr *Tracker) AddWS(ws WS) {
 	var ok bool
 	if _, ok = tr.WsMap[ws]; !ok {
-		Log.W.Ln("adding submap")
+		Log.T.Ln("adding submap")
 		// allocate a new SubMap for possible incoming subscriptions.
 		tr.WsMap[ws] = SubMap{}
 	}

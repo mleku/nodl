@@ -2,9 +2,10 @@ package ratel
 
 import (
 	"fmt"
-	. "nostr.mleku.dev"
 	"runtime"
 	"strings"
+
+	. "nostr.mleku.dev"
 
 	"util.mleku.dev/atomic"
 	"util.mleku.dev/lol"

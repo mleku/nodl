@@ -20,7 +20,8 @@ import (
 
 func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if ev.Kind.IsEphemeral() {
-		Log.I.F("not saving ephemeral event\n%s", ev.Serialize())
+		Log.T.F("not saving ephemeral event\n%s", ev.Serialize())
+		// send it out
 		return
 	}
 	Log.T.C(func() S {
@@ -96,7 +97,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 	if bin, err = ev.MarshalBinary(bin); Chk.E(err) {
 		return
 	}
-	Log.I.F("saving event to badger %s", ev)
+	Log.T.F("saving event to badger %s", ev)
 	// otherwise, save new event record.
 	if err = r.Update(func(txn *badger.Txn) (err error) {
 		var idx []byte

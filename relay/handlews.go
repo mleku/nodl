@@ -43,12 +43,12 @@ func (rl *T) wsWatcher(ws *ws.Serv, cancel C.F) {
 		case <-rl.Ctx.Done():
 			Log.T.F("relay listener context done, closing websocket %s", ws.Remote())
 			cancel()
-			Log.W.Ln("removing ws")
+			Log.T.Ln("removing ws")
 			rl.RemoveWS(ws)
 			return
 		case <-ws.Ctx.Done():
 			Log.T.Ln("websocket %s context done", ws.Remote())
-			Log.W.Ln("removing ws")
+			Log.T.Ln("removing ws")
 			rl.RemoveWS(ws)
 			return
 		}
@@ -103,7 +103,7 @@ func (rl *T) wsReadMessages(ws *ws.Serv, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
 				return
 			}
-			Log.I.S(env)
+			Log.T.S(env)
 		case closeenvelope.L:
 			env := closeenvelope.New()
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
@@ -115,7 +115,7 @@ func (rl *T) wsReadMessages(ws *ws.Serv, cancel C.F) {
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {
 				return
 			}
-			Log.I.S(env)
+			Log.T.S(env)
 		case eventenvelope.L:
 			env := eventenvelope.NewSubmission()
 			if rem, err = env.UnmarshalJSON(rem); Chk.E(err) {

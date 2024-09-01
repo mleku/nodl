@@ -5,6 +5,8 @@ package keys_test
 import (
 	"bytes"
 	"crypto/sha256"
+	"testing"
+
 	"git.replicatr.dev/eventstore/ratel/keys"
 	"git.replicatr.dev/eventstore/ratel/keys/createdat"
 	"git.replicatr.dev/eventstore/ratel/keys/id"
@@ -12,8 +14,6 @@ import (
 	"git.replicatr.dev/eventstore/ratel/keys/kinder"
 	"git.replicatr.dev/eventstore/ratel/keys/pubkey"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
-	. "nostr.mleku.dev"
-	"testing"
 
 	"ec.mleku.dev/v2/schnorr"
 	"lukechampine.com/frand"
@@ -84,13 +84,11 @@ func TestElement(t *testing.T) {
 				failed = true
 				fallthrough
 			case !bytes.Equal(vpk.Val, vpk2.Val):
-				Log.I.S(vpk, vpk2)
 				t.Logf("failed to decode correctly got %v expected %v", vpk2.Val,
 					vpk.Val)
 				failed = true
 				fallthrough
 			case vca.Val.I64() != vca2.Val.I64():
-				Log.I.S(vca, vca2)
 				t.Logf("failed to decode correctly got %v expected %v", vca2.Val,
 					vca.Val)
 				failed = true

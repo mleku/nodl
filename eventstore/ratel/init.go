@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+
 	"git.replicatr.dev/eventstore/ratel/keys/index"
 	. "nostr.mleku.dev"
 

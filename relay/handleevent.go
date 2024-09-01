@@ -5,6 +5,7 @@ import (
 	"nostr.mleku.dev/codec/envelopes/eventenvelope"
 	"nostr.mleku.dev/codec/envelopes/noticeenvelope"
 	"nostr.mleku.dev/codec/envelopes/okenvelope"
+	"nostr.mleku.dev/codec/filter"
 	"nostr.mleku.dev/protocol/ws"
 	"util.mleku.dev/normalize"
 )
@@ -44,7 +45,7 @@ func (rl *T) handleEvent(ws *ws.Serv, env *eventenvelope.Submission) {
 	}
 	// save event to event store.
 	if err = rl.Store.SaveEvent(rl.Ctx, env.T); Chk.E(err) {
-		// if an error occurred, notify the
+		// if an error occurred, notify the client
 		if err = noticeenvelope.NewFrom(normalize.
 			Error.Message("failed saving event %0x: %s",
 			env.T.EventID(), err.Error())).Write(ws); Chk.E(err) {
@@ -53,5 +54,11 @@ func (rl *T) handleEvent(ws *ws.Serv, env *eventenvelope.Submission) {
 		return
 	}
 	// check if a subscription filter matches
-
+	rl.Tracker.IterateFilters(func(ws WS, sub subId, f *filter.T) {
+		if f.Matches(env.T) {
+			if err = eventenvelope.NewResultWith(sub, env.T).Write(ws); Chk.E(err) {
+				return
+			}
+		}
+	})
 }

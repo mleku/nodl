@@ -2,6 +2,7 @@ package arb
 
 import (
 	"bytes"
+
 	"git.replicatr.dev/eventstore/ratel/keys"
 	. "nostr.mleku.dev"
 )
@@ -31,7 +32,7 @@ func NewFromString(s S) (p *T) { return New([]byte(s)) }
 
 func (p *T) Write(buf *bytes.Buffer) {
 	if len(p.Val) == 0 {
-		Log.W.Ln("empty slice has no effect")
+		Log.T.Ln("empty slice has no effect")
 		return
 	}
 	buf.Write(p.Val)
@@ -39,7 +40,7 @@ func (p *T) Write(buf *bytes.Buffer) {
 
 func (p *T) Read(buf *bytes.Buffer) (el keys.Element) {
 	if len(p.Val) < 1 {
-		Log.W.Ln("empty slice has no effect")
+		Log.T.Ln("empty slice has no effect")
 		return
 	}
 	if _, err := buf.Read(p.Val); Chk.E(err) {

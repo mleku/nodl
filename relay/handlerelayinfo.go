@@ -3,6 +3,7 @@ package relay
 import (
 	"encoding/json"
 	"net/http"
+
 	. "nostr.mleku.dev"
 
 	"nostr.mleku.dev/protocol/relayinfo"
@@ -76,7 +77,7 @@ func (rl *T) HandleRelayInfo(w http.ResponseWriter, r *http.Request) {
 	if b, err = json.Marshal(info); Chk.E(err) {
 		return
 	}
-	Log.I.F("%s", b)
+	Log.T.F("%s", b)
 	if _, err = w.Write(b); Chk.E(err) {
 		return
 	}

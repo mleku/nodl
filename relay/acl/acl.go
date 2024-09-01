@@ -2,9 +2,10 @@ package acl
 
 import (
 	"fmt"
-	. "nostr.mleku.dev"
 	"strconv"
 	"sync"
+
+	. "nostr.mleku.dev"
 
 	"ec.mleku.dev/v2/schnorr"
 	"nostr.mleku.dev/codec/event"
@@ -282,7 +283,7 @@ func (ae *T) FromEvent(ev *event.T) (e *Entry, err error) {
 			if !Equals(replaces, previous.EventID.ByteString(nil)) {
 				// this shouldn't happen because that entry should be the latest
 				// and this event is relay-internal. Log this for forensics.
-				Log.W.Ln("replaces field in event does not match the latest" +
+				Log.D.Ln("replaces field in event does not match the latest" +
 					" in the current ACL")
 			}
 		}

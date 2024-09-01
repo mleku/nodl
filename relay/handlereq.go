@@ -22,7 +22,7 @@ func (rl *T) handleReq(ws *ws.Serv, sub *subscriptionid.T, ff *filters.T) {
 	var evs []*event.T
 	var events event.Ts
 	for i, f := range ff.F {
-		Log.I.F("%d: %s", i, f)
+		Log.T.F("%d: %s", i, f)
 		if evs, err = rl.Store.QueryEvents(rl.Ctx, f); Chk.E(err) {
 			continue
 		}
@@ -36,5 +36,5 @@ func (rl *T) handleReq(ws *ws.Serv, sub *subscriptionid.T, ff *filters.T) {
 	if err = eoseenvelope.NewFrom(sub).Write(ws); Chk.E(err) {
 		return
 	}
-	Log.I.Ln("eose", ff)
+	Log.T.Ln("eose", ff)
 }

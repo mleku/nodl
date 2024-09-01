@@ -3,6 +3,7 @@ package pubkey
 import (
 	"bytes"
 	"fmt"
+
 	"git.replicatr.dev/eventstore/ratel/keys"
 	. "nostr.mleku.dev"
 
@@ -41,7 +42,7 @@ func NewFromBytes(pkb []byte) (p *T, err error) {
 	if len(pkb) != schnorr.PubKeyBytesLen {
 		err = Log.E.Err("provided key not correct length, got %d expected %d",
 			len(pkb), schnorr.PubKeyBytesLen)
-		Log.I.S(pkb)
+		Log.T.S(pkb)
 		return
 	}
 	b := make([]byte, Len)
