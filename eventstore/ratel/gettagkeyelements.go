@@ -1,6 +1,9 @@
 package ratel
 
 import (
+	"strconv"
+	"strings"
+
 	"git.replicatr.dev/eventstore/ratel/keys"
 	"git.replicatr.dev/eventstore/ratel/keys/arb"
 	"git.replicatr.dev/eventstore/ratel/keys/createdat"
@@ -9,8 +12,6 @@ import (
 	"git.replicatr.dev/eventstore/ratel/keys/pubkey"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
 	. "nostr.mleku.dev"
-	"strconv"
-	"strings"
 
 	"ec.mleku.dev/v2/schnorr"
 	"util.mleku.dev/hex"

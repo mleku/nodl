@@ -58,7 +58,7 @@ func PrepareQueries(f *filter.T) (
 				index:        i,
 				queryFilter:  f,
 				searchPrefix: prf,
-				skipTS:       true, // why are we not checking timestamps? (ID has no timestamp)
+				skipTS:       true,
 			}
 		}
 		// Log.T.S("ids", qs)
@@ -111,7 +111,7 @@ func PrepareQueries(f *filter.T) (
 		// determine the size of the queries array by inspecting all tags sizes
 		size := 0
 		for _, values := range f.Tags.T {
-			size += values.Len()
+			size += values.Len() - 1
 		}
 		if size == 0 {
 			return nil, nil, 0, fmt.Errorf("empty tag filters")
@@ -121,15 +121,17 @@ func PrepareQueries(f *filter.T) (
 		// and any kinds mentioned as well in extra filter
 		ext = &filter.T{Kinds: f.Kinds}
 		i := 0
+		Log.I.S(f.Tags.T)
 		for _, values := range f.Tags.T {
-			for _, value := range values.Field {
+			Log.I.S(values.Field)
+			for _, value := range values.Field[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
 				var prf []byte
 				if prf, err = GetTagKeyPrefix(S(value)); Chk.E(err) {
 					continue
 				}
 				// remove the last part to get just the prefix we want here
-				// Log.T.F("search for tags from %0x", prf)
+				Log.T.F("search for tags from %0x", prf)
 				qs[i] = query{index: i, queryFilter: f, searchPrefix: prf}
 				i++
 			}

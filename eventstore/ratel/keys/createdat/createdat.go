@@ -3,6 +3,7 @@ package createdat
 import (
 	"bytes"
 	"encoding/binary"
+
 	"git.replicatr.dev/eventstore/ratel/keys"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
 	. "nostr.mleku.dev"
@@ -41,6 +42,6 @@ func FromKey(k []byte) (p *T) {
 		panic(err)
 	}
 	key := make([]byte, 0, Len)
-	key=append(key, k[len(k)-Len-serial.Len: len(k)-serial.Len]...)
+	key = append(key, k[len(k)-Len-serial.Len:len(k)-serial.Len]...)
 	return &T{Val: timestamp.FromBytes(key)}
 }

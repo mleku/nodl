@@ -51,7 +51,8 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 	}
 	// ~ by tag value + date
 	for i, t := range ev.Tags.T {
-		if len(t.Field) < 2 || // there is no value field
+		// there is no value field
+		if len(t.Field) < 2 ||
 			// the tag is not a-zA-Z probably (this would permit arbitrary other
 			// single byte chars)
 			len(t.Field[0]) != 1 ||
@@ -69,11 +70,6 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 				break
 			}
 		}
-		// firstIndex := slices.IndexFunc(ev.Tags.T,
-		// 	func(ti tag.T) bool {
-		// 		return len(t) >= 2 && len(ti) >= 2 &&
-		// 			ti[1] == t[1]
-		// 	})
 		if firstIndex != i {
 			// duplicate
 			continue
@@ -85,7 +81,7 @@ func GetIndexKeysForEvent(ev *event.T, ser *serial.T) (keyz [][]byte) {
 			return
 		}
 		k := prf.Key(elems...)
-		// Log.T.F("tag '%s': %v key %x", t[0], t[1:], k)
+		Log.T.F("tag '%s': %s key %0x", t.Field[0], t.Field[1:], k)
 		keyz = append(keyz, k)
 	}
 	{ // ~ by date only

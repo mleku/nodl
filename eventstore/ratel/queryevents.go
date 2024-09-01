@@ -40,7 +40,11 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			for it.Seek(q.start); it.ValidForPrefix(q.searchPrefix); it.Next() {
 				item := it.Item()
 				k := item.KeyCopy(nil)
+				Log.I.S(k)
 				if !q.skipTS {
+					if len(k) < createdat.Len+serial.Len {
+						continue
+					}
 					createdAt := createdat.FromKey(k)
 					Log.T.F("%d < %d", createdAt.Val.U64(), since)
 					if createdAt.Val.U64() < since {
@@ -65,14 +69,14 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 				// for it.Rewind(); it.Valid(); it.Next() {
 				for it.Seek(eventKey); it.ValidForPrefix(eventKey); it.Next() {
 					item := it.Item()
-					// k := item.KeyCopy(nil)
+					k := item.KeyCopy(nil)
 					// if len(k) < len(q.searchPrefix) {
 					// 	continue
 					// }
 					// if !bytes.HasPrefix(k, eventKey) {
 					// 	continue
 					// }
-					// Log.I.S(k)
+					Log.I.S(k)
 					if v, err = item.ValueCopy(nil); Chk.E(err) {
 						continue
 					}
@@ -117,7 +121,6 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 			// Log.I.S(ev)
 			// check if this matches the other filters that were not part of the index
 			if extraFilter == nil || extraFilter.Matches(ev) {
-				// todo: this is getting stuck here and causing a major goroutine leak
 				Log.T.F("sending back result\n%s\n", ev)
 				evs = append(evs, ev)
 				if limit {

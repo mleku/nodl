@@ -17,7 +17,9 @@ import (
 // There is 3 types of index tag keys:
 //
 // - TagAddr:   [ 8 ][ 2b Kind ][ 8b Pubkey ][ address/URL ][ 8b Serial ]
+//
 // - Tag32:     [ 7 ][ 8b Pubkey ][ 8b Serial ]
+//
 // - Tag:       [ 6 ][ address/URL ][ 8b Serial ]
 //
 // This function produces the initial bytes without the index.
@@ -46,8 +48,9 @@ func GetTagKeyPrefix(tagValue string) (key []byte, err error) {
 			var a *arb.T
 			a = arb.NewFromString(tagValue)
 			key = index.Tag.Key(a)
+		} else {
+			key = index.Tag.Key()
 		}
-		key = index.Tag.Key()
 	}
 	return
 }
