@@ -2,12 +2,13 @@ package ratel
 
 import (
 	"encoding/binary"
+	"sync"
+	"time"
+
 	"git.replicatr.dev/eventstore"
 	"git.replicatr.dev/eventstore/ratel/keys/index"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
 	. "nostr.mleku.dev"
-	"sync"
-	"time"
 
 	"github.com/dgraph-io/badger/v4"
 	"util.mleku.dev/context"
@@ -36,6 +37,9 @@ type T struct {
 	seq *badger.Sequence
 	// Threads is how many CPU threads we dedicate to concurrent actions, flatten and GC mark
 	Threads int
+	// MaxLimit is a default limit that applies to a query without a limit, to avoid sending out
+	// too many events to a client from a malformed or excessively broad filter.
+	MaxLimit int
 }
 
 var _ eventstore.I = (*T)(nil)
@@ -53,6 +57,7 @@ func GetBackend(
 	hasL2 bool,
 	blockCacheSize int,
 	logLevel int,
+	maxLimit int,
 	params ...int,
 ) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 86, 92, 60
@@ -69,6 +74,10 @@ func GetBackend(
 	case 1:
 		sizeLimit = params[0]
 	}
+	// if unset, assume a safe maximum limit for unlimited filters.
+	if maxLimit == 0 {
+		maxLimit = 512
+	}
 	b = &T{
 		Ctx:            Ctx,
 		WG:             WG,
@@ -79,6 +88,7 @@ func GetBackend(
 		HasL2:          hasL2,
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
+		MaxLimit:       maxLimit,
 	}
 	return
 }

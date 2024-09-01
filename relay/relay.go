@@ -68,7 +68,8 @@ func (rl T) Init(path S) (r *T, err E) {
 	rl.identity = &p256k.Signer{}
 	if err = rl.identity.Generate(); Chk.E(err) {
 	}
-	rl.Store = ratel.GetBackend(rl.Ctx, &rl.WG, false, MaxMessageSize, N(lol.Level.Load()))
+	rl.Store = ratel.GetBackend(rl.Ctx, &rl.WG, false, MaxMessageSize,
+		N(lol.Level.Load()), 0)
 	if err = rl.Store.Init(path); Chk.E(err) {
 		return
 	}

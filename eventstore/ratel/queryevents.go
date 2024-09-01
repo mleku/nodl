@@ -128,6 +128,13 @@ func (r *T) QueryEvents(c Ctx, f *filter.T) (evs []*event.T, err E) {
 					if f.Limit == 0 {
 						return
 					}
+				} else {
+					// if there is no limit, cap it at the MaxLimit, assume this was the intent
+					// or the client is erroneous, if any limit greater is requested this will
+					// be used instead as the previous clause.
+					if len(evs)>r.MaxLimit {
+						return
+					}
 				}
 			}
 		}

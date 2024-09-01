@@ -40,7 +40,9 @@ func PrepareQueries(f *filter.T) (
 	since uint64,
 	err error,
 ) {
-	// since = uint64(math.MaxInt64)
+	if f == nil {
+		err = Errorf.E("filter cannot be nil")
+	}
 	switch {
 	// first if there is IDs, just search for them, this overrides all other filters
 	case len(f.IDs.Field) > 0:
@@ -172,6 +174,11 @@ func PrepareQueries(f *filter.T) (
 		if fs := uint64(*f.Since); fs > since {
 			since = fs
 		}
+	}
+	// if we got an empty filter, we still need a query for scraping the newest
+	if len(qs) == 0 {
+		qs = append(qs, query{index: 0, queryFilter: f, searchPrefix: B{1},
+			start: B{1, 255, 255, 255, 255, 255, 255, 255, 255}})
 	}
 	return
 }
