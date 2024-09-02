@@ -19,7 +19,7 @@ type Relay struct {
 }
 
 func New() *Relay {
-	return &Relay{Profile: DefaultProfile, Listener: DefaultListener}
+	return &Relay{Profile: DefaultProfile, Listener: DefaultListener, Port: DefaultPort}
 }
 
 func (r *Relay) Name() S               { return "BasicRelay" }
