@@ -122,7 +122,7 @@ func (r *T) SaveEvent(c Ctx, ev *event.T) (err E) {
 		if err = txn.Set(counterKey, val); Chk.E(err) {
 			return
 		}
-		Log.T.F("event saved %0x %s", ev.ID, r.Path)
+		Log.T.F("event saved %0x %s", ev.ID, r.dataDir)
 		return
 	}); Chk.E(err) {
 		return

@@ -50,7 +50,7 @@ func (l *logger) Infof(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		Log.I.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		Log.T.F("%s %s:%d", strings.TrimSpace(txt), file, line)
 	}
 }
 
@@ -59,6 +59,6 @@ func (l *logger) Debugf(s string, i ...interface{}) {
 		s = l.Label + ": " + s
 		txt := fmt.Sprintf(s, i...)
 		_, file, line, _ := runtime.Caller(2)
-		Log.D.F("%s %s:%d", strings.TrimSpace(txt), file, line)
+		Log.T.F("%s %s:%d", strings.TrimSpace(txt), file, line)
 	}
 }

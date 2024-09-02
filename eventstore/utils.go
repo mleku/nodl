@@ -2,9 +2,10 @@ package eventstore
 
 import (
 	"bytes"
-	. "nostr.mleku.dev"
 	"strconv"
 	"strings"
+
+	. "nostr.mleku.dev"
 
 	"nostr.mleku.dev/codec/tag"
 	"util.mleku.dev/hex"

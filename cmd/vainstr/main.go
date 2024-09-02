@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	. "nostr.mleku.dev"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	. "nostr.mleku.dev"
 
 	"ec.mleku.dev/v2/bech32"
 	"github.com/alexflint/go-arg"

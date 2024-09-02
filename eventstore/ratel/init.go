@@ -14,27 +14,27 @@ import (
 )
 
 func (r *T) Init(path S) (err E) {
-	r.Path = path
-	Log.I.Ln("opening ratel event store at", r.Path)
-	opts := badger.DefaultOptions(r.Path)
+	r.dataDir = path
+	Log.I.Ln("opening ratel event store at", r.Path())
+	opts := badger.DefaultOptions(r.dataDir)
 	opts.BlockCacheSize = int64(r.BlockCacheSize)
 	opts.BlockSize = units.Mb
 	opts.CompactL0OnClose = true
 	opts.LmaxCompaction = true
-	// opts.Compression = options.None
-	opts.Compression = options.ZSTD
-	r.Logger = NewLogger(r.InitLogLevel, r.Path)
+	opts.Compression = options.None
+	// opts.Compression = options.ZSTD
+	r.Logger = NewLogger(r.InitLogLevel, r.dataDir)
 	opts.Logger = r.Logger
 	if r.DB, err = badger.Open(opts); Chk.E(err) {
 		return err
 	}
-	Log.T.Ln("getting event store sequence index", r.Path)
+	Log.T.Ln("getting event store sequence index", r.dataDir)
 	if r.seq, err = r.DB.GetSequence([]byte("events"), 1000); Chk.E(err) {
 		return err
 	}
-	Log.T.Ln("running migrations", r.Path)
+	Log.T.Ln("running migrations", r.dataDir)
 	if err = r.runMigrations(); Chk.E(err) {
-		return Log.E.Err("error running migrations: %w; %s", err, r.Path)
+		return Log.E.Err("error running migrations: %w; %s", err, r.dataDir)
 	}
 	if r.DBSizeLimit > 0 {
 		// go r.GarbageCollector()

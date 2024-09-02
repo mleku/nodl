@@ -8,16 +8,15 @@ import (
 	"git.replicatr.dev/eventstore"
 	"git.replicatr.dev/eventstore/ratel/keys/index"
 	"git.replicatr.dev/eventstore/ratel/keys/serial"
-	. "nostr.mleku.dev"
-
 	"github.com/dgraph-io/badger/v4"
+	. "nostr.mleku.dev"
 	"util.mleku.dev/context"
 )
 
 type T struct {
-	Ctx  context.T
-	WG   *sync.WaitGroup
-	Path string
+	Ctx     context.T
+	WG      *sync.WaitGroup
+	dataDir string
 	// DBSizeLimit is the number of bytes we want to keep the data store from exceeding.
 	DBSizeLimit int
 	// DBLowWater is the percentage of DBSizeLimit a GC run will reduce the used storage down
@@ -40,6 +39,9 @@ type T struct {
 	// MaxLimit is a default limit that applies to a query without a limit, to avoid sending out
 	// too many events to a client from a malformed or excessively broad filter.
 	MaxLimit int
+	// ActuallyDelete sets whether we actually delete or rewrite deleted entries with a modified
+	// deleted prefix value (8th bit set)
+	ActuallyDelete bool
 }
 
 var _ eventstore.I = (*T)(nil)
@@ -51,15 +53,9 @@ var _ eventstore.I = (*T)(nil)
 //
 // Note that the cancel function for the context needs to be managed by the
 // caller.
-func GetBackend(
-	Ctx context.T,
-	WG *sync.WaitGroup,
-	hasL2 bool,
-	blockCacheSize int,
-	logLevel int,
-	maxLimit int,
-	params ...int,
-) (b *T) {
+func GetBackend(Ctx context.T, WG *sync.WaitGroup, path S, hasL2 bool,
+	blockCacheSize, logLevel,
+	maxLimit int, params ...int) (b *T) {
 	var sizeLimit, lw, hw, freq = 0, 86, 92, 60
 	switch len(params) {
 	case 4:
@@ -89,9 +85,12 @@ func GetBackend(
 		BlockCacheSize: blockCacheSize,
 		InitLogLevel:   logLevel,
 		MaxLimit:       maxLimit,
+		dataDir:        path,
 	}
 	return
 }
+
+func (r *T) Path() S { return r.dataDir }
 
 // SerialKey returns a key used for storing events, and the raw serial counter
 // bytes to copy into index keys.

@@ -6,7 +6,7 @@ import (
 )
 
 func (r *T) Nuke() (err E) {
-	Log.W.F("nukening database at %s", r.Path)
+	Log.W.F("nukening database at %s", r.dataDir)
 	if err = r.DB.DropPrefix([][]byte{
 		{index.Event.B()},
 		{index.CreatedAt.B()},

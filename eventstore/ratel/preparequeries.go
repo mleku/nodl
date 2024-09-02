@@ -123,9 +123,9 @@ func PrepareQueries(f *filter.T) (
 		// and any kinds mentioned as well in extra filter
 		ext = &filter.T{Kinds: f.Kinds}
 		i := 0
-		Log.I.S(f.Tags.T)
+		Log.T.S(f.Tags.T)
 		for _, values := range f.Tags.T {
-			Log.I.S(values.Field)
+			Log.T.S(values.Field)
 			for _, value := range values.Field[1:] {
 				// get key prefix (with full length) and offset where to write the last parts
 				var prf []byte
